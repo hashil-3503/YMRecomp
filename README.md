@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Not playable yet.** This project is an early work in progress. It currently only boots to the title screen — selecting a save slot / progressing past the main menu does not work yet (black screen / crashes).
+
 <h1 align="center">YM</h1>
 
 <h4 align="center">An unofficial static recompilation of Yoshi and the Mysterious Book for Windows & Linux, without emulation.</h4>
