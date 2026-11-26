@@ -200,10 +200,10 @@ class RecompLauncherJsonTests(unittest.TestCase):
         self.assertNotIn("version", prepare)
         self.assertNotIn("timeout", prepare)
 
-    def test_no_repository_it_cannot_read(self):
-        # (RecompLauncher's "repo" is a GitHub owner/name, and Longshot's releases are on git.magicbean.dev: none is named)
+    def test_repository_is_this_forks_github_release(self):
+        # (RecompLauncher's "repo" is a GitHub owner/name: this fork's releases are GitHub releases of YMRecomp)
         manifest = json.loads((ROOT / "recomplauncher.json").read_text(encoding="utf-8"))
-        self.assertNotIn("repo", manifest)
+        self.assertEqual(manifest["repo"], "hashil-3503/YMRecomp")
 
 
 if __name__ == "__main__":

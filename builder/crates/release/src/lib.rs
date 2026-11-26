@@ -28,7 +28,7 @@ pub use versions::Channel;
 /// daily check). Set false to bring the forge client back.
 pub const PUBLISHES_NO_RELEASES: bool = true;
 /// What `fetch` and `self-update` say while [`PUBLISHES_NO_RELEASES`].
-pub const NO_RELEASES_TEXT: &str = "this fork publishes no releases: build from source, see README";
+pub const NO_RELEASES_TEXT: &str = "self-update is off in this fork: update through RecompLauncher or a new GitHub release";
 
 use std::path::Path;
 use std::sync::Arc;
