@@ -1,4 +1,4 @@
-// (YM) The steps of a start that a crash in the driver would repeat at every start, each with a file beside the notes that
+// (longshot) The steps of a start that a crash in the driver would repeat at every start, each with a file beside the notes that
 // says it began and has not ended: the stage libraries' (YM_prepared.bin.warming), the predicted pipelines'
 // (YM_pipelines.bin.predicting), the warm into the pipeline cache's (YM_pipelines.bin.built.warming) and the
 // precompile's (YM_pipelines.bin.running), vk_draw.cpp. The next start reads it and, after one or two starts that ended

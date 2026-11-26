@@ -150,7 +150,7 @@ def main():
     tab, name, lo, hi, step, text, hint, restart, exempt = row.groups()
     assert (tab, lo, hi, step, text, hint, restart, exempt) == \
         ("AUDIO", "0", "3", "1", "tx_audio_output", "hn_audio_output", "true", "true"), row.groups()
-    host = between(audio, "/* (YM) The Insert menu's Audio output", "/* The device's format,")
+    host = between(audio, "/* (longshot) The Insert menu's Audio output", "/* The device's format,")
     hints = re.search(r'MODULE_HINTS\(hn_audio_output,.*?\)\n(?=\S)', module, re.S)
     assert hints, "no MODULE_HINTS(hn_audio_output, ...)"
     restart = re.search(r'^int speaker_restart_value\(int v\) \{.*\}\n', module, re.M)
@@ -159,7 +159,7 @@ def main():
     menu_part = HINT_HELPERS + \
         hints.group(0).replace("MODULE_HINTS(", "MENU_HINTS(") + restart.group(0) + \
         between(module, "const char* tx_audio_output(int v) {", "void refresh_outputs() {") + \
-        between(menu, "const char* ini_key(const Row& r) {", "// (YM) the controls, kept by the host")
+        between(menu, "const char* ini_key(const Row& r) {", "// (longshot) the controls, kept by the host")
     menu_part += output_engine(ROOT, "/// The choice of size w x h:")   # (the output module's, #1633)
     menu_part += between(menu, "int row_restart_value(const Row& r) {", "void restart_init() {")
     assert "restart_state.add(row_restart_value(rows[i]))" in menu

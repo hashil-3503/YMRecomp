@@ -1,4 +1,4 @@
-// (YM) The mesh fallback programs a start has in memory already when it reads the rest in for their compute pipelines
+// (longshot) The mesh fallback programs a start has in memory already when it reads the rest in for their compute pipelines
 // (vk_progcache.cpp program_cache_load_some, for vk_draw.cpp precompile_run and precompile_at_create).
 // tests/test_fallback_loaded.py
 //

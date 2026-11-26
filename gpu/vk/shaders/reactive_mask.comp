@@ -1,5 +1,5 @@
 #version 450
-// (YM) The temporal upscalers' reactive mask (vk_reactive.cpp): how much of each pixel of the scene was blended over
+// (longshot) The temporal upscalers' reactive mask (vk_reactive.cpp): how much of each pixel of the scene was blended over
 // it after its opaque draws. `opaque` is the scene's colour as it was copied before the transparent draws, `scene` the same
 // target now: where they differ, something without depth or motion of its own was drawn (reactive_policy.h). Both are
 // compared as the eye sees them (Reinhard, so a bright glow over a bright sky counts as little as it shows), and the

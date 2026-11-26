@@ -8,7 +8,8 @@ copy of the game**.
 
 YM is a fork of [Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot) (itself a continuation of
 [Hookshot](https://github.com/NotRexed/Hookshot)), retargeted from Ocarina of Time to Yoshi and the Mysterious Book
-and renamed. It is a work in progress: the title screen, its video and audio run; gameplay is not yet checked.
+and renamed; it was forked from Longshot's `main` of 2026-11-25 and modified since. Comments marked `(longshot)`
+are Longshot's changes, `(YM)` this fork's. It is a work in progress: the title screen, its video and audio run; gameplay is not yet checked.
 
 > [!IMPORTANT]
 > This repository **does not contain the game, keys or an executable**, and it does not explain how to get them. You

@@ -75,7 +75,7 @@ void hos_setjmp_return(Ctx *c, uint64_t target);   /* hos_setjmp.c: a longjmp's 
 int a64_call_miss(Ctx *c, uint64_t target) {
     hos_setjmp_return(c, target);   /* (YM; does not return when it is one) */
     if (!target) {
-        /* (YM) a callback table entry zeroed at run time: OoT's UpdateTextBoxTextureThread reaches its text release trampoline
+        /* (longshot) a callback table entry zeroed at run time: OoT's UpdateTextBoxTextureThread reaches its text release trampoline
            with a null function pointer at the same cutscene point every session. 0 is never a real function; returning 1 turns the
            tail call into a plain return. chrispository, YM PR 55 */
         static volatile LONG logged;

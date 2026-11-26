@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
 """
 
 START_SUBMIT = "bool submit_retry_on() {"
-END_SUBMIT = "// ---- (YM) recordings by number"
+END_SUBMIT = "// ---- (longshot) recordings by number"
 
 
 def compile_and_run(cxx, source, temp, name, runs, includes=()):

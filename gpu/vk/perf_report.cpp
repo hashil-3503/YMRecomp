@@ -1,4 +1,4 @@
-// (YM) The performance summary (perf_report.h): on only when the launcher's "Send performance statistics" tick wrote
+// (longshot) The performance summary (perf_report.h): on only when the launcher's "Send performance statistics" tick wrote
 // send=1 to the game folder's YM_perf.ini. Then the FPS counter's Breakdown measures every frame whatever level the
 // counter shows (vk_fps.h fps_breakdown_on), and each frame is added here, on the thread that presents, to its map's totals:
 // a bucket, a few sums and the renderer's counters read since the frame before. No allocation, no file and no lookup a

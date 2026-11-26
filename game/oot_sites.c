@@ -1,4 +1,4 @@
-/* (YM) The engine's callbacks at the game's hook sites (game/sites/sites.toml, game/sites.def), where the
+/* (longshot) The engine's callbacks at the game's hook sites (game/sites/sites.toml, game/sites.def), where the
    feature itself lives in another file: each is what the old builder's text patch it replaced put at that place,
    with the answer the site's form reads (docs/dev/reference/hooks.md). */
 #include "game_host.h"   /* (what the host gives the game: host/game_host.h) */

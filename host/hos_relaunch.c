@@ -1,4 +1,4 @@
-/* (YM) The Insert menu's Restart now (gpu/vk/vk_menu.cpp): it saves its options and asks the window to close for a
+/* (longshot) The Insert menu's Restart now (gpu/vk/vk_menu.cpp): it saves its options and asks the window to close for a
    restart (WM_APP + 9: host/display.c, host/posix/display_sdl.c). The window closes as when the player closes it, and at
    the very end of that, instead of only exiting, the game is started again:
      Linux: the process becomes the game again (execve) with the arguments and the environment it started with
@@ -186,14 +186,14 @@ static void relaunch(void) {
 void hos_close_finish(void) {
     void hos_input_movie_close(void);   /* (input_movie.c: an input recording's last run, and a playback's count) */
     hos_input_movie_close();
-    void hos_pad_speaker_shutdown(void);   /* (YM) host/pad_speaker.c: the DualSense's sound goes back to its jack */
+    void hos_pad_speaker_shutdown(void);   /* (longshot) host/pad_speaker.c: the DualSense's sound goes back to its jack */
     hos_pad_speaker_shutdown();
     void hos_fs_wait_writes(void);   /* (nn_fs.c: a file the game is writing, up to 3 s) */
     hos_fs_wait_writes();
     void hos_sdl_vibration_shutdown(void);
     hos_sdl_vibration_shutdown();
     hos_log("stop: close work done (a file the game was writing waited for, at most 3 s)");
-    hos_ab_end();   /* (YM) HOS_AB: the sides' sums in the log (host/hos_ab.c) */
+    hos_ab_end();   /* (longshot) HOS_AB: the sides' sums in the log (host/hos_ab.c) */
     hos_log_flush();
     void hos_crash_clean_end(void);
     hos_crash_clean_end();

@@ -1,4 +1,4 @@
-/* (YM) The neighbouring map the OptimizeChangeBank thread preloads, kept while the game's choice only flickers.
+/* (longshot) The neighbouring map the OptimizeChangeBank thread preloads, kept while the game's choice only flickers.
    The hook site preload.choice (game/sites/sites.toml, game/oot_sites.c) hooks the place; game/oot_ocb_hold.c holds
    the state and reads the switch.
 

@@ -1,4 +1,4 @@
-// (YM) Linux side of perf_os.h: posix_spawn with every child stream at /dev/null, waited for off the frame path.
+// (longshot) Linux side of perf_os.h: posix_spawn with every child stream at /dev/null, waited for off the frame path.
 #ifndef _WIN32
 
 #include "perf_os.h"

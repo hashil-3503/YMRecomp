@@ -1,4 +1,4 @@
-/* (YM) The game's memory kept in RAM: a working-set minimum (HOS_WS_FLOOR_MB), Windows only.
+/* (longshot) The game's memory kept in RAM: a working-set minimum (HOS_WS_FLOOR_MB), Windows only.
 
    When the PC runs short of memory, Windows trims the processes' working sets, and of each it keeps at least its minimum: a few
    hundred KB unless the process asks for more. A player's session with other programs open had the game trimmed to about

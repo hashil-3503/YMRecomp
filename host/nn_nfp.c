@@ -1,4 +1,4 @@
-/* (YM) nn::nfp, the console's NFC tag library, on a library of the player's own tag dumps.
+/* (longshot) nn::nfp, the console's NFC tag library, on a library of the player's own tag dumps.
  *
  * The game asks for an NFC tag with StartDetection, polls GetDeviceState until a tag is found, mounts it and reads what it
  * wants (GetTagInfo, GetModelInfo, the application area), then StopDetection. Here the reader is a pretended one: the tags

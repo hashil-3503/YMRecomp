@@ -1,4 +1,4 @@
-/* (YM) The Tracy profiler's zones, for the host (C) and the Vulkan back end (C++): docs/dev/reference/profiling.md, Tracy.
+/* (longshot) The Tracy profiler's zones, for the host (C) and the Vulkan back end (C++): docs/dev/reference/profiling.md, Tracy.
 
    A build made with YM_TRACY=1 (builder/crates/build-compile) defines TRACY_ENABLE: Tracy's client (third_party/tracy) is compiled
    into the game's executable alone, which exports its C API; the back end's module calls the same client through it, so

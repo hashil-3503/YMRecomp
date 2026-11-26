@@ -258,7 +258,7 @@ def source_cuts():
     return "\n".join([
         between(host, "enum { FPS_UNCAPPED", "static int64_t next_frame_at"),
         block(host, "static DWORD WINAPI vsync_main("),
-        between(host, "static volatile int present_interval", "/* (YM) The frame rate cap"),
+        between(host, "static volatile int present_interval", "/* (longshot) The frame rate cap"),
         "[[maybe_unused]] " + between(host, "static int64_t next_frame_at", "static volatile LONG64 presents;"),
         block(host, "int hos_vi_native_interval("),
         between(host, "static int64_t shown_at", "/* (mkw-recomp) MKW's frame pacer"),

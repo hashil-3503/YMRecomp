@@ -1,4 +1,4 @@
-/* (YM) The hook sites' host side (builder/crates/sites, docs/dev/reference/hooks.md).
+/* (longshot) The hook sites' host side (builder/crates/sites, docs/dev/reference/hooks.md).
 
    Callback sites: for each site of game/sites.def a flag byte and a callback slot, which the hook the lift emits at
    the site reads:

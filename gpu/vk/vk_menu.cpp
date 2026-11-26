@@ -2,16 +2,16 @@
 // game's style: vk_ui.h), so it costs nothing while closed and it never touches the game's picture, nor what frame interpolation
 // sees. The FPS counter and the start-up screen are drawn the same way. F1 always opens and closes it, Insert too by default.
 // Up and Down choose, Left and Right change, Esc closes; the game gets no keyboard input while it is open.
-// (YM) A gamepad's Home button, or Select and Start together, opens it too; the D-pad chooses and changes, the button
+// (longshot) A gamepad's Home button, or Select and Start together, opens it too; the D-pad chooses and changes, the button
 // the Switch's A is bound to changes too (and opens a page), the one B is bound to goes back (vk_menu_keys.h). The game gets no gamepad input while it is open either.
 // Its Controls page binds the Switch's buttons to gamepad inputs and keys.
-// (YM) The mouse is free while it is open (the window lets it go: WM_APP + 8, host/display.c and
+// (longshot) The mouse is free while it is open (the window lets it go: WM_APP + 8, host/display.c and
 // host/posix/display_sdl.c): the row under the cursor is selected, a click on a tab shows it, on a value's left or right
 // half changes it down or up, on a toggle flips it, on a slider's track sets it (or drag it); the wheel scrolls the rows
 // (never a value, wherever the cursor is); a right click is Esc. On the Cheats page and its lists a click is Enter (on a
 // choice's or an amount's left or right half, Left or Right) and a right click goes back. The drawing records each control's
 // place and the mouse is tested against that (vk_menu_hit.h).
-// (YM) The rows that take a restart (Row::restart) are tagged "After restart" while their value is not the one the game
+// (longshot) The rows that take a restart (Row::restart) are tagged "After restart" while their value is not the one the game
 // started with, and the Graphics tab's help lists them. Closing the menu then asks whether to restart now (menu_restart.h):
 // Later keeps the saved settings for the next start and is not asked again until they change; Restart now saves and
 // closes the window as the player would, and the game starts again (WM_APP + 9: host/hos_relaunch.c).
@@ -161,7 +161,7 @@ const char* hn_hdr(int v, int variant) {
     if (variant >= 0) return variant < reasons ? t[variant] : nullptr;
     return v && dev.hdr_sdr_why != hdr_sdr_none ? t[std::clamp((int)dev.hdr_sdr_why, 1, reasons) - 1] : nullptr;
 }
-// (YM) Motion controls: the choice, and whether a connected controller has a gyroscope (host/pad_sdl.c). Either can be
+// (longshot) Motion controls: the choice, and whether a connected controller has a gyroscope (host/pad_sdl.c). Either can be
 // chosen whatever is connected: a pad plugged in later is read when it comes
 const char* tx_gyro(int v) {
     const int status = host && host->gyro_status ? host->gyro_status() : -1;
@@ -230,8 +230,8 @@ bool row_fixed(const int* value) {
            (value == &opts.framegen_by && framegen_by_fixed()) ||   // (its line says why)
            (value == &opts.hud_layout && getenv("HOS_WIDE_UI") && *getenv("HOS_WIDE_UI"));   // (game/hos_wide_ui.c's, first)
 }
-// (YM) Walk mode: how the Walk key (the Controls page) makes Link walk with the movement keys (host/nn_hid.c walk_held)
-// (YM) Menu size: how large the overlays are drawn (vk_ui.h unit), Medium unless the player chooses Small or Large. It
+// (longshot) Walk mode: how the Walk key (the Controls page) makes Link walk with the movement keys (host/nn_hid.c walk_held)
+// (longshot) Menu size: how large the overlays are drawn (vk_ui.h unit), Medium unless the player chooses Small or Large. It
 // was Auto by default, Large in fullscreen at 1080 lines and up while a controller opened the menu: the menu changed size with
 // the input that opened it, and the version in its banner no longer fitted. An options file's menu_size=0 (that Auto): Medium
 constexpr float kVersionMinPt = 10;   // (the banner's version at Small and Medium: shrunk to fit, no smaller than this, in points)
@@ -240,7 +240,7 @@ int pad_confirm = 0, pad_back = 1;   // (the face buttons that confirm and go ba
 int pad_paste = 3;   // (YM: the one that pastes into a text field while it has the keyboard: menu_keys::paste)
 std::string gpu_saved_card;           // (the GPU device row's card as the options file saved it, gpu_device_id=: gpu_choice.h)
 bool gpu_card_missing = false;        // (that card is not among this run's GPUs: menu_set_gpu_count)
-/// (YM) Who made the made frames lately (vk_framegen.cpp framegen_maker), with Frame generation on; nullptr: none made.
+/// (longshot) Who made the made frames lately (vk_framegen.cpp framegen_maker), with Frame generation on; nullptr: none made.
 /// One name each, "<engine> FG", on the Frame generation by row and the FPS counter alike; "DLSS FG paused" where DLSS FG
 /// showed the game's frames alone (the game's own menus: vk_dlss.cpp dlss_fg_holds)
 const char* framegen_maker_name() {
@@ -260,7 +260,7 @@ const char* vsync_env() {
     return nullptr;
 }
 
-// ---- (YM) text fields: rows whose value is typed (MkwVkHost.take_text: WM_CHAR on Windows, SDL's text input on Linux;
+// ---- (longshot) text fields: rows whose value is typed (MkwVkHost.take_text: WM_CHAR on Windows, SDL's text input on Linux;
 // RX_VK_MENU_SCRIPT's TYPE). A field holds printable ASCII alone, as the menu's glyphs are baked for it (vk_imgui.cpp
 // bake_some): full-width digits and x are folded to ASCII, other characters are left out, and allow() can take fewer.
 // While editing (menu_tick), keys type into the field only: Left, Right, Home and End move the caret, Backspace and
@@ -777,7 +777,7 @@ const char* cheat_button_text(int i) {
 }
 
 int ultrawide_read = 1;   // (ultrawide= as read: saved again while HOS_OUTPUT_RES holds the Output resolution and the row is as it was)
-/// (YM) The Aspect ratio and Output resolution rows' ends from the screen's sizes and the player's own (known once the
+/// (longshot) The Aspect ratio and Output resolution rows' ends from the screen's sizes and the player's own (known once the
 /// options and HOS_OUTPUT_RES are read), and the Aspect ratio of the size chosen: a size of a shape of its own is that shape,
 /// a 16:9 one is the monitor's shape or 16:9, as ultrawide= says (menu_init, before restart_init: what the run starts with)
 void outputs_sync() {
@@ -825,7 +825,7 @@ int mods_slot = -1;   // (hookshot: the Mods tab's slot in restart_state: its or
 bool can_mods();      // (the Mods tab, below: whether the host has mods' functions)
 int restart_slot[kMaxRows];          // (a row's slot in restart_state, -1 none)
 const char* restart_names[mr::kMax];
-/// (YM) A row's value as a restart compares it: the Output resolution's size itself, so another size of the player's own
+/// (longshot) A row's value as a restart compares it: the Output resolution's size itself, so another size of the player's own
 /// (Custom output size), on the same choice, is a change too. Mono and Stereo share a channel layout and change live.
 int row_restart_value(const Row& r) {
     if (r.setting && r.setting->restart_value) return r.setting->restart_value(*r.value);   // (#1633: a module's row's own)
@@ -892,7 +892,7 @@ std::mutex options_save_mu;
 bool row_shown(int i) {
     const int* v = rows[i].value;
     return ((rows[i].cheat < 0 && v != &opts.damage_taken) || cheats_on()) &&
-           // (YM) who makes the frames only with Frame generation on; the CRT raster only with a CRT filter
+           // (longshot) who makes the frames only with Frame generation on; the CRT raster only with a CRT filter
            (v != &opts.framegen_by || opts.framegen != 0) &&
            // (#1633) a module's row: its own shown()
            (!rows[i].setting || !rows[i].setting->shown || rows[i].setting->shown());
@@ -923,7 +923,7 @@ bool menu_refresh = false;
 int marquee_pos = 0, marquee_max = 0;
 int64_t marquee_next = 0;
 constexpr int64_t kMarqueeStep = 150000000LL, kMarqueeRest = 1200000000LL;   // (ns)
-// (YM) the mouse (menu_tick): the tab strip's part under the cursor and the slider held with the left button.
+// (longshot) the mouse (menu_tick): the tab strip's part under the cursor and the slider held with the left button.
 // The drag holds a global row identity; its tab and visible index also identify the hit map used when it began.
 int hover_tab = -1;
 menu_hit::DragState drag_state;
@@ -956,7 +956,7 @@ bool stops_at_ends(const Row& r) { return r.setting && ((r.setting->kind == menu
 /// (the ini's Vibration strength, rumble_strength=, on the menu's steps: 25 to 200, the nearest 25. 0 was Off before the
 /// Vibration row, which menu_init turns into Vibration Off)
 int rumble_step(int v) { return (std::min(std::max(v, 25), 200) + 12) / 25 * 25; }
-// (YM) A run's environment over a saved row (RX_VK_PACE=1, HOS_OUTPUT_RES=...): for that run only. save() writes the
+// (longshot) A run's environment over a saved row (RX_VK_PACE=1, HOS_OUTPUT_RES=...): for that run only. save() writes the
 // player's own value while the row still holds the environment's; once the player changes the row, theirs is kept. (These
 // were copied into the row and the next save wrote them into YM_options.ini, so a test run's switch stayed for good)
 struct EnvOverride {
@@ -1019,7 +1019,7 @@ const char* ini_key(const Row& r) {
     if (r.value == &opts.dlss_pre_bloom) return "dlss_pre_bloom";   // (as RX_VK_DLSS_PRE_BLOOM)
     if (r.value == &opts.handheld) return "handheld_profile";   // (the Profile row; host/nn_applet.c reads it at the start)
     if (r.value == &opts.ultrawide) return "ultrawide";   // (the Aspect ratio row; host/hos_main.c reads it at the start)
-    // (YM) Vibration (host/vibration.h), and its strength under the key it had as Rumble strength
+    // (longshot) Vibration (host/vibration.h), and its strength under the key it had as Rumble strength
     if (r.value == &opts.vibration) return "vibration";
     if (r.value == &opts.rumble) return "rumble_strength";
     static char k[48];
@@ -1028,7 +1028,7 @@ const char* ini_key(const Row& r) {
     k[n] = 0;
     return k;
 }
-// (YM) the controls, kept by the host (host/nn_hid.c reads them back from here): pad_<button>, key_<button>
+// (longshot) the controls, kept by the host (host/nn_hid.c reads them back from here): pad_<button>, key_<button>
 const char* const bind_names[HOS_KEY_N] = {"a", "b", "x", "y", "ls", "rs", "l", "r", "zl", "zr", "plus", "minus",
                                            "left", "up", "right", "down", "move_up", "move_down", "move_left",
                                            "move_right", "cam_up", "cam_down", "cam_left", "cam_right",
@@ -1038,7 +1038,7 @@ bool toggle_on(int button);   // (the Controls page's Toggle column: below, with
 void save() {
     // (one writer at a time: the present's thread, the game's (menu_option_set) and the control bridge's, menu_setting_set)
     std::lock_guard lk(options_save_mu);
-    // (YM) the lines that are not the menu's are kept: the controls, pad_ and key_ (host/nn_hid.c), and their toggle_ flags
+    // (longshot) the lines that are not the menu's are kept: the controls, pad_ and key_ (host/nn_hid.c), and their toggle_ flags
     // (and every other line the menu does not write, such as discord_app_id=: they were dropped at the next save)
     std::string kept, others;
     if (FILE* f = fopen(ini_path().c_str(), "r")) {
@@ -1216,7 +1216,7 @@ void save() {
     if (!failed.empty()) say_once(4, path + " could not be written in place (" + failed + ")");
 }
 
-/// (YM) The Button prompts row: a new face shows at once where the game has every part of the prompts from
+/// (longshot) The Button prompts row: a new face shows at once where the game has every part of the prompts from
 /// host/prompts.c, nothing to restart for then; else, as the other restart rows, at the next start
 void prompts_at_once(const Row& r) {
     if (r.value == &opts.prompts && host && host->prompts_live &&
@@ -1225,11 +1225,11 @@ void prompts_at_once(const Row& r) {
 }
 
 
-// ---- (YM) Save my pipeline list (the Debug tab, under Developer): YM_pipeline_states.bin and the "Submit your pipelines" issue's
+// ---- (longshot) Save my pipeline list (the Debug tab, under Developer): YM_pipeline_states.bin and the "Submit your pipelines" issue's
 // template, filled in from this run, zipped into the Downloads folder (pipeline_share.h; the builders do the same with
 // YM-builder share). Then the report on the clipboard, the folder shown and the issue opened in the browser, where the platform
 // has them; never with HOS_HEADLESS (no screen to show them on). Nothing is uploaded: the player attaches the zip ----
-// (YM) Set up for a weak laptop (the Debug tab, integrated graphics: row_shown): Minimum's rows and mip trimming, then
+// (longshot) Set up for a weak laptop (the Debug tab, integrated graphics: row_shown): Minimum's rows and mip trimming, then
 // lighter still. An i3-1115G4's UHD Graphics (2 cores, 4 threads, 16 GB shared) ran Kokiri Forest and the Deku Tree at 3-6 fps
 // with 120-200 ms of GPU time a frame on the game's own dynamic resolution, docked at 2048 x 1152
 } // namespace   // (#1633: asked by the modules too, menu_module.h's "what modules ask the renderer")
@@ -1296,7 +1296,7 @@ void set_row(Row& r, int v, int dir, bool keep = true) {
         v = step_output_choice(*r.value, dir);
         if (v == *r.value || (keep && request_native_preview(picture_for(v)))) return;
     }
-    // (YM) Frame generation by where DLSS FG cannot run: FSR 3.1 FG (0; a 2 is the same) and Built-in FG (1)
+    // (longshot) Frame generation by where DLSS FG cannot run: FSR 3.1 FG (0; a 2 is the same) and Built-in FG (1)
     if (r.value == &opts.framegen_by && !framegen_by_dlss_offered()) v = (v % 2 + 2) % 2;
     if (stops_at_ends(r)) v = std::min(std::max(v, r.lo), r.hi);   // (a scale: it stops at its ends)
     if (r.value == &opts.preset) {
@@ -1324,7 +1324,7 @@ void set_row(Row& r, int v, int dir, bool keep = true) {
     if (r.value == &opts.dlss || r.value == &opts.resolution || r.value == &opts.dlss_model ||
         (r.value != &opts.preset && (opts.dlss != prev_dlss || opts.resolution != prev_res)))
         temporal_reset_failure();
-    prompts_at_once(r);   // (YM)
+    prompts_at_once(r);   // (longshot)
     {   // (a row that takes a restart, or a preset that sets one: asked again at the next close)
         int now[mr::kMax];
         restart_values(now);
@@ -1445,7 +1445,7 @@ static void unavailable_native_preview() {
     menu_refresh = true;
 }
 
-// ---- (YM) the rows that are text fields (text_edit): their fields, what Enter on each sets, the one being edited ----
+// ---- (longshot) the rows that are text fields (text_edit): their fields, what Enter on each sets, the one being edited ----
 /// Custom output size: the Output resolution's size of the player's own (custom_output), typed, as output_res= in
 /// YM_options.ini sets it (parse_output: the same rules)
 bool output_size_char(char c) { return (c >= '0' && c <= '9') || c == 'x' || c == 'X'; }
@@ -1566,7 +1566,7 @@ void edit_end(bool done) {
     editing = nullptr, edit_apply = nullptr;
 }
 
-// ---- (YM) the Controls page: what presses each of the Switch's buttons, a gamepad input and up to two keys ----
+// ---- (longshot) the Controls page: what presses each of the Switch's buttons, a gamepad input and up to two keys ----
 struct Control {
     int button;   // HOS_SW_*, or HOS_KEY_* (the stick's and camera's: keys only)
     const char* name;
@@ -2113,7 +2113,7 @@ void mic_help_meter(ui::Ctx& c, ImVec2 a, ImVec2 b) {
     slider_cell(c, a, b, label.c_str(), std::clamp(mic_levels[1], 0, 1000), false, &unused0, &unused1, false);
     if (!status.empty()) ui::para(c, c.f.body, 16 * c.s, ImVec2(a.x, b.y + 8 * c.s), ui::kSoft, status.c_str(), b.x - a.x);
 }
-/// (YM) A text field's value cell: its text from the left (cut with "..." when too long); empty, the placeholder, dim.
+/// (longshot) A text field's value cell: its text from the left (cut with "..." when too long); empty, the placeholder, dim.
 /// While it has the keyboard (typing): light text on the dark cell inside a gold frame, a steady caret at its place, the text slid
 /// left to keep the caret in view
 void text_cell(ui::Ctx& c, ImVec2 a, ImVec2 b, const TextField& f, bool sel, bool typing, const char* placeholder) {
@@ -2159,7 +2159,7 @@ std::string restart_line(ui::Ctx& c, float px, float width) {
     return line;
 }
 
-/// (YM) The Debug tab's order: the tools' rows by their group (Row::cheat), Up and Down walking them so; Inventory item
+/// (longshot) The Debug tab's order: the tools' rows by their group (Row::cheat), Up and Down walking them so; Inventory item
 /// and Change quantity are not shown (the Inventory page edits every amount)
 struct DebugGroup { const char* title; int from, to; };   // (debug_tools_order[from, to))
 // (-1 is the saved Damage taken option, not a cheat action: beside Heart protection in Player)
@@ -2210,7 +2210,7 @@ int debug_step(int sel, int dir) {
     if (at == n) return order[0];
     return order[(at + n + dir) % n];
 }
-/// (YM) The Debug tab's rows from top down to bottom, sel selected: Debug tools across the top; the tools under their
+/// (longshot) The Debug tab's rows from top down to bottom, sel selected: Debug tools across the top; the tools under their
 /// headings, Player in the first column and Travel and Camera & world in the second when two fit (else one under another);
 /// the Developer rows across the foot. Each value cell a column's width, so their edges line up. The hits are the tab's row
 /// numbers, as the list's: menu_tick's clicks and keys are the other tabs'
@@ -2365,7 +2365,7 @@ int report_default(const Row& r, int fixed) {
     if (r.value == &opts.framegen_by && framegen_by_fixed()) return *r.value;
     return fixed;
 }
-// (YM) the Gameplay tab's Bug report: the rows not at their defaults, as the menu shows them, for its "Changes from the
+// (longshot) the Gameplay tab's Bug report: the rows not at their defaults, as the menu shows them, for its "Changes from the
 // defaults"
 std::string changed_rows_text(std::string& pc_options) {
     static const Options defaults{};
@@ -3898,7 +3898,7 @@ void draw_fps(ui::Ctx& c, bool under_banner) {
     }
     c.d->PopClipRect();
     if (!parts) return;
-    // (YM) the render thread's lane: its frame in ms on the frame graph's scale (its own height), the work and the waits
+    // (longshot) the render thread's lane: its frame in ms on the frame graph's scale (its own height), the work and the waits
     // stacked and idle left empty, so a column's height is what the render thread spent of the frame; the cap's line and the
     // top's value beside it, as the frame graph's
     const float lane_gap = 6 * s, rh = rt_lane ? 30 * s : 0;
@@ -4172,7 +4172,7 @@ void menu_input_play_file(int index) { input_play(1, index); }
 
 void startup_fade_to(float f) { startup_fade.store(f, std::memory_order_relaxed); }
 
-// (YM) The Upscaler row's one-time questions: NVIDIA's NGX started (dlss_probe), AMD's FSR 4 loaded
+// (longshot) The Upscaler row's one-time questions: NVIDIA's NGX started (dlss_probe), AMD's FSR 4 loaded
 // (fsr4_probe), Intel's XeSS context made once (xess_probe), FSR 3.1's GPU check. Asked at the menu's first open, on the
 // frame's thread, NGX's start alone holds that frame about 3 s: the game stands still and its sound runs on, out of
 // step with a cutscene. So they are asked once on a thread of their own while the start-up screen shows, where nobody waits on
@@ -4262,7 +4262,7 @@ void menu_init() {
                         toggle_set(i, end != eq + 1 && !*end && value == 1);
                     }
             has_resolution |= !strcmp(line, "resolution");
-            has_vibration |= !strcmp(line, "vibration");   // (YM)
+            has_vibration |= !strcmp(line, "vibration");   // (longshot)
             has_output |= !strcmp(line, "output_res");
             v2 |= !strcmp(line, "options_version");
             if (!strcmp(line, "options_version")) version = atoi(eq + 1);
@@ -4299,7 +4299,7 @@ void menu_init() {
         }
         if (!has_resolution && old_dynres >= 0) opts.resolution = old_dynres ? 0 : 1;
         if (menu_auto) opts.menu_size = 2;
-        // (YM) Rumble strength's Off, from before the Vibration row: Vibration Off, at the strength it had by default
+        // (longshot) Rumble strength's Off, from before the Vibration row: Vibration Off, at the strength it had by default
         if (!has_vibration && opts.rumble <= 0) opts.vibration = 2, opts.rumble = 100;
         opts.vibration = std::min(std::max(opts.vibration, 0), 2);
         opts.rumble = rumble_step(opts.rumble);   // (a hand-edited 60: 50, on the arrows' steps)
@@ -4386,7 +4386,7 @@ void menu_init() {
     restart_init();   // (what this run started with: the rows that take a restart differ from it once changed)
 }
 
-/// (YM) The Quality preset "Auto (this PC)", once the card is chosen (vk_main.cpp pick_device): the profile auto_settings.h
+/// (longshot) The Quality preset "Auto (this PC)", once the card is chosen (vk_main.cpp pick_device): the profile auto_settings.h
 /// picks from the hardware. A first start (no options file yet) starts on it. With Auto on, the profile is applied when the
 /// hardware it was chosen for changes (another card, its memory, the screen's size, a build with or without DLSS or FSR 4):
 /// the fingerprint is kept in the options file (auto_for=). Changing a row yourself comes back to Custom, and then nothing here
@@ -4434,7 +4434,7 @@ void menu_auto_for_gpu(const VkPhysicalDeviceProperties& props, ::auto_settings:
 
 // (the switches read once, at the first present: they are for the whole run, and each present asked twice)
 int menu_vsync() { static const int run = env_on("RX_VK_FIFO") ? 1 : env_on("RX_VK_IMMEDIATE") ? 2 : 0; return run ? run : opts.vsync; }
-/// (YM) The Threaded rendering row, resolved once for the run (threaded_rendering.h): the row as the options file had it
+/// (longshot) The Threaded rendering row, resolved once for the run (threaded_rendering.h): the row as the options file had it
 /// at the start (menu_init, asked here too: a reader can come before the device is picked), the physical cores among the
 /// logical processors the process may run on (usable_cores: its affinity mask, a core's SMT siblings counted once; the
 /// logical count where the cores cannot be read) and, for Auto, whether the mode is safe on this run. Known at the start and
@@ -4530,7 +4530,7 @@ int menu_shadow_res() {
 int menu_transition_autosave() { return transition_autosave_enabled.load(std::memory_order_relaxed); }
 int menu_damage_taken() { return cheats_on() ? opts.damage_taken : 1; }   // (Normal while the tools are off; the choice is kept)
 int menu_take_cheat_action() { return cheat_action.exchange(0, std::memory_order_relaxed); }
-// (YM) what plays the controller used last, as the host wrote it back (menu_option_set)
+// (longshot) what plays the controller used last, as the host wrote it back (menu_option_set)
 int menu_vibration_status_option() { return vibration_status_cache.load(std::memory_order_relaxed); }
 
 void menu_note_present_sizes(uint32_t picture_w, uint32_t picture_h, uint32_t window_w, uint32_t window_h) {
@@ -4640,7 +4640,7 @@ bool fps_take(int64_t now, int64_t shown, int64_t game, int64_t* next, int64_t* 
     return have;
 }
 
-// (YM) the rows' values and the options file, kept apart between menu_tick (the present's thread), menu_option_set
+// (longshot) the rows' values and the options file, kept apart between menu_tick (the present's thread), menu_option_set
 // (the game's) and the control bridge's menu_setting and menu_setting_set (its own thread). Recursive: a setter reached from
 // inside menu_tick's frame on the same thread does not lock itself out
 std::recursive_mutex menu_mu;
@@ -4693,7 +4693,7 @@ void menu_option_set(int id, int value) {
     save();
 }
 
-// ---- (YM) the control bridge's option_get and option_set (host/control.c, docs/dev/reference/control-bridge.md) ----
+// ---- (longshot) the control bridge's option_get and option_set (host/control.c, docs/dev/reference/control-bridge.md) ----
 // The settings rows (a value, not a heading or a debug tool, shown on this PC: row_shown), found by their key in
 // YM_options.ini (ini_key), which stays the same while rows come and go or are renamed. The bridge calls these from
 // its own thread: menu_mu keeps them apart from menu_tick (the present's thread) and from menu_option_set (the game's)
@@ -4746,7 +4746,7 @@ bool walk_to(State state, At at, Step step, int limit) {
     return false;
 }
 
-/// (YM) The Quality preset Auto (this PC)'s measured tuning in play (auto_settings.h tune): each of the replay's 120-present
+/// (longshot) The Quality preset Auto (this PC)'s measured tuning in play (auto_settings.h tune): each of the replay's 120-present
 /// windows (vk_replay.cpp), the Render resolution one step lighter while frames are missed with the GPU over 90% of the cap's
 /// frame time, or one heavier while the cap holds with the GPU under 50%, up to the best mode that still upscales (never
 /// native); at most two steps (kept across restarts, auto_steps=), then done for this PC (auto_tuned=). The CPU holding the
@@ -4878,7 +4878,7 @@ int menu_setting_set(const char* key, int value, MkwVkSetting* out) {
     return 1;
 }
 
-/// (YM) the mouse on the inventory: a section tab chooses it, a card the item (a click selects it, it does not edit),
+/// (longshot) the mouse on the inventory: a section tab chooses it, a card the item (a click selects it, it does not edit),
 /// the page arrows turn the page with the choice, the action button and the amount's halves act; the wheel turns the page
 /// shown and leaves the choice where it is; a right click goes back
 void inventory_mouse(const MkwVkPointer& ptr, int mx, int my, bool* press, bool& changed) {
@@ -4899,7 +4899,7 @@ void inventory_mouse(const MkwVkPointer& ptr, int mx, int my, bool* press, bool&
         changed |= inventory_page != was;
     }
 }
-/// (YM) the mouse on the teleport list: a click on a card selects it (Travel, or confirm, goes), the Travel button
+/// (longshot) the mouse on the teleport list: a click on a card selects it (Travel, or confirm, goes), the Travel button
 /// goes; the wheel scrolls the cards and leaves the choice where it is; a right click goes back
 void teleport_mouse(const MkwVkPointer& ptr, int mx, int my, bool* press, bool& changed) {
     const menu_hit::Hit hit = hits.at((float)mx, (float)my);
@@ -4962,7 +4962,7 @@ void cheat_press(int i, const bool* press, bool& changed) {
     }
 }
 
-/// (YM) The Game language row's choice written to language.txt once the player leaves the row (another row, page or
+/// (longshot) The Game language row's choice written to language.txt once the player leaves the row (another row, page or
 /// tab, or the menu closed), not at each step on the way to it. When it cannot be written (a read-only folder) the row goes
 /// back to what language.txt says, so it never shows a language that was not saved
 void game_lang_tick() {
@@ -4982,7 +4982,7 @@ void game_lang_tick() {
     }
 }
 
-/// (YM) The screen the window is on, followed while the game runs (every 30 presents): moved to another monitor, or its
+/// (longshot) The screen the window is on, followed while the game runs (every 30 presents): moved to another monitor, or its
 /// desktop size changed, the sizes it has that are not offered yet (its modes, its own size, the common sizes of their shapes)
 /// join the Output resolution's choices after the player's own, so the numbers chosen keep their sizes; the Aspect ratio row
 /// keeps the shape it is at (the list can gain one), and so do the run's start and the restart question's. HOS_DISPLAY_MODES:
@@ -5088,7 +5088,7 @@ void menu_tick() {
         held[i] = down;
         if (press[i]) pad_last = false;   // (the keys: their names in the prompts)
     }
-    // (YM) the gamepads, by position: Home, or Select and Start together, as Insert; the D-pad as the arrows; the
+    // (longshot) the gamepads, by position: Home, or Select and Start together, as Insert; the D-pad as the arrows; the
     // buttons the Switch's A and B are bound to as Enter and Esc, as in the game (vk_menu_keys.h; with the Nintendo layout A
     // is the right face button), not while a binding waits for its button
     static uint32_t pad_held = 0;
@@ -5126,7 +5126,7 @@ void menu_tick() {
         if (force) pad_last = !strcmp(force, "pad");
     }
     auto pad = [&](int p) { return listening != 1 && (pad_press >> p & 1) != 0; };
-    // (YM) a DualShock 4's or DualSense's touchpad click is F1: it opens and closes the menu as the key does
+    // (longshot) a DualShock 4's or DualSense's touchpad click is F1: it opens and closes the menu as the key does
     if (pad(HOS_PAD_TOUCHPAD)) press[6] = true;
     if (host && host->binding)   // (A and B as bound now: the Controls page or the Layout preset can change them)
         menu_keys::confirm_back(host->binding(HOS_BIND_PAD, HOS_SW_A, 0), host->binding(HOS_BIND_PAD, HOS_SW_B, 0), &pad_confirm,
@@ -5160,7 +5160,7 @@ void menu_tick() {
     std::vector<uint32_t> scripted;   // (YM: RX_VK_MENU_SCRIPT's typing, for the text field that has the keyboard)
     {   // RX_VK_MENU_SCRIPT (test runs, which never have the focus): timed menu keys, "<seconds>:<INS|UP|DOWN|LEFT|RIGHT|ESC|ENTER|TABL|TABR>,...";
         // and the gamepad's face buttons by position, PADS PADE PADW PADN (bottom, right, left, top), as a controller's press.
-        // (YM) TYPE:<text> types the text up to the next comma, as the keyboard would; while a text field has the
+        // (longshot) TYPE:<text> types the text up to the next comma, as the keyboard would; while a text field has the
         // keyboard ENTER, ESC, LEFT, RIGHT, HOME, END, BACK (Backspace) and DEL are its keys, and the pad's confirm and back too
         static const char* next = getenv("RX_VK_MENU_SCRIPT");
         static const bool at_confirmation = next && !strncmp(next, "confirm:", 8);
@@ -5197,7 +5197,7 @@ void menu_tick() {
             next = next[n] == ',' ? next + n + 1 : nullptr;
         }
     }
-    // (YM) the text field that has the keyboard (editing): what was typed since the last frame, in order, and a paste asked
+    // (longshot) the text field that has the keyboard (editing): what was typed since the last frame, in order, and a paste asked
     // with the controller's paste button; the host is told whether one has it, so that the window takes text only then
     uint32_t typed[64];
     int typed_n = 0;
@@ -5216,7 +5216,7 @@ void menu_tick() {
     if (press[12] && (GetAsyncKeyState(VK_SHIFT) & 0x8000)) tab_left = true, tab_right = false;
     bool changed = menu_refresh;
     menu_refresh = false;
-    // (YM) the mouse, while the menu is open: the cursor in the window image's pixels (mx, my), tested against the
+    // (longshot) the mouse, while the menu is open: the cursor in the window image's pixels (mx, my), tested against the
     // controls as last drawn (hits, vk_menu_hit.h), whether it moved since the last frame, and its clicks and wheel since then
     MkwVkPointer ptr{};
     int mx = -1, my = -1;
@@ -5326,7 +5326,7 @@ void menu_tick() {
             debug_warning = false;
             changed = true;
         }
-    } else if (open_now.load() && editing) {   // (YM) a text field has the keyboard: the keys type into it (text_edit), nothing else
+    } else if (open_now.load() && editing) {   // (longshot) a text field has the keyboard: the keys type into it (text_edit), nothing else
         int done = kTextGoOn;
         auto feed = [&](uint32_t in) {
             if (done == kTextGoOn) done = text_edit(*editing, in), edit_why = nullptr, changed = true;
@@ -5352,7 +5352,7 @@ void menu_tick() {
             if (ptr.pressed & HOS_MOUSE_RIGHT) done = kTextCancel;
         }
         if (done != kTextGoOn) edit_end(done == kTextDone), changed = true;
-    } else if (open_now.load() && page == 5) {   // (YM) the restart question: Later (the default) or Restart now
+    } else if (open_now.load() && page == 5) {   // (longshot) the restart question: Later (the default) or Restart now
         if (mouse) {   // (a button under the cursor chosen, a click on it pressed, a right click is Later; no list: the wheel does nothing)
             const menu_hit::Hit hit = hits.at((float)mx, (float)my);
             if (hit.part == menu_hit::kButton && (moved || ptr.pressed) && hit.index != ask_sel) ask_sel = hit.index, changed = true;
@@ -5371,7 +5371,7 @@ void menu_tick() {
             open_now = false, page = 0, tune_mode = false, changed = true;
             PostMessageA(app_window(), WM_APP + 9, 0, 0);
         }
-    } else if (open_now.load() && page == 1) {   // (YM) the Controls page
+    } else if (open_now.load() && page == 1) {   // (longshot) the Controls page
         using enum menu_hit::CtlColumn;
         const int previous_row = csel, previous_column = ccol;
         if (!can_bind()) {
@@ -5723,7 +5723,7 @@ void menu_tick() {
                 r.setting->on_activate(), press[7] = false, changed = true;
             else if (press[7] && r.setting && (r.setting->kind == menu::Kind::Action || r.setting->kind == menu::Kind::Page))
                 press[7] = false;   // (#1633: a module's button or page that did nothing (locked): not the bindings page below)
-            else if (const FieldRow* f = press[7] ? field_row(r) : nullptr) edit_start(*f->field, f->apply), changed = true;   // (YM)
+            else if (const FieldRow* f = press[7] ? field_row(r) : nullptr) edit_start(*f->field, f->apply), changed = true;   // (longshot)
             else if (press[7] && !r.value && can_bind()) page = 1, csel = 0, ccol = menu_hit::kCtlPrimary, changed = true;
             if (nfc_scan_moved()) changed = true;   // (a scan ends by itself: its line drawn again: gpu/vk/menu/nfc.cpp)
             if ((press[3] || press[4] || press[7]) && r.value) {   // (Enter, or A, as Right)
@@ -5743,7 +5743,7 @@ void menu_tick() {
             changed = true;
         }
     }
-    {   // (YM) the window lets the mouse go while the menu is open, and takes it back after (host/display.c)
+    {   // (longshot) the window lets the mouse go while the menu is open, and takes it back after (host/display.c)
         static bool told = false;
         const bool now_open = open_now.load();
         if (!now_open) {
@@ -5783,7 +5783,7 @@ void menu_tick() {
     }
 }
 
-/// (YM) Once a present: the Vibration strength row changed with the menu open, and the new strength is felt at once,
+/// (longshot) Once a present: the Vibration strength row changed with the menu open, and the new strength is felt at once,
 /// a short buzz, which also shows that the controller vibrates. Whatever changed it: the keys, the mouse
 void menu_rumble_tick() {
     static int was = -1;

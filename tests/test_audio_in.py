@@ -470,7 +470,7 @@ def main():
         most = re.search(r'^constexpr int kMaxMics = \d+;.*\n', menu, re.M)
         check(most, 'gpu/vk/menu/audio.cpp: no kMaxMics')
         fixture = MENU_FIXTURE.replace('@TEXT@', most.group(0) +
-                                       through_function(menu, '// (YM) the Microphone row:', 'const char* tx_mic('))
+                                       through_function(menu, '// (longshot) the Microphone row:', 'const char* tx_mic('))
         fixture = fixture.replace('@REFRESH@', through_function(menu, 'void mic_tell_host()', 'void mic_chosen()'))
         (folder / 'menu.cpp').write_text(fixture, encoding='utf-8')
         menu_exe = folder / 'menu'

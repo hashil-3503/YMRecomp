@@ -1,4 +1,4 @@
-// (YM) The programs' life: the game's create, set-shaders and free calls, each program's first draw or dispatch, and the
+// (longshot) The programs' life: the game's create, set-shaders and free calls, each program's first draw or dispatch, and the
 // census of what play had to make. See vk_programs.h.
 //
 // RX_VK_LOG_PROGRAM_LIFE=1 logs each of those ("vk: program life: ...") and, every 600 presents and when the window closes, one
@@ -798,7 +798,7 @@ void programs_census_log(const char* when) {
              when, ids.size(), n(ids_learned.load()), n(c.load_by_id), n(c.load_by_id_cold));
 }
 
-// ---- (YM) The indexed descriptor arrays the programs declare (descriptor_array_census.h) ----
+// ---- (longshot) The indexed descriptor arrays the programs declare (descriptor_array_census.h) ----
 namespace {
 std::mutex array_census_mu;
 ArrayCensus array_census;

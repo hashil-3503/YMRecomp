@@ -1,4 +1,4 @@
-/* (YM) The run's save folder: where it keeps its saves (save/<uid>/ and save-work/), in place of the user folder.
+/* (longshot) The run's save folder: where it keeps its saves (save/<uid>/ and save-work/), in place of the user folder.
    It is the profile's saves/ (YM_PROFILE, which YM-builder's play sets: host/YM_profile.h), and only
    that: no switch and no command line names another (a developer's or a test's run plays a throwaway profile of its
    own, scripts/YM_bridge.py). Everything else of the user folder (the recordings, the mouse's sensitivity, the

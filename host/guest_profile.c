@@ -1,4 +1,4 @@
-/* (YM) The guest profile's counters (lifter/crates/profile): an instrumented build of the new lifter's units
+/* (longshot) The guest profile's counters (lifter/crates/profile): an instrumented build of the new lifter's units
    (`YM-builder dev lift --profile-generate`) counts each block's entries and each conditional branch's taken edge
    in one array a unit, and registers it here when the game starts (lsp_register, from the unit's constructor).
    HOS_GUEST_PROFILE=<path>: the counts that ran are written to <path> every 10 s while the game runs and when it closes

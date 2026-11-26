@@ -36,7 +36,7 @@ static fmt_t fmt_of(int f) {
 
 int nvn_fmt_bpb(int f, int *bw, int *bh) { fmt_t t = fmt_of(f); if (bw) *bw = t.bw; if (bh) *bh = t.bh; return t.bpb; }
 
-/* (YM) 64-bit: a width from the game times the samples and the bytes per block wrapped in 32 bits, and a 512-byte
+/* (longshot) 64-bit: a width from the game times the samples and the bytes per block wrapped in 32 bits, and a 512-byte
    size was given for a texture the renderer then made 4 GB wide */
 static uint64_t mip(uint64_t s, unsigned l) { s = l < 64 ? s >> l : 0; return s ? s : 1; }
 static uint64_t blk(uint64_t s, uint32_t b) { return (s + b - 1) / b; }
@@ -123,7 +123,7 @@ void nvn_tex_layout(const nvn_texdesc *d, nvn_texlayout *o) {
        the total allocation size is unchanged, so padding becomes black texels. */
     if (d->pkg_block_h) {                                             // packaged byte 0: low nibble block height, high nibble block depth
         const unsigned pl = (unsigned)(d->pkg_block_h - 1) & 0xFF;
-        /* (YM) at most 32 GOBs high and deep, the hardware's largest blocks: the game's nibble went up to 15, and
+        /* (longshot) at most 32 GOBs high and deep, the hardware's largest blocks: the game's nibble went up to 15, and
            the renderer's scratch for one level grew with 512 << (tileH + tileD) */
         if (dpl >= 2) tileH = (pl & 0xF) > 5 ? 5 : pl & 0xF;
         if (dpl == 3) tileD = (pl >> 4) > 5 ? 5 : pl >> 4;
@@ -171,7 +171,7 @@ uint32_t nvn_tex_linear_stride(const nvn_texdesc *d) {
     int bw, bh;
     int bpb = nvn_fmt_bpb(d->format, &bw, &bh);
     uint32_t align = (d->flags & 0x40) ? 128 : 32;
-    /* (YM) 64-bit, as the layout: a width near 2^32 wrapped to a small stride */
+    /* (longshot) 64-bit, as the layout: a width near 2^32 wrapped to a small stride */
     const uint64_t s = (((uint64_t)d->width + bw - 1) / bw * bpb + align - 1) & ~(uint64_t)(align - 1);
     return s > 0xFFFFFFFFu ? 0xFFFFFFFFu & ~(align - 1) : (uint32_t)s;
 }

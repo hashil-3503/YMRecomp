@@ -1,4 +1,4 @@
-/* (YM) What the Discord status says (discord_activity.c): the player's settings, the template filled in, the
+/* (longshot) What the Discord status says (discord_activity.c): the player's settings, the template filled in, the
    activity's JSON. No I/O and no game state: game/discord_rpc.c reads the settings and the game's place and sends it. */
 #pragma once
 #include <stddef.h>

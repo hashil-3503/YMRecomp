@@ -1,4 +1,4 @@
-// (YM) The curl side of the perf summary: find the system's client, build its arguments, read the answer's status.
+// (longshot) The curl side of the perf summary: find the system's client, build its arguments, read the answer's status.
 // Process spawning is perf_os's job; the keep/drop rule is perf_report.cpp's.
 #include "perf_curl.h"
 

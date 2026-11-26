@@ -1,4 +1,4 @@
-/* (YM) The boss heart containers Link has taken, for the Discord status's pieces of heart (game/oot_heart_containers.c) */
+/* (longshot) The boss heart containers Link has taken, for the Discord status's pieces of heart (game/oot_heart_containers.c) */
 #pragma once
 #include <stddef.h>
 #include <stdint.h>

@@ -1,4 +1,4 @@
-/* (YM) The Insert menu's Text speed and Text size, at the hook site text.letterStep (game/sites/sites.toml,
+/* (longshot) The Insert menu's Text speed and Text size, at the hook site text.letterStep (game/sites/sites.toml,
    game/sites.def: the engine's own subscriber, on from the start).
 
    f_80b1e140 steps a text pane's letter animation, the LetterAnimControl (x19) of the panes with "LetterAnimOn" user data

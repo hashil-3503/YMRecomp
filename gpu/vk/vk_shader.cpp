@@ -83,7 +83,7 @@ struct NvnState;
 uint32_t compute_ssbo_table(const NvnState& s, uint32_t* count, uint32_t* layout_end);   // (vk_bank.cpp)
 bool seed_cs_buffer_word(uint32_t offset);   // (vk_bank.cpp)
 bool key_listed(const char* hex, const char* var);   // (below)
-// (YM) Why a movie upscaler's network is not translated on a card that cannot run it as the console does: a trace line, not a failure
+// (longshot) Why a movie upscaler's network is not translated on a card that cannot run it as the console does: a trace line, not a failure
 constexpr char network_left_out[] = "a network left out on this card";
 }
 namespace {
@@ -129,7 +129,7 @@ struct Code {
     std::vector<uint8_t> c1;
     uint32_t local[3]{};
     uint32_t shared_memory = 0;   // compute: bytes from the NVN2 control section (+0x64; klimovich008's PR 91)
-    // (YM) compute: local memory, bytes a thread, from the control section (+0x68; +0x50 is the same times 32, a warp's).
+    // (longshot) compute: local memory, bytes a thread, from the control section (+0x68; +0x50 is the same times 32, a warp's).
     // It was never read: a compute program that spills (LDL/STL) had no local array, and the SPIR-V back end aborted the game
     // at its first local access. OoT's two largest compute programs have 0xd80
     uint32_t local_memory = 0;
@@ -139,12 +139,12 @@ struct Code {
     // 31:16; +0x5f the output topology, 1 points, 3 triangles)
     uint32_t mesh_threads = 0, payload_bytes = 0, max_vertices = 0, max_primitives = 0, topology = 0;
     bool header_only = false;       // a graphics header and no code (NVN2's per-primitive output map of a mesh program)
-    // (YM) a fragment stage with the game's tone map fit's five constants in its code: a scene mapping program, which
+    // (longshot) a fragment stage with the game's tone map fit's five constants in its code: a scene mapping program, which
     // PsychoV35 may take (scene_tonemap_for)
     bool scene_fit = false;
     uint8_t sph[sizeof(Shader::ProgramHeader)]{};
     bool ok = false;
-    std::string why;   // (YM) not ok: why, for the log ("1 failed" alone said nothing of which program, or why)
+    std::string why;   // (longshot) not ok: why, for the log ("1 failed" alone said nothing of which program, or why)
 };
 
 /// Whether this is a control section, and how much code it says there is
@@ -260,7 +260,7 @@ Code parse_code(const uint8_t* ctl, const std::vector<uint8_t>& area, uint64_t k
     using Shader::Ampere::Instruction;
     std::vector<Instruction> native;
     Shader::Ampere::ProgramCaptureState capture;
-    // (YM) A word the capture reads as a branch that would leave every program (to before its start, between two
+    // (longshot) A word the capture reads as a branch that would leave every program (to before its start, between two
     // instructions, or past the largest program, 16 MiB: program_address_map.h) is no instruction of this one. The
     // capture's end rules are narrower than the lowering's (a loop left only by predicated EXITs, a library function that
     // ends the shader), so it can read on past the program's end into what follows it there. The program ends before
@@ -302,7 +302,7 @@ Code parse_code(const uint8_t* ctl, const std::vector<uint8_t>& area, uint64_t k
         if (reject) return c.why = "left out by RX_VK_REJECT_STAGES or RX_VK_REJECT_KEYS", c;
     }
     // (compute only: the host's cooperative matrices are, vk_coopmat.cpp)
-    // (YM) and for every compute program: one left without them is expanded only with EDEN_NX2_TENSOR set, and is
+    // (longshot) and for every compute program: one left without them is expanded only with EDEN_NX2_TENSOR set, and is
     // otherwise not lowered at all (a list of programs by key dropped OoT's other gameplay networks, e409733c and others)
     Shader::Ampere::native_matrix_multiply = dev.native_mma && !graphics;
     {   // (super build) RX_VK_LOWER_SKIP=<key prefix,...>: those programs left unlowered, as if they did not lower (a bisection)
@@ -319,13 +319,13 @@ Code parse_code(const uint8_t* ctl, const std::vector<uint8_t>& area, uint64_t k
         }
     }
     const auto lowered = Shader::Ampere::LowerToMaxwell(native);
-    if (lowered && lowered.register_map_words) {   // (YM) which programs run with extended registers
+    if (lowered && lowered.register_map_words) {   // (longshot) which programs run with extended registers
         static std::atomic<int> logged{0};
         if (logged++ < 64)
             logf("vk: NVN2 program %016llx (stage %u) lowered with extended registers (%u REGMAP words)",
                  (unsigned long long)c.key, st, lowered.register_map_words);
     }
-    if (const char* want = getenv("RX_VK_DUMP_NATIVE")) {   // (YM) <key prefix,...>: native code of those programs
+    if (const char* want = getenv("RX_VK_DUMP_NATIVE")) {   // (longshot) <key prefix,...>: native code of those programs
         char hex[24];
         snprintf(hex, sizeof hex, "%016llx", (unsigned long long)c.key);
         for (const char* q = want; *q;) {
@@ -457,7 +457,7 @@ bool handle_is_integer(uint32_t handle) {
     }
 }
 
-// (YM) A compute program's texture variants (seed_compute): translated with nothing bound, every texture question of a compute program
+// (longshot) A compute program's texture variants (seed_compute): translated with nothing bound, every texture question of a compute program
 // is asked of handle 0, and which slot asks is not known. Under `forced`, c0's texture and image handles read as tokens of their
 // slots, each question is noted once by its handle, and the answer wanted for it is given in place of an unbound slot's
 struct Forced {
@@ -474,7 +474,7 @@ struct Forced {
 thread_local Forced* forced = nullptr;
 thread_local std::vector<std::vector<uint32_t>>* seed_capture = nullptr;   // (the translation's SPIR-V, kept here and not on disk)
 
-// (YM) The texture questions of a translation, in the order asked: noted in play (Program::questions), given back in that order
+// (longshot) The texture questions of a translation, in the order asked: noted in play (Program::questions), given back in that order
 // when the pipeline state list makes the same variant before the game, with nothing bound to ask about
 thread_local std::vector<uint8_t>* questions_out = nullptr;
 thread_local const std::vector<uint8_t>* questions_in = nullptr;
@@ -721,7 +721,7 @@ Shader::Profile make_profile() {
     // Mesa encodes driverVersion with VK_MAKE_VERSION; an unknown version keeps the workaround on for RADV.
     p.need_mesh_num_workgroups = dev.driver_id == VK_DRIVER_ID_MESA_RADV &&
                                 dev.props.driverVersion < VK_MAKE_VERSION(26, 2, 5);
-    // (YM) gathers nudged by 1/512 of a texel on AMD's and Intel's drivers, as Eden and Lichii have it (device_policy.h
+    // (longshot) gathers nudged by 1/512 of a texel on AMD's and Intel's drivers, as Eden and Lichii have it (device_policy.h
     // gather_offset, RX_VK_GATHER_OFFSET read there; in the cache's stamp)
     p.need_gather_subpixel_offset = dev.policy.gather_offset;
     p.min_ssbo_alignment = storage_binding_align();   // (at least 16: vk_internal.h)
@@ -871,7 +871,7 @@ uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program, uint
         .value_or(0U);
 }
 
-/// (YM) A handle table's array has HANDLE_TABLE_SIZE elements, the game's table as many records as the frame needs
+/// (longshot) A handle table's array has HANDLE_TABLE_SIZE elements, the game's table as many records as the frame needs
 /// (OoT's light table: 3 in Kokiri Forest, about 20 in Castle Town by day, 40 by night). The records behind them are
 /// leftovers of earlier frames, whose handles name slots the game has released and given to other textures since: a 3840x2160
 /// frame target, a 4096x4096 depth. No pixel asks for them (the lists a pixel's light index comes from hold only numbers
@@ -925,7 +925,7 @@ void stage_handles(const NvnState& s, const Stage& st, uint32_t program, uint32_
         return binding < bases.size() ? stage_storage_word(storage_base(binding), offset) : 0U;
     };
     const auto& code = st.info.handle_programs[program];
-    // (YM) the elements behind the game's own count of its table name nothing: handle_table_live. The count first, so
+    // (longshot) the elements behind the game's own count of its table name nothing: handle_table_live. The count first, so
     // that only the game's elements are computed
     uint32_t capacity = 0;
     const uint32_t live = [&]() -> uint32_t {
@@ -995,7 +995,7 @@ uint32_t descriptor_handle(const NvnState& s, const Stage& st, const Shader::Tex
                                     << d.secondary_shift_left;
     return h;
 }
-/// (YM) a storage image descriptor's handle word (its handle program's, read from a storage buffer)
+/// (longshot) a storage image descriptor's handle word (its handle program's, read from a storage buffer)
 uint32_t descriptor_handle(const NvnState& s, const Stage& st, const Shader::ImageDescriptor& d) {
     if (d.handle_program != ~0U) return stage_handle(s, st, d.handle_program);
     return stage_cbuf_word(s, st, d.cbuf_index, d.cbuf_offset);
@@ -1017,11 +1017,11 @@ uint8_t texture_answer(uint32_t handle) {
     return a;
 }
 /// What the bound textures answer now, for a program whose translation asked about them
-// (YM) storage images too: whether the bound image's format is integer is baked into the translation (Eden's
+// (longshot) storage images too: whether the bound image's format is integer is baked into the translation (Eden's
 // is_integer, the SPIR-V image's sampled type). OoT writes R11G11B10 and RGBA8 targets through R32UI views of them,
 // packing the bits itself; a variant translated while that slot held a float texture wrote the packed words as
 // floats, which the R32UI view converted: the scene went NaN and yellow before the TAAU
-/// (YM) whether every answer names a stage of the program and a slot of that stage: answers come from the program
+/// (longshot) whether every answer names a stage of the program and a slot of that stage: answers come from the program
 /// cache and the pipeline state list, files that are passed around, and index the stages' descriptor lists
 } // namespace
 bool answers_fit(const Program& p, const std::vector<Program::Answer>& answers) {
@@ -1089,7 +1089,7 @@ uint64_t answers_hash_of(const std::vector<Program::Answer>& answers) {   // (YM
     q.answers = answers;
     return answers_hash(q);
 }
-// (YM) An answer's stage as every GPU numbers it: the mesh fallback's program has a generated vertex stage after its mesh stage
+// (longshot) An answer's stage as every GPU numbers it: the mesh fallback's program has a generated vertex stage after its mesh stage
 // ((task,) mesh, vertex, fragment), which asks nothing; a native mesh program has none ((task,) mesh, fragment). Counted without it,
 // the fragment stage's answers are the same on both, and so is the variant's hash (the pipeline state list, vk_draw.cpp)
 namespace {
@@ -1221,7 +1221,7 @@ const std::vector<SharedCode>& codes_of(const NvnState& s) {
 }
 
 std::atomic<int64_t> st_translated, st_failed, st_translate_ns;
-// (YM) The "not translated" lines name 30 programs each, so that a log is not flooded; these count every program each
+// (longshot) The "not translated" lines name 30 programs each, so that a log is not flooded; these count every program each
 // line stands for, the ones past its 30 too, and shader_fail_lines logs them after the preparation's "N failed". Each failure
 // st_failed counts is in exactly one of them: a Mac start's "70 failed" named 31 programs, and the other 39 networks left out
 // were counted nowhere
@@ -1263,7 +1263,7 @@ void written_types(const Code* fs, const uint8_t color_types[8], uint8_t out[8])
     for (int i = 0; i < 8; i++) out[i] = fs && header_of(*fs).ps.HasOutputComponents(i) ? color_types[i] : 0;
 }
 /// A vertex and fragment program's key: their code, and the vertex input and colour output types that change what they translate to
-/// (YM) Whether this fragment stage's program is to have PsychoV35 for its scene tone map (scene_tonemap_pass.h): a scene
+/// (longshot) Whether this fragment stage's program is to have PsychoV35 for its scene tone map (scene_tonemap_pass.h): a scene
 /// mapping program while the Tone mapper row asks for it. Its own key, so the row's change translates only these programs
 bool scene_tonemap_for(const Code* fs) { return fs && fs->scene_fit && scene_tonemap_on(); }
 uint64_t graphics_key(const Code& vs, const Code* fs, const uint32_t vattr[16], const uint8_t color_types[8],
@@ -1341,7 +1341,7 @@ void dump_ir(const Program& p, const char* stage, const Shader::IR::Program& pro
 
 /// Translates a program variant's stages into p (on a worker for graphics programs: s and the codes are copies)
 
-// (YM) RX_VK_MESH_NOCULL=<task shader code key prefixes,...>, off unless set. OoT's meshlet
+// (longshot) RX_VK_MESH_NOCULL=<task shader code key prefixes,...>, off unless set. OoT's meshlet
 // culling task shader walks every cell of a coarse depth grid its meshlet covers, reading four words a cell from c3 by a
 // dynamic index: on RDNA 2 one draw runs past the kernel's 10 s and the GPU is reset. Its answer is
 // visible = (result & 1) | (c3[2320] & 4), bit 4 being the game's own "draw everything". That comparison becomes true,
@@ -1438,7 +1438,7 @@ void sim_turf_pools(Shader::IR::Program& program, uint64_t code_key) {
     if (told++ < 32) logf("vk: simulated turf: program %016llx: %s", (unsigned long long)code_key, what.c_str());
 }
 
-// (YM) What the program cache's records are good for, as far as the translation goes: this translator (YM_SHADER_STAMP,
+// (longshot) What the program cache's records are good for, as far as the translation goes: this translator (YM_SHADER_STAMP,
 // builder/crates/build-compile) and what it is told of the GPU and the environment. The cache's own format and I/O are vk_progcache.cpp's, outside
 // the stamp, with a version of their own (kProgramCacheFormat): a change to how the cache is read or scheduled no longer throws
 // every player's translated programs away
@@ -1638,7 +1638,7 @@ void translate_into(Program& p, const NvnState& s, const Code* vsc, const Code* 
                 logf("vk: compute %016llx: workgroup %ux%ux%u, shared memory %u bytes, local memory %u", (unsigned long long)p.key,
                      t->program.workgroup_size[0], t->program.workgroup_size[1], t->program.workgroup_size[2],
                      t->program.shared_memory_size, t->program.local_memory_size);
-            // (YM) The movie upscaler's dozen networks, on a card that cannot run them as the console does: their software matrix multiplies
+            // (longshot) The movie upscaler's dozen networks, on a card that cannot run them as the console does: their software matrix multiplies
             // took minutes each for AMD's compiler (the black screen with sound, YM issue 26: JaredEzz's analysis) and the movies ran at 10 fps
             // (issues 38, 43). Left out, the last pass becomes a linear upscale of the movie (upscale_stub in vk_draw.cpp): the same picture at 60
             // fps, a little softer. The gameplay TAAU network stays. RX_VK_NETWORK_KEEP=<key prefixes>, "all": every one runs
@@ -2120,7 +2120,7 @@ void answer_handles(const NvnState& s, const Program& p, std::vector<uint32_t>& 
 }
 } // namespace
 
-/// (YM) the bound program's stages and code keys, as "stage:key" words (RX_VK_SKIP_PROG's log)
+/// (longshot) the bound program's stages and code keys, as "stage:key" words (RX_VK_SKIP_PROG's log)
 /// (for logs) what the program's textures resolve to now
 std::string program_textures(const NvnState& s, const Program& p) {
     std::string out;
@@ -2154,7 +2154,7 @@ std::string program_code_keys(const NvnState& s) {
     return out;
 }
 
-/// (YM) the bound compute program's code key (0: none): what "does not lower" names, for a rejected dispatch
+/// (longshot) the bound compute program's code key (0: none): what "does not lower" names, for a rejected dispatch
 uint64_t compute_code_key(const NvnState& s) {
     if (!s.has_prog) return 0;
     std::lock_guard lk(shader_mu);
@@ -2181,7 +2181,7 @@ uint64_t prog_stage_sig(const nvn_prog& p) {
     for (int i = 0; i < 6; i++) h = h * 1099511628211ull ^ p.sd[i].data ^ (p.sd[i].control << 1);
     return h ^ p.serial;
 }
-// (YM) The stages whose bindings a graphics program's answers are read from, one bit a stage, when each answer is a handle in c2 of the
+// (longshot) The stages whose bindings a graphics program's answers are read from, one bit a stage, when each answer is a handle in c2 of the
 // stage itself (a handle program reads uniform memory, another bank other state): then the pick stands while those stages' textures,
 // samplers and images do (NvnState::tex_gen), whatever else was bound. ~0: not so, the pick stands while nothing at all was bound anew
 uint32_t answer_stage_mask(const Program& p) {
@@ -2234,7 +2234,7 @@ const Program* program_for(const NvnState& s, ProgramKind kind, const uint8_t co
              (long long)st_hit, (long long)st_by_tex, (long long)st_none, (long long)st_differ, (long long)st_calls);
     const uint64_t stages = prog_stage_sig(s.prog);
     const uint64_t bind = s.bind_gen, reg = registrations_generation(), ub = ub_generation();
-    // (YM) the pair of the last picks stood only while nothing at all was bound anew, and OoT binds a uniform buffer for nearly every
+    // (longshot) the pair of the last picks stood only while nothing at all was bound anew, and OoT binds a uniform buffer for nearly every
     // draw: a draw of the same program with the same textures found its program through the full pick (the key, the answers' handles, a
     // compare). It stands now while the textures its answers are read from do (answer_stage_mask)
     for (const ProgFast& f : prog_fast) {   // (the draw before this one, and the one that took turns with it)
@@ -2359,7 +2359,7 @@ void program_wait(const Program* p) {
     if (p && !p->ready.load(std::memory_order_acquire)) jobs_wait(p->ready);
 }
 
-/// (YM) Whether the environment variable var lists hex (key prefixes, comma-separated)
+/// (longshot) Whether the environment variable var lists hex (key prefixes, comma-separated)
 bool key_listed(const char* hex, const char* var) {
     const char* list = getenv(var);
     for (const char* q = list ? list : ""; *q;) {
@@ -2370,7 +2370,7 @@ bool key_listed(const char* hex, const char* var) {
     }
     return false;
 }
-// ---- (YM) Every shader of the game before it starts, as TotK Recomp's tools/prepare_shaders.py and totk.exe --prepare-shaders: the
+// ---- (longshot) Every shader of the game before it starts, as TotK Recomp's tools/prepare_shaders.py and totk.exe --prepare-shaders: the
 // builder writes YM_shaders.bin (builder/crates/build-assets/src/census.rs) from the archives, each program's stages, and here each is translated
 // for the default state (nothing bound, float inputs and outputs) and kept in YM_programs.bin. What a draw then asks for is on
 // disk, whatever part of the game it is first met in ----
@@ -2397,7 +2397,7 @@ Code stage_of_seed(const SeedStage& st) {
     return parse_code(seed.blob.data() + st.control, std::vector<uint8_t>(seed.blob.begin() + (ptrdiff_t)st.code,
                                                                           seed.blob.begin() + (ptrdiff_t)st.code + st.end));
 }
-/// (YM) A seed stage that does not parse fails its program: which one, and why (the prepare's "1 failed" named nothing)
+/// (longshot) A seed stage that does not parse fails its program: which one, and why (the prepare's "1 failed" named nothing)
 void seed_stage_failed(const Code& c, uint64_t program) {
     if (st_stage_failed++ < kFailNamed)
         logf("vk: program %016llx not translated: its NVN stage %d (code %016llx) %s", (unsigned long long)program, c.stage,
@@ -2422,7 +2422,7 @@ size_t seed_open() {
     disk_init();
     disk_listing = true;
     size_t at = 16;
-    // (YM) every count, size and index is checked against the file before it is used: a file cut short or made
+    // (longshot) every count, size and index is checked against the file before it is used: a file cut short or made
     // wrong is no seed, never a read past it
     const size_t size = seed.blob.size();
     const auto u32 = [](size_t pos) { uint32_t v; std::memcpy(&v, seed.blob.data() + pos, 4); return v; };
@@ -2476,7 +2476,7 @@ void seed_close() {
 std::unique_ptr<Program> seed_translate(const SeedStage* const by_stage[8], const uint32_t attributes[16], const uint8_t color_types[8],
                                         uint64_t* key_out);
 
-/// (YM) How many variants of key are in memory, made or read in already, their variant hashes to *variants. They are kept
+/// (longshot) How many variants of key are in memory, made or read in already, their variant hashes to *variants. They are kept
 /// too, though disk_records no longer lists them: program_cache_load and program_cache_load_some take a key's records out as they
 /// read them. By disk_records alone the prepare in play (prepare_background) translated again every program the precompile had
 /// read, every kept compute program among them, and kept each a second time
@@ -2574,7 +2574,7 @@ bool seed_is_compute(size_t i) {
     return false;
 }
 
-// (YM) The seed's compute programs, each with its texture variants. A program's texture questions are answered in play by the
+// (longshot) The seed's compute programs, each with its texture variants. A program's texture questions are answered in play by the
 // textures bound (Program::answers), which nothing before the game knows; the questions themselves are few, so each is tried with every
 // answer it can get, and an answer that changes the SPIR-V makes a variant. Variants of two answers and more are taken fewest first, up
 // to cap: one of them is the variant play makes, which still_valid then finds kept. All go to YM_programs.bin, as play keeps them,
@@ -2701,7 +2701,7 @@ SeedVariants seed_compute(size_t i, size_t cap, const std::function<void(Program
 }
 
 
-/// (YM) a program of the pipeline state list (vk_draw.cpp): by its stages' code keys (graphics: vertex, fragment; mesh: mesh,
+/// (longshot) a program of the pipeline state list (vk_draw.cpp): by its stages' code keys (graphics: vertex, fragment; mesh: mesh,
 /// fragment, task), as the seed holds them, and the vertex input and colour output types it was drawn with
 std::unique_ptr<Program> seed_program_of(const uint64_t code[3], bool mesh, const uint32_t attributes[16], const uint8_t color_types[8],
                                          uint64_t* key_out) {
@@ -2825,7 +2825,7 @@ void shader_stats(int64_t* translated, int64_t* failed) {
     if (st_cache_hits.load() >= hits_logged + 500) logf("vk: %lld programs from the program cache", (long long)(hits_logged = st_cache_hits.load()));
     *translated = st_translated, *failed = st_failed;
 }
-/// (YM) After the preparation's "N failed" (vk_draw.cpp prepare_run): how many programs each "not translated" line stands
+/// (longshot) After the preparation's "N failed" (vk_draw.cpp prepare_run): how many programs each "not translated" line stands
 /// for, whenever it stood for any. Those lines stop at kFailNamed programs each; these add up to N, so no failure goes uncounted.
 /// where: where those lines are, as a reader at the default level sees it (the networks' are trace lines, hidden there)
 void shader_fail_lines() {
@@ -2853,7 +2853,7 @@ void program_released(const nvn_prog* p) {
     codes.erase(p->serial);
 }
 
-// ---- (YM) A guest program as the game makes it (nvnProgramSetShaders), before any draw: vk_programs.cpp. Its stages are
+// ---- (longshot) A guest program as the game makes it (nvnProgramSetShaders), before any draw: vk_programs.cpp. Its stages are
 // read from the game's memory and hashed as a draw's are (code_key), but not lowered: only what names the program (the stages'
 // code keys) and what its key is made of (graphics_key, mesh_key: the headers). Kept by the program's serial, under a lock of
 // their own: the game's thread calls this, and shader_mu is held through whole translations ----

@@ -1,4 +1,4 @@
-/* (YM) The game's side of a player's profile (docs/dev/reference/profiles.md): the folder YM_PROFILE names,
+/* (longshot) The game's side of a player's profile (docs/dev/reference/profiles.md): the folder YM_PROFILE names,
    which YM-builder's play gives the game it starts (builder/crates/build-driver/src/play.rs; its reader and
    writer of profile.json is builder/crates/launcher-profile):
      <profile>/profile.json   which profile it is; the game reads its start_slot alone (YM_profile_start_slot)

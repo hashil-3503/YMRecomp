@@ -1,4 +1,4 @@
-// (YM) The program cache: YM_programs.bin (and its .idx) beside the game, what translation made, kept between runs; its
+// (longshot) The program cache: YM_programs.bin (and its .idx) beside the game, what translation made, kept between runs; its
 // reads for play, the precompile, the prediction and the prepare; and the sizes of the prepare's worker pools.
 //
 // Not part of the translator stamp (builder/crates/build-compile/src/generated/shader_stamp.rs: vk_shader.cpp, vk_bank.cpp, vk_state.h and the recompiler's
@@ -56,7 +56,7 @@
 
 namespace mkwvk {
 
-/// (YM) The cache's own format: raise it with any change to what a record holds or how the file or its index is laid out.
+/// (longshot) The cache's own format: raise it with any change to what a record holds or how the file or its index is laid out.
 /// 2: a stage's SPIR-V may be a reference into the shader store (spirv_pack.h), and the file's head names the store
 /// 3: the reference keeps the words' hash too, which a read of them checks
 constexpr uint32_t kProgramCacheFormat = 3;
@@ -105,7 +105,7 @@ bool pipelines_stamp_ok(uint64_t stamp) {
     return false;
 }
 
-// ---- (YM) The program cache, YM_programs.bin beside the executable: what translation made, by the key of the
+// ---- (longshot) The program cache, YM_programs.bin beside the executable: what translation made, by the key of the
 // stages' code and inputs. A program met for the first time stopped the frame for its translation, 9 s of it each run,
 // the long stutters when walking somewhere (replay workers in jobs_wait for up to 150 ms). The pipelines themselves were
 // already kept (YM_vk_pipelines.bin). Written as made; good for this translator (YM_SHADER_STAMP) and these switches only
@@ -115,7 +115,7 @@ std::mutex disk_mu;
 FILE* disk_in = nullptr;
 std::string disk_path;   // (YM_programs.bin: the precompile opens it once a thread)
 std::unordered_map<uint64_t, std::vector<DiskRecord>> disk_records;
-// (YM) the records program_cache_load and program_cache_load_some took out of disk_records as they read them in: still in the
+// (longshot) the records program_cache_load and program_cache_load_some took out of disk_records as they read them in: still in the
 // file, and still kept programs to the prediction (program_cache_each). Without them a first start's prediction saw none of the
 // programs the state list's notes name, which its own preparation had just read in: "predicted 0 pipelines" on every new build
 std::unordered_map<uint64_t, std::vector<DiskRecord>> disk_taken;
@@ -124,8 +124,8 @@ FILE* disk_out = nullptr;
 FILE* disk_idx = nullptr;
 bool disk_listing = false;
 bool disk_on = false;
-bool disk_zstd = false;   // (YM) RX_VK_PROGRAM_CACHE_ZSTD=1: records compressed with zstd, YM_programs.zst.bin
-// (YM) The shader store (spirv_pack.h): each stage's SPIR-V kept once for all the player's game folders, the record naming
+bool disk_zstd = false;   // (longshot) RX_VK_PROGRAM_CACHE_ZSTD=1: records compressed with zstd, YM_programs.zst.bin
+// (longshot) The shader store (spirv_pack.h): each stage's SPIR-V kept once for all the player's game folders, the record naming
 // its place. A stage's code in a record is [u64 words][the words], as format 1 had it, or [u64 words | kStoreWords][i64 place]
 // [u64 hash a][u64 hash b] for words in the store (spirv_pack::hash_words: the store gives only those words for it). The file's head names the store its records name (its second word, 0: none), and a file of another
 // store starts over. Not with RX_VK_PROGRAM_CACHE_ZSTD, whose records are compressed whole
@@ -169,7 +169,7 @@ void idx_write(const std::string& path, uint64_t stamp, const std::vector<std::p
 }
 
 
-// (YM) The per-user copy of a prepared program cache, beside the shader store whose SPIR-V its records name: what the
+// (longshot) The per-user copy of a prepared program cache, beside the shader store whose SPIR-V its records name: what the
 // last preparation of this translator made (program_cache_publish), the start of a game folder that has none of its own
 // (disk_init), so that a new folder, or a new build of an unchanged translator, translates nothing again. Named under the
 // store's own files (spirv.pack.*, spirv.idx.*) so that the launcher's Free up space and its count of the store take them
@@ -238,7 +238,7 @@ void disk_init() {
     static std::once_flag once;
     std::call_once(once, [] {
         if (env_on("RX_VK_NO_PROGRAM_CACHE")) return;
-        // (YM) RX_VK_PROGRAM_CACHE_ZSTD=1: each record compressed with zstd, in a file of its own so that a build
+        // (longshot) RX_VK_PROGRAM_CACHE_ZSTD=1: each record compressed with zstd, in a file of its own so that a build
         // without this switch never reads it. SPIR-V compresses about 7.7x at zstd's level 3.
         disk_zstd = env_on("RX_VK_PROGRAM_CACHE_ZSTD");
         const std::string path = cache_path(disk_zstd ? "YM_programs.zst.bin" : "YM_programs.bin");   // (vk_paths.h)
@@ -445,7 +445,7 @@ template <class V> void put_list(std::vector<uint8_t>& o, const V& v) {
     for (const auto& e : v) put(o, e);
 }
 
-/// (YM) A program record's head, what comes before its stages: written and read only here, so that program_cache_read and
+/// (longshot) A program record's head, what comes before its stages: written and read only here, so that program_cache_read and
 /// program_cache_each read the same fields. program_cache_each read only the first ones and took the mesh fallback's five words
 /// for the stage count: no kept program reached the prediction (vk_predict.cpp, "predicted 0 pipelines")
 void put_head(std::vector<uint8_t>& o, const Program& p) {
@@ -489,7 +489,7 @@ void put_info(std::vector<uint8_t>& o, const Shader::Info& i) {
     put(o, (uint64_t)i.handle_programs.size());
     for (const auto& h : i.handle_programs) put_list(o, h);
 }
-/// (YM) every descriptor array within kMaxDescriptorCount: the counts come from YM_programs.bin, and two of 2^31
+/// (longshot) every descriptor array within kMaxDescriptorCount: the counts come from YM_programs.bin, and two of 2^31
 /// wrapped the layout's sum to 0 (a push layout with billions of descriptors), and one made the binds loop that often
 constexpr uint32_t kMaxDescriptorCount = 4096;
 template <class Info> bool descriptor_counts_fit(const Info& i) {
@@ -757,7 +757,7 @@ void program_cache_read(FILE* in, std::mutex* mu, uint64_t key, const std::vecto
     }
 }
 
-// ---- (YM) A compute program's kept variants, read at its first dispatch without their code. A key has up to 64 kept
+// ---- (longshot) A compute program's kept variants, read at its first dispatch without their code. A key has up to 64 kept
 // variants (the texture answers the prepare tried), and the dispatch runs one: which one is decided from each variant's answers
 // and its stage's descriptors (vk_shader.cpp still_valid), not from its SPIR-V. Reading every variant whole and making a module
 // of each was half of what a first dispatch cost on the thread replaying (RTX 3090, a tour with no compute program kept ready:
@@ -933,7 +933,7 @@ void program_cache_load(uint64_t key, std::vector<std::unique_ptr<Program>>& var
     }
 }
 
-// ---- (YM) The records by position, for the load when the game makes a program (vk_programs.cpp) ----
+// ---- (longshot) The records by position, for the load when the game makes a program (vk_programs.cpp) ----
 bool program_cache_has(uint64_t key) {
     disk_init();
     if (!disk_on) return false;
@@ -1105,7 +1105,7 @@ size_t program_cache_load_some(const std::unordered_set<uint64_t>& wanted, const
     return n;
 }
 
-/// (YM) As program_cache_borrow, every variant of key given to fn at once (alive until fn returns): the preparation's compute
+/// (longshot) As program_cache_borrow, every variant of key given to fn at once (alive until fn returns): the preparation's compute
 /// warm hands them to several threads (vk_draw.cpp prepare_run)
 void program_cache_borrow_all(uint64_t key, const std::function<void(std::vector<std::unique_ptr<Program>>&)>& fn) {
     std::vector<std::unique_ptr<Program>> variants;
@@ -1118,7 +1118,7 @@ void program_cache_borrow_all(uint64_t key, const std::function<void(std::vector
         if (p->set_layout) vkDestroyDescriptorSetLayout(dev.device, p->set_layout, nullptr);
     }
 }
-/// (YM) Program key's kept variants made for fn, then let go (modules and layouts): the records stay for play
+/// (longshot) Program key's kept variants made for fn, then let go (modules and layouts): the records stay for play
 void program_cache_borrow(uint64_t key, const std::function<void(Program&)>& fn) {
     std::vector<std::unique_ptr<Program>> variants;
     program_cache_load(key, variants, true);
@@ -1131,7 +1131,7 @@ void program_cache_borrow(uint64_t key, const std::function<void(Program&)>& fn)
     }
 }
 
-// (YM) Which programs' graphics modules program_cache_drop_modules let go, and which of those did not make again: kept
+// (longshot) Which programs' graphics modules program_cache_drop_modules let go, and which of those did not make again: kept
 // here and not in Program, whose size is part of the translator's stamp (vk_shader.cpp translator_stamp, abi[]): members added
 // there made every player prepare every shader again at the first start after the update (251.6 s on a Steam Deck). By key and
 // variant, with the program let go beside them: one borrowed for the prepare (program_cache_borrow) has the same key and
@@ -1434,7 +1434,7 @@ unsigned usable_cpus() {
     // (a mask covers one processor group, 64 CPUs at most: past that, Windows may run the process on every group)
     return n < 64 ? std::clamp(n, 1u, all) : all;
 }
-/// (YM) The physical cores among the logical processors the process may run on: Threaded rendering's Auto count
+/// (longshot) The physical cores among the logical processors the process may run on: Threaded rendering's Auto count
 /// (threaded_rendering.h, whose Auto was measured by cores: on 4 cores the old recorder thread made a third of the frames
 /// long, 18 Nov). GetLogicalProcessorInformation's cores, one mask each of its logical processors (on Linux host/posix's,
 /// from sysfs core_id and physical_package_id), each counted once when any of its logical processors is in the affinity

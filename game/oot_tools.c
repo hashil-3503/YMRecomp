@@ -21,7 +21,7 @@ const char *hos_version(void);   /* (host/version.c) */
 #define YM_VERSION hos_version()
 #endif
 
-/* (YM) the map Link is in and his age, as the last map: line, for the performance summary (gpu/vk/perf_report.cpp
+/* (longshot) the map Link is in and his age, as the last map: line, for the performance summary (gpu/vk/perf_report.cpp
    through MkwVkHost perf_info): "" while no save is loaded (before one, and back at the title) */
 static SRWLOCK map_lock = SRWLOCK_INIT;
 static char map_now[100];
@@ -468,7 +468,7 @@ static int oot_event_arg(Ctx *c, uint64_t arg, const char *name, uint32_t type, 
     const uint64_t name_buf = recomp_load64(c, entry + 8);
     const uint32_t name_cap = recomp_load32(c, entry + 16);
     const size_t length = strlen(name);
-    void *to = name_buf && length + 1 <= name_cap ? hos_guest_range(name_buf, length + 1) : NULL;   /* (YM) */
+    void *to = name_buf && length + 1 <= name_cap ? hos_guest_range(name_buf, length + 1) : NULL;   /* (longshot) */
     if (!to) return 0;
     memcpy(to, name, length + 1);
     if (type == 4) recomp_store8(c, entry + 152, value & 1);
@@ -553,7 +553,7 @@ static int oot_teleport(Ctx *c, uint64_t actor, unsigned index) {
     {   /* the event's name: arg+6800 points at its buffer, arg+6808 the capacity */
         const uint64_t buf = recomp_load64(c, arg + 6800);
         const uint32_t cap = recomp_load32(c, arg + 6808);
-        void *to = buf && strlen(event) + 1 <= cap ? hos_guest_range(buf, strlen(event) + 1) : NULL;   /* (YM) */
+        void *to = buf && strlen(event) + 1 <= cap ? hos_guest_range(buf, strlen(event) + 1) : NULL;   /* (longshot) */
         if (!to) ok = 0;
         else if (ok) memcpy(to, event, strlen(event) + 1);
     }
@@ -658,7 +658,7 @@ static void oot_teleport_followup(Ctx *c, uint64_t actor) {
     }
 }
 
-/* (YM) the control bridge (host/control.c): the map the game is in (Sequence_CurrentBanc), read on the game's thread
+/* (longshot) the control bridge (host/control.c): the map the game is in (Sequence_CurrentBanc), read on the game's thread
    with the player's update every 250 ms and kept for the bridge's thread; the last one known (it stays through loads and
    menus, where Link is not updated). And the debug teleport by destination, as the Cheats page asks for it: taken at the
    next update of the player, in play, and what came of it (sent, or refused and why) kept for the bridge's reply */

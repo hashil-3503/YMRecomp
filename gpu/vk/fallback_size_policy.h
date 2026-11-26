@@ -9,7 +9,7 @@
 // up to 29,400 phis and build there in 4-6 s and under 700 MB. Those cards are the ones RADV gives no 16-bit shader inputs
 // and outputs (storageInputOutput16: packed 16-bit math, GFX9 on), which is how the device tells them apart.
 //
-// (YM) Mesa's Intel driver (Iris Xe, Mesa 26.2.4, 32 lanes) has its own: four mesh programs call a function of the
+// (longshot) Mesa's Intel driver (Iris Xe, Mesa 26.2.4, 32 lanes) has its own: four mesh programs call a function of the
 // translator's 251-263 times (2b152050cd96ce1d, 9bb6c724ae90c9cf, 48f1d2eeff6160fd, fbba1b21bfafa666: the lookup of a guest
 // address among the stage's storage buffers, 137 instructions with a return for each buffer). The driver inlines every call,
 // and its compiler took one of them alone to a 14 GB cap in 27 minutes, unfinished; two at once took the preparation's
@@ -80,7 +80,7 @@ inline bool parse_limit(const char* text, uint32_t& out) {
 // for a pipeline the driver refuses.
 inline bool too_big(bool radv_gcn, uint32_t phis, uint32_t limit) { return radv_gcn && limit && phis > limit; }
 
-// (YM) A fallback compute stage not to give Mesa's Intel driver: more calls than the limit (0: no limit). Left out as above.
+// (longshot) A fallback compute stage not to give Mesa's Intel driver: more calls than the limit (0: no limit). Left out as above.
 inline bool too_many_calls(bool mesa_intel, uint32_t calls, uint32_t limit) { return mesa_intel && limit && calls > limit; }
 
 } // namespace fallback_size

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) When frame generation's images are let go (vk_framegen.cpp framegen_idle): after kIdlePresents presents in a row with
+// (longshot) When frame generation's images are let go (vk_framegen.cpp framegen_idle): after kIdlePresents presents in a row with
 // it off. A present that recorded made frames counts as on whatever the row says by then: its set is busy until the display thread
 // shows it, and a drain then would wait for a job that is only queued after (the hang #1158's review found: off for 119 presents, a
 // present that records with it on and reads Off after). Nothing of Vulkan here: tests/test_framegen_idle.py runs it.

@@ -385,7 +385,7 @@ static void menu_press(HWND w, LPARAM lp, LONG bit) {   /* (a click while the me
     SetCapture(w);   /* a drag past the window edge still reaches it */
     pointer_publish_at(w, at, (uint32_t)bit, 0);
 }
-/* (YM) the clipboard's first line into the Insert menu's text field that has the keyboard (Ctrl+V, Shift+Insert, or the
+/* (longshot) the clipboard's first line into the Insert menu's text field that has the keyboard (Ctrl+V, Shift+Insert, or the
    menu's own Paste: WM_APP + 12), as typed: its characters as code points, a pair of UTF-16 halves as one */
 static void paste_clipboard(HWND w) {
     if (!hos_text_focus() || !OpenClipboard(w)) return;
@@ -458,7 +458,7 @@ static LRESULT CALLBACK wndproc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
             if (fullscreen) set_fullscreen(w,1); /* selection/hotplug changes, on the window thread */
         }
         pointer_update(w, 0, 0);
-        /* (YM) a controller is not input to Windows: playing with one, the display would go off at the power
+        /* (longshot) a controller is not input to Windows: playing with one, the display would go off at the power
            plan's timeout. While the game's window is in front and not minimized, the display's idle timer is reset every
            30 s (ES_DISPLAY_REQUIRED without ES_CONTINUOUS: nothing is held when the game is left or closed).
            HOS_KEEP_DISPLAY=0: Windows' timeout as before */
@@ -522,7 +522,7 @@ static LRESULT CALLBACK wndproc(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
         }
         return 0;
     }
-    case WM_CHAR: {   /* (YM) a character typed, for the Insert menu's text fields (TranslateMessage, by the keyboard's
+    case WM_CHAR: {   /* (longshot) a character typed, for the Insert menu's text fields (TranslateMessage, by the keyboard's
                          layout). The window is an ANSI one: a byte of the code page, ASCII as itself, which is what a field
                          takes; a double-byte character's two (a lead byte, then its trail) are left out together */
         static int trail;
@@ -669,7 +669,7 @@ static DWORD WINAPI display_main(void *p) {
     RegisterRawInputDevices(&rid, 1, sizeof rid);
     pointer_update(hwnd, 0, 0);
     renderer = rx_start(hwnd);
-    if (!renderer) {   /* (YM) the game ends at once, as on Linux (host/posix/display_sdl.c renderer_main): behind a black
+    if (!renderer) {   /* (longshot) the game ends at once, as on Linux (host/posix/display_sdl.c renderer_main): behind a black
                           window it played on until the player closed it. The window after it reads this line */
         hos_log("display: the renderer did not start: the game ends, and the window after it says why");
         hos_log_flush();
@@ -687,7 +687,7 @@ static DWORD WINAPI display_main(void *p) {
     return 0;
 }
 
-/* (YM) The game's first work for the GPU waits for the renderer. It ran beside the renderer's start, and what it submitted while the
+/* (longshot) The game's first work for the GPU waits for the renderer. It ran beside the renderer's start, and what it submitted while the
    shaders were being prepared (80 s on a first start) was lost: that run had no ambient light, black foliage and dark characters. The
    game itself goes on starting as it did: held at the start instead, it left holes in the ground */
 void hos_renderer_wait(void) {

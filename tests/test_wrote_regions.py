@@ -50,7 +50,7 @@ def check_source():
     touch = block(tex, "Texture* texture_touch(Texture* tex, bool for_sampling) {")
     success = block(touch, "if (up_ok) {")
     dirty = block(success, "if (gpu_dirty) {")
-    failure = block(touch, "} else {\n        // (YM) a BC3 image")
+    failure = block(touch, "} else {\n        // (longshot) a BC3 image")
     if "tex->gpu_wrote_seen = gpu_dirty;" not in dirty or \
             touch.count("tex->gpu_wrote_seen =") != 2 or \
             "tex->gpu_wrote_seen = seen_before;" not in failure:

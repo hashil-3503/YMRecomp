@@ -104,20 +104,20 @@ struct RuntimeInfo {
     bool force_early_z{};
     /// Work around drivers that mix up results across calls to the 128-bit global-load helper.
     bool inline_global_128_loads{};
-    /// (YM) a mesh stage with no task stage before it: its workgroups start at the draw's first, as a task stage's do
+    /// (longshot) a mesh stage with no task stage before it: its workgroups start at the draw's first, as a task stage's do
     bool mesh_without_task{};
-    /// (YM) a GPU without VK_EXT_mesh_shader: task and mesh programs are compute shaders that write their stage
+    /// (longshot) a GPU without VK_EXT_mesh_shader: task and mesh programs are compute shaders that write their stage
     /// buffer outputs to storage buffers, and a generated vertex stage reads those records back.
     bool mesh_fallback{};
-    /// (YM) the generated vertex stage of that fallback: it reads a record per position and writes the stage's outputs
+    /// (longshot) the generated vertex stage of that fallback: it reads a record per position and writes the stage's outputs
     bool mesh_fallback_vertex{};
-    /// (YM) a mesh program with a task program before it: the task's count in its payload bounds the mesh workgroups
+    /// (longshot) a mesh program with a task program before it: the task's count in its payload bounds the mesh workgroups
     bool mesh_fallback_task{};
-    /// (YM) that task program's threads: task workgroup w starts its meshlets at slots w * threads + i
+    /// (longshot) that task program's threads: task workgroup w starts its meshlets at slots w * threads + i
     u32 mesh_fallback_task_threads{};
-    /// (YM) the fallback's record slots: mesh workgroups past this one write nothing
+    /// (longshot) the fallback's record slots: mesh workgroups past this one write nothing
     u32 mesh_fallback_capacity{};
-    /// (YM) how the fallback's mesh stage lays out its records and its vertex stage reads them
+    /// (longshot) how the fallback's mesh stage lays out its records and its vertex stage reads them
     /// (Backend::SPIRV::MeshFallbackLayout, RX_VK_MESH_FB_LAYOUT); 0: record after record
     u32 mesh_fallback_layout{};
 

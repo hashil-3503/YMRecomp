@@ -1,4 +1,4 @@
-/* (YM) What the debug teleport's follow-up (game/oot_tools.c oot_teleport_followup, 1.5 s after a request) does with
+/* (longshot) What the debug teleport's follow-up (game/oot_tools.c oot_teleport_followup, 1.5 s after a request) does with
    what it reads back. A request is sometimes answered 0 and then dropped by the game: nothing is reserved
    (Sequence_ReservedNextBanc ""), no event plays and Link is still where he was, so the map never changes and the control
    bridge's `teleport --arrive` times out. In scripted runs on an RTX 3080 that was 6 of 159 requests, 4 of them the first

@@ -1,4 +1,4 @@
-/* (YM) The Nintendo Switch 2 Pro Controller over USB, read by the game itself.
+/* (longshot) The Nintendo Switch 2 Pro Controller over USB, read by the game itself.
  *
  * Windows gives this controller no driver that a game can use: it is a HID device that reports nothing until it is told to
  * start, over a second, vendor-specific interface (bulk endpoints; Windows binds WinUSB to it by the controller's own

@@ -1,4 +1,4 @@
-/* (YM) The texture data heap's compaction asked for once in a while: the lifted f_80797240 calls
+/* (longshot) The texture data heap's compaction asked for once in a while: the lifted f_80797240 calls
    hos_oot_tex_compact_due where the game asks for a round (the hook site texture.compactAsk); game/oot_tex_compact.h
    has why and the rule.
    HOS_TEX_COMPACT_MS=<ms>: at least that long between two rounds (1000 with no switch); 0: at every frame, as the game has

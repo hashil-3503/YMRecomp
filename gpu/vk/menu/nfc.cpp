@@ -20,7 +20,7 @@ namespace mkwvk {
 int nfc_choice = 0;   // (the NFC tag row: the chosen tag's place in the host's list)
 
 #ifndef MENU_LAYOUT_ONLY
-// (YM) the NFC tab: the NFC tags in the player's folder (host/nn_nfp.c: the YM Launcher's NFC page puts them there),
+// (longshot) the NFC tab: the NFC tags in the player's folder (host/nn_nfp.c: the YM Launcher's NFC page puts them there),
 // one chosen and held to the game's reader. The list is the host's, asked again each time the menu opens (refresh_nfc)
 constexpr int kMaxNfc = 256;
 int nfc_listed = 0;

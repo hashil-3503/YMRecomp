@@ -385,7 +385,7 @@ Id EmitFPUnordGreaterThanEqual64(EmitContext& ctx, Id lhs, Id rhs) {
     return FPUnordCompare(&EmitContext::OpFUnordGreaterThanEqual, ctx, lhs, rhs);
 }
 
-// (YM) isnan of a scalar float of that many bits. With nan_bits (mma_layout.h: AMD's older Windows shader compiler) it is
+// (longshot) isnan of a scalar float of that many bits. With nan_bits (mma_layout.h: AMD's older Windows shader compiler) it is
 // a test of the value's bits, a NaN being an exponent of all ones and a mantissa that is not 0, which no float-mode setting of the
 // compiler can fold away; else OpIsNan, as before
 Id IsNan(EmitContext& ctx, Id value, u32 bits) {

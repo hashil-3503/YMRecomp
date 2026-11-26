@@ -538,7 +538,7 @@ def main():
                            "HOS_MOUSE_LEFT")]
     enums.append(re.search(r"typedef struct MkwVkPointer \{.*?\} MkwVkPointer;", api, re.S).group(0))
     tick = menu[menu.index("void menu_tick() {"):]
-    key_poll = tick[tick.index("    enum { K_N ="):tick.index("    // (YM) the gamepads")]
+    key_poll = tick[tick.index("    enum { K_N ="):tick.index("    // (longshot) the gamepads")]
     esc_at = tick.index("    const bool esc_opens")
     # The shortcut fixture stops before the Controls confirmation's cleanup.
     esc_block = tick[esc_at:tick.index("    if (control_confirmation.action", esc_at)]

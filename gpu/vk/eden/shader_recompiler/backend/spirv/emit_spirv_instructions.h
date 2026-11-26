@@ -71,7 +71,7 @@ void EmitIsbeWriteMapU8(EmitContext& ctx, Id address, Id value);
 void EmitIsbeWriteMapU32(EmitContext& ctx, const IR::Value& address, Id value);
 void EmitMeshPrologue(EmitContext& ctx);
 void EmitMeshEpilogue(EmitContext& ctx);
-// (YM) a GPU without mesh shaders: the generated vertex stage that reads the mesh epilogue's records
+// (longshot) a GPU without mesh shaders: the generated vertex stage that reads the mesh epilogue's records
 void EmitMeshFallbackVertexBody(EmitContext& ctx);
 void EmitSetFragColor(EmitContext& ctx, u32 index, u32 component, Id value);
 void EmitSetSampleMask(EmitContext& ctx, Id value);
@@ -656,7 +656,7 @@ Id EmitDPdyFine(EmitContext& ctx, Id op_a);
 Id EmitDPdxCoarse(EmitContext& ctx, Id op_a);
 Id EmitDPdyCoarse(EmitContext& ctx, Id op_a);
 
-// (YM) Helpers the emitters share, not IR instructions
+// (longshot) Helpers the emitters share, not IR instructions
 Id IsNan(EmitContext& ctx, Id value, u32 bits);   // (OpIsNan, or a test of the bits: mma_layout.h nan_bits)
 
 } // namespace Shader::Backend::SPIRV

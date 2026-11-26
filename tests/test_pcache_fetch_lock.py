@@ -114,7 +114,7 @@ def main():
     parser.add_argument("--cxx", default="g++")
     args = parser.parse_args()
     draw = (ROOT / "gpu/vk/vk_draw.cpp").read_text(encoding="utf-8")
-    lock = cut(draw, "std::shared_timed_mutex pcache_fetch_mu;", "// ---- (YM) What play makes goes into a cache of its own")
+    lock = cut(draw, "std::shared_timed_mutex pcache_fetch_mu;", "// ---- (longshot) What play makes goes into a cache of its own")
     # (every fetch of a cache's data is a PcacheFetch, every build with a cache a PcacheUse; a fetch is held around
     # vkGetPipelineCacheData alone, in a scope of its own, never across play_cache_save and its wait for a generation's users)
     save = cut(draw, "void pipeline_cache_save(bool force) {", "\n}\n")

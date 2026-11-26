@@ -1,4 +1,4 @@
-/* (YM) prompts_base.h: the prompts' game files read as they stream from the RomFS, and what the builder keeps of
+/* (longshot) prompts_base.h: the prompts' game files read as they stream from the RomFS, and what the builder keeps of
    them (the .base files). Plain C over stdio, with nothing of the host's: tests/prompts_base_test.c builds it alone. */
 #include "prompts_base.h"
 #include <stdlib.h>

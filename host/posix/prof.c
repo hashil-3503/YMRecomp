@@ -338,7 +338,7 @@ static DWORD WINAPI sample_all_thread(void *p) {
     /* (with HOS_CHAIN: "# at <ns>" before each sample, when it was taken: the threads are sampled one after another, a
        millisecond or more apart, and scripts/perf.py chain lays the samples on its exact path) */
     const int at = getenv("HOS_CHAIN") != NULL;
-    /* (YM) HOS_SLOW_FRAMES (host/slow_frames.c): sampled the whole run into its ring, the thread list taken again every
+    /* (longshot) HOS_SLOW_FRAMES (host/slow_frames.c): sampled the whole run into its ring, the thread list taken again every
        5 s (threads come and go), nothing written here */
     const int ring = path == hos_slow_frames_path();
     int64_t listed_at = 0;

@@ -1,4 +1,4 @@
-// (YM) The preparation's journal: which driver call a --prepare-shaders run was in when it died.
+// (longshot) The preparation's journal: which driver call a --prepare-shaders run was in when it died.
 //
 // The in-process guards (vk_draw.cpp guarded_graphics, guarded_compute, guarded_shader_module) catch an access violation on the
 // calling thread. They do not catch a driver that ends the process another way (a fault on a thread of its own, abort, a

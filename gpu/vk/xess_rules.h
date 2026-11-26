@@ -1,4 +1,4 @@
-/* (YM) Intel XeSS Super Resolution's choices as plain functions (gpu/vk/vk_xess.cpp): which quality preset takes a render
+/* (longshot) Intel XeSS Super Resolution's choices as plain functions (gpu/vk/vk_xess.cpp): which quality preset takes a render
    size, where Intel's library is looked for. No Vulkan, no Intel headers: tests/test_xess_rules.py compiles them as they are. */
 #pragma once
 

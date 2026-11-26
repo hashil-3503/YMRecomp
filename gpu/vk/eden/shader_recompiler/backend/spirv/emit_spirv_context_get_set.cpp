@@ -309,7 +309,7 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     if (IR::IsGeneric(attr)) {
         const u32 index{IR::GenericAttributeIndex(attr)};
         if (ctx.stage == Stage::Fragment && ctx.runtime_info.point_coord_generics.test(index)) {
-            // (YM) the point sprite's coordinate in place of the generic (RuntimeInfo::point_coord_generics)
+            // (longshot) the point sprite's coordinate in place of the generic (RuntimeInfo::point_coord_generics)
             if (element < 2) {
                 return ctx.OpLoad(ctx.F32[1],
                                   ctx.OpAccessChain(ctx.input_f32, ctx.point_coord, ctx.Const(element)));
@@ -571,7 +571,7 @@ void EmitSetOFlag(EmitContext&) {
 Id EmitWorkgroupId(EmitContext& ctx) {
     const Id id{ctx.OpLoad(ctx.U32[3], ctx.workgroup_id)};
     if (ctx.mesh_fallback && ctx.stage == Stage::Mesh && ctx.runtime_info.mesh_fallback_task) {
-        // (YM) a fallback mesh workgroup is a slot (its task's map gives it, EmitMeshPrologue): its id is its index in its
+        // (longshot) a fallback mesh workgroup is a slot (its task's map gives it, EmitMeshPrologue): its id is its index in its
         // task, as a task launches them from 0
         const Id slot{Sirit::ValidId(ctx.mesh_fallback_slot) ? ctx.mesh_fallback_slot
                                                              : ctx.OpCompositeExtract(ctx.U32[1], id, 0U)};

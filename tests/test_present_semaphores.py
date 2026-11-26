@@ -42,7 +42,7 @@ acquire_loss_start = present.index('    if (res == VK_ERROR_SURFACE_LOST_KHR)')
 acquire_loss = present[acquire_loss_start:present.index('\n#ifndef _WIN32', acquire_loss_start)]
 present_loss_start = present_out.index('    if (res == VK_ERROR_SURFACE_LOST_KHR)')
 present_loss = present_out[present_loss_start:present_out.index('\n    present_finish(res, false);', present_loss_start)]   # (the frame log and the failure line follow, in present_finish)
-# (YM) the close's own wiring, verbatim from mkwvk_close_asked: the flag, the presenter
+# (longshot) the close's own wiring, verbatim from mkwvk_close_asked: the flag, the presenter
 # drain, the retire under the close's locks. Without this extraction the test checks the
 # mechanics only: deleting the close's statements from the source would stay invisible.
 close_start = main.index('    dev.closing.store(true, std::memory_order_release);')
@@ -51,18 +51,18 @@ close_start = main.index('    dev.closing.store(true, std::memory_order_release)
 # anchor would have stopped in the middle of them)
 close_end = main.index('\n}', close_start)
 close_seq = main[close_start:close_end]
-# (YM) and the same for the initial chain: start() takes the close's lock and checks its
+# (longshot) and the same for the initial chain: start() takes the close's lock and checks its
 # flag before the first create_swapchain, so a window closing during startup gets no chain.
 SDL_LOCKED = '        std::lock_guard pi(present_image_mu);\n        if (dev.closing.load(std::memory_order_acquire)) return 0;\n        if (!create_swapchain((uint32_t)width, (uint32_t)height)) {'
 guard_start = main.index(SDL_LOCKED)
 guard_end = main.index('\n        }', guard_start) + len('\n        }')
 start_guard_seq = main[guard_start:guard_end]
-# (YM) the Windows path carries the same guard (hos_win runs the renderer on its own
+# (longshot) the Windows path carries the same guard (hos_win runs the renderer on its own
 # thread: the same close race exists there): pinned by its own anchor text.
 WIN_LOCKED = '        std::lock_guard pi(present_image_mu);\n        if (dev.closing.load(std::memory_order_acquire)) return 0;\n        if (!create_swapchain((uint32_t)(r.right - r.left), (uint32_t)(r.bottom - r.top))) return 0;'
 assert WIN_LOCKED in main, "start(): the Windows initial chain is not under the close's lock and flag"
 assert SDL_LOCKED in main, "start(): the SDL initial chain is not under the close's lock and flag"
-# (YM) and the create_swapchain guard: the real function answers not-made while a present is
+# (longshot) and the create_swapchain guard: the real function answers not-made while a present is
 # in the making, instead of retiring the chain under the presenter thread (which copies the image
 # index at the hand-off and reads dev.swap_rendered[index] after its waits). The fixture's stub
 # stands in for the rest of the function, so this line pins the guard itself.
@@ -188,7 +188,7 @@ int swapchain_framegen() {return 0;}   // (vk_main.cpp: frame generation's multi
 int framegen_now() {return 0;}   // (vk_framegen.cpp: frame generation's setting as it runs, Off)
 bool swapchain_dlssg() {return false;}   // (vk_main.cpp: and DLSS-G makes its sets: no)
 std::mutex present_image_mu;
-// (YM) the close's wiring and start's guard, verbatim from the sources: the fixture runs
+// (longshot) the close's wiring and start's guard, verbatim from the sources: the fixture runs
 // them as the sources write them. Delete either block in vk_main.cpp and the extraction above
 // stops finding it; change its behaviour and these calls fail.
 void close_now() {
@@ -354,7 +354,7 @@ int main() {
     if(bad_destroy || bad_chain)return 8;
     reflex_swapchain_destroyed();
     if(cached.swapchain || cached.latency || cached.frame_marked || cached.mode!=-1)return 26;
-    // (YM) The close itself, run as the source wires it (close_now is close_seq, verbatim
+    // (longshot) The close itself, run as the source wires it (close_now is close_seq, verbatim
     // from mkwvk_close_asked): it sets the flag, drains the presenter, retires under the close's
     // locks (the Deck's Game Mode compositor makes its final display commit as the window goes
     // away; pinned swapchain images and an un-idle device starve that commit, and the player

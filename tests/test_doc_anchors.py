@@ -27,11 +27,11 @@ REQUIRED = [
     ("gpu/vk/vk_replay.cpp", "// (the GPU's time as the game measures it", RULES),
     ("gpu/vk/vk_draw.cpp", "/// A clear after draws of the open pass", RULES),
     ("gpu/vk/vk_draw.cpp", "/// A draw that samples a target this pass already wrote", RULES),
-    ("gpu/vk/vk_framegen.cpp", "/// (YM) Whether display_main shows a fixed multiplier's set at its times", FG_RULES),
-    ("gpu/vk/vk_framegen.cpp", "/// (YM) The GPU's delay that a fixed multiplier's sets are shown at", FG_RULES),
+    ("gpu/vk/vk_framegen.cpp", "/// (longshot) Whether display_main shows a fixed multiplier's set at its times", FG_RULES),
+    ("gpu/vk/vk_framegen.cpp", "/// (longshot) The GPU's delay that a fixed multiplier's sets are shown at", FG_RULES),
     ("gpu/vk/vk_framegen.cpp", "/// Present ahead (display_main): a set's copies go to the GPU together", FG_RULES),
-    ("gpu/vk/vk_replay.cpp", "/// (YM) The frame slots present_image uses while frame generation runs", FG_RULES),
-    ("gpu/vk/vk_main.cpp", "// (YM) A fixed frame generation multiplier's set is presented ahead", FG_RULES),
+    ("gpu/vk/vk_replay.cpp", "/// (longshot) The frame slots present_image uses while frame generation runs", FG_RULES),
+    ("gpu/vk/vk_main.cpp", "// (longshot) A fixed frame generation multiplier's set is presented ahead", FG_RULES),
     ("gpu/vk/vk_imgui.cpp", "// (in a window, what a present's copy used is let go this many presents later", FG_RULES),
 ]
 

@@ -1,7 +1,7 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 #include "colour_vision.glsl"
-// (YM) HDR10 out (the Insert menu's HDR): the game's picture to PQ in Rec. 2020 for an HDR10 swapchain, graded by the HDR
+// (longshot) HDR10 out (the Insert menu's HDR): the game's picture to PQ in Rec. 2020 for an HDR10 swapchain, graded by the HDR
 // contrast row on the way. Scaled from its crop as the blit was.
 //  mode 0 (Expanded): the game's finished picture, SDR and sRGB-encoded. White in it is shown at the paper white (nits); its
 //         highlights are expanded towards the peak brightness, the brightest part of the picture reaching the peak, the rest at

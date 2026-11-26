@@ -1,4 +1,4 @@
-// (YM) Frame overlap: what a frame's recordings do to the game's memory, and where the GPU's time goes between them
+// (longshot) Frame overlap: what a frame's recordings do to the game's memory, and where the GPU's time goes between them
 // (vk_replay.cpp; docs/dev/reference/architecture.md, The frame pipeline, has the frame's whole sequence and
 // what was measured). Kept apart so the rules are checked without the renderer (tests/test_frame_overlap.py).
 //

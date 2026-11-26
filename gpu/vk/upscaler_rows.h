@@ -387,7 +387,7 @@ inline bool resolution_fixed(int upscaler) { return full_scale(upscaler); }
 inline bool model_shown(bool dlss_ok, int upscaler) { return dlss_ok && is_dlss(upscaler); }
 /// (env_set: RX_VK_DLSS_PRESET names a preset, which wins over the row for this run)
 inline bool model_fixed(int upscaler, bool env_set) { return !is_dlss(upscaler) || env_set; }
-/// (YM) The DLAA before the bloom row (opts.dlss_pre_bloom): shown with NVIDIA DLSS chosen where it runs (DLSS or
+/// (longshot) The DLAA before the bloom row (opts.dlss_pre_bloom): shown with NVIDIA DLSS chosen where it runs (DLSS or
 /// DLAA), and changeable with DLAA alone: in DLSS's other modes the scene, the bloom and the tone map are drawn smaller than
 /// the output DLSS draws, so its picture cannot go back into the scene (vk_temporal.cpp temporal_pre_bloom)
 inline bool pre_bloom_shown(bool dlss_ok, int upscaler) { return dlss_ok && is_dlss(upscaler); }

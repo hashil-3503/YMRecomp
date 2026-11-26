@@ -1,4 +1,4 @@
-// (YM) What the pipeline cache's files were made for (vk_draw.cpp's pcache_init), apart from Vulkan so that
+// (longshot) What the pipeline cache's files were made for (vk_draw.cpp's pcache_init), apart from Vulkan so that
 // tests/test_pcache_stamp.py can run it.
 //
 // YM_vk_pipelines.bin is checked against the GPU, the driver and the cache UUID only. A new translator (or a switch that changes

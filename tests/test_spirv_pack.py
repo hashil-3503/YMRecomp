@@ -47,7 +47,7 @@ def check_cache_source():
     save = cache[cache.index("void program_cache_save(const Program& p"):cache.index("bool program_cache_payload(")]
     if "store.put(" not in save or "kStoreWords" not in save:
         raise SystemExit("FAIL: program_cache_save does not put the SPIR-V in the store")
-    read = cache[cache.index("void program_cache_read(FILE* in"):cache.index("// ---- (YM) A compute program's kept variants")]
+    read = cache[cache.index("void program_cache_read(FILE* in"):cache.index("// ---- (longshot) A compute program's kept variants")]
     each = cache[cache.index("void program_cache_each("):cache.index("unsigned usable_cpus()")]
     light = cache[cache.index("std::unique_ptr<Program> program_cache_read_light("):cache.index("bool complete_from(")]
     complete = cache[cache.index("bool complete_from("):cache.index("bool program_cache_complete(Program& p)")]

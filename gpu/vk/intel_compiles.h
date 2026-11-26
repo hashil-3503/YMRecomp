@@ -1,4 +1,4 @@
-// (YM) The Intel shader compiles row's Auto: where Intel's Windows compiler is entered side by side without being asked.
+// (longshot) The Intel shader compiles row's Auto: where Intel's Windows compiler is entered side by side without being asked.
 //
 // IntelDriverGate (vk_internal.h) lets one thread at a time into igvk64's compiler because it faulted with two in it on an
 // Arc A750 and a UHD. On the Arc B-series (Battlemage, PCI device 0xE2xx) with driver 32.0.101.9154 that cost minutes at
@@ -22,7 +22,7 @@ inline bool intel_side_by_side_chosen(int row, uint32_t device, uint32_t version
     return row == 1 || (row == 0 && intel_side_by_side_measured(device, version));
 }
 
-// (YM) The shader preparation on the other Intel GPUs, with the row on Auto (#1706, #2011). With one thread in the
+// (longshot) The shader preparation on the other Intel GPUs, with the row on Auto (#1706, #2011). With one thread in the
 // compiler it took hours: an Arc iGPU (Core Ultra 7 155H, driver 101.9175) at 77% after 7 h 35 min, its CPU and GPU both
 // at 8%; an Arc A730M at 34% of its pipelines with "about 1187 min left". The same A730M on the same driver with the row
 // on Side by side built 25,005 of 32,623 noted pipelines in 2,753 s on 16 workers (5 to 35 a second) with no driver

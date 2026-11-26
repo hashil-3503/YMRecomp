@@ -151,7 +151,7 @@ uint8_t *hos_zs_read(const char *path, size_t *n, size_t limit) {
     return d;
 }
 
-/* (YM) romfs.c: a zstd-stored file of the .nup decoded at its open (a plain frame, the .nup's own wrapping) */
+/* (longshot) romfs.c: a zstd-stored file of the .nup decoded at its open (a plain frame, the .nup's own wrapping) */
 size_t hos_zs_frame(void *dst, size_t cap, const void *src, size_t n) {
     const size_t got = ZSTD_decompress(dst, cap, src, n);
     return ZSTD_isError(got) ? (size_t)-1 : got;
@@ -168,7 +168,7 @@ static ZSTD_DCtx *stream_ctx(void) {
     return ctx;
 }
 
-/* (YM) romfs.c: the first cap bytes a zstd-stored file of the .nup holds, from its frame's start (n bytes of it):
+/* (longshot) romfs.c: the first cap bytes a zstd-stored file of the .nup holds, from its frame's start (n bytes of it):
    only the blocks they are in are decoded */
 size_t hos_zs_frame_head(void *dst, size_t cap, const void *src, size_t n) {
     ZSTD_DCtx *ctx = stream_ctx();
@@ -181,7 +181,7 @@ size_t hos_zs_frame_head(void *dst, size_t cap, const void *src, size_t n) {
     return ZSTD_isError(r) || (ob.pos < cap && r) ? (size_t)-1 : ob.pos;
 }
 
-/* (YM) the same for a file of the game's RomFS (romfs.h): rel its path there, with hos_zs_decode_named's fallback
+/* (longshot) the same for a file of the game's RomFS (romfs.h): rel its path there, with hos_zs_decode_named's fallback
    to the dictionary `named` (NULL: none) */
 uint8_t *hos_zs_read_romfs_named(const char *rel, size_t *n, size_t limit, const char *named) {
     size_t zn = 0;
@@ -231,7 +231,7 @@ static void zs_feed(ZsStream *z, const uint8_t *p, size_t n) {
     }
 }
 
-/* (YM) a .zs file of the game's RomFS unpacked as it streams: fn(arg, piece, n) for each piece in order, the file
+/* (longshot) a .zs file of the game's RomFS unpacked as it streams: fn(arg, piece, n) for each piece in order, the file
    read a MB at a time (host/prompts.c: the textures' 244 MB, never whole in memory), and one the .nup keeps in a zstd
    frame of its own unwrapped as it streams too. 1 when the whole frame came and fn took every piece; 0 when there is
    no such file, it is not a frame this reads, or fn stopped */
@@ -287,7 +287,7 @@ static uint64_t content_size(const uint8_t *head, size_t got, uint64_t size) {
     return c == ZSTD_CONTENTSIZE_ERROR ? size : c == ZSTD_CONTENTSIZE_UNKNOWN ? size * 4 : c;
 }
 
-/* (YM) the size a .zs file of the game's RomFS decompresses to, as hos_zs_content_size says it; 0 when there is none */
+/* (longshot) the size a .zs file of the game's RomFS decompresses to, as hos_zs_content_size says it; 0 when there is none */
 uint64_t hos_zs_romfs_content_size(const char *rel) {
     uint8_t head[18];
     uint64_t size = 0;

@@ -15,7 +15,7 @@ void DecorateNonUniform(EmitContext& ctx, Id object) {   // (as emit_spirv_image
     }
 }
 
-// (YM) The image an atomic works on: the image itself, or for an array (count above 1, DefineImages and
+// (longshot) The image an atomic works on: the image itself, or for an array (count above 1, DefineImages and
 // DefineImageBuffers) the element the texture pass's index picks, as Image() in emit_spirv_image.cpp takes it for loads and
 // stores; nonuniform (true) where the profile indexes that kind of array so. A single image still takes no index
 Id Image(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& index, bool& non_uniform) {

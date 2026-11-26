@@ -1,4 +1,4 @@
-/* (YM) Allocations of the game's "OptimizeChangeBank" thread tried again when their heap has no room, instead of the
+/* (longshot) Allocations of the game's "OptimizeChangeBank" thread tried again when their heap has no room, instead of the
    game going on with a null pointer and crashing a few frames later.
 
    The OptimizeChangeBank thread rebuilds a model's material block (f_804566e0, "gsys::ModelResource(MatBlock)") and takes

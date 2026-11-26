@@ -43,7 +43,7 @@ const char* tx_framegen_mult(int v) {
     const int capped = framegen_capped(std::clamp(v, 2, 8), dlss_fg_most());
     return t[std::clamp(capped, 2, 8) - 2];
 }
-/// (YM) Whether the Frame generation by row offers DLSS FG: where DLSS-G can run in this process as far as is known
+/// (longshot) Whether the Frame generation by row offers DLSS FG: where DLSS-G can run in this process as far as is known
 /// (vk_dlss.cpp dlss_fg_unavailable). Where it cannot, the row has FSR 3.1 FG (0, the default, and 2 the same) and Built-in
 /// FG, and its line at FSR 3.1 FG says why not DLSS FG
 bool framegen_by_dlss_offered() { return dlss_fg_unavailable() == FG_SKIP_NONE; }

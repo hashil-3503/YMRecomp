@@ -1,4 +1,4 @@
-/* (YM) The game's zstd stream decode on the host's libzstd (third_party/zstd 1.5.7): on by default,
+/* (longshot) The game's zstd stream decode on the host's libzstd (third_party/zstd 1.5.7): on by default,
    HOS_NATIVE_ZSTD=0 the lifted code.
 
    The game decodes its .zs files on ParallelDecompThread: a job loop (f_80115bf0) hands each compressed chunk it has read to
@@ -95,7 +95,7 @@ static int zs_publish(int *mode, int m) {
     return __atomic_compare_exchange_n(mode, &unset, m, 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
 }
 
-/* (YM) One of the two switches: on unless it says off. Unset or empty is on; 0, false, off or no is off (env_on's
+/* (longshot) One of the two switches: on unless it says off. Unset or empty is on; 0, false, off or no is off (env_on's
    rule for a value). Both were opt-in at first, measured on one PC where the save's load did not get shorter; on a
    teleport tour of six areas the loading screens are about an eighth shorter with both (RTX 4070 SUPER, 9950X3D). */
 static int zs_wanted(const char *name) {

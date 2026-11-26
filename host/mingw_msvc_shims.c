@@ -1,4 +1,4 @@
-/* (YM) The llvm-mingw build (YM_MINGW, as TotK Recomp builds): the static FFmpeg libraries in the CPM cache were built
+/* (longshot) The llvm-mingw build (YM_MINGW, as TotK Recomp builds): the static FFmpeg libraries in the CPM cache were built
    with Microsoft's compiler and name a few things of its C runtime that the MinGW one does not have: the stack-buffer
    check (/GS), the float marker and the range-check report. Here they are, as the MSVC runtime defines them. The MSVC build
    compiles nothing of this file. NVIDIA's NGX library (nvsdk_ngx_s.lib, a build with NVIDIA DLSS) asks for the same: this file

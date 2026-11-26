@@ -24,7 +24,7 @@ RUN_ALL_ARGS = ["--cxx", "g++"]
 ROOT = Path(__file__).resolve().parents[1]
 
 START = "    std::vector<std::pair<uint64_t, Texture*>> order;\n    order.reserve(textures.size());"
-END = "    {   // (YM) nor one whose storage another image was drawn into after its own last drawing"   # (what follows the loop)
+END = "    {   // (longshot) nor one whose storage another image was drawn into after its own last drawing"   # (what follows the loop)
 
 
 def main():

@@ -1,4 +1,4 @@
-/* (YM) Valve's own controllers under Steam, and the motion sensors behind Steam Input's stand-in pads
+/* (longshot) Valve's own controllers under Steam, and the motion sensors behind Steam Input's stand-in pads
    (host/pad_sdl.c).
 
    Started from Steam, the game gets SDL_GAMECONTROLLER_IGNORE_DEVICES, which lists Valve's controllers (the Steam

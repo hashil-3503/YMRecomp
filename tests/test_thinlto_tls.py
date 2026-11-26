@@ -28,7 +28,7 @@ def state_header(rec, prof):
     # drain implementations; only the Vulkan-dependent routing/packers are out.
     includes = rec[rec.index("#include <algorithm>"):rec.index('#include "vk_loader.h"')]
     core = rec[rec.index("#define RX_REC_CALLS"):rec.index("// ---- The wrapper each vk_work.h macro calls:")]
-    scopes = prof[prof.index("// (YM) The per-draw phases (PROF_HOT)"):prof.index("} // namespace mkwvk", prof.index("struct ProfThread {"))]
+    scopes = prof[prof.index("// (longshot) The per-draw phases (PROF_HOT)"):prof.index("} // namespace mkwvk", prof.index("struct ProfThread {"))]
     # Test-only adapter lets the identical consumers exercise the old variable
     # and the new accessor, without rewriting either production implementation.
     arena = "rec::t_arena()" if "inline Arena& t_arena()" in rec else "rec::t_arena"

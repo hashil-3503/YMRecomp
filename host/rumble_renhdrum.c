@@ -1,4 +1,4 @@
-/* (YM) RenHDrum's backends: host/rumble_renhdrum.h says what they are and who calls what. */
+/* (longshot) RenHDrum's backends: host/rumble_renhdrum.h says what they are and who calls what. */
 #include "hos.h"
 #include "rumble_renhdrum.h"
 #include "pad_speaker.h"   /* (the speaker's two channels on this stream) */
@@ -236,7 +236,7 @@ static void bt_state_off(void) {   /* (lk held) both triggers Off, as 0x36 carri
         memcpy(bt_state + at, one + at, 11);
     }
 }
-/* (YM) the controller speaker's wish for the cable's speaker (rh_usb_speaker), and what the pad was last told: the
+/* (longshot) the controller speaker's wish for the cable's speaker (rh_usb_speaker), and what the pad was last told: the
    speaker is opened and given back here only, by RenHDrum's speaker block, for HD Haptics and the game's sounds alike */
 static int usb_spk_want, usb_spk_gain;
 static int usb_spk_open, usb_spk_told_gain = -1;
@@ -325,7 +325,7 @@ static void usb_pull(void *user, uint8_t *out, int len) {   /* (the sound card's
     ReleaseSRWLockExclusive(&lk);
     if (!filled) {
         memset(out, 0, (size_t)len);   /* (nothing to play: silence, never a held waveform) */
-        hos_pad_speaker_fill(f, frames);   /* (YM) the game's sounds added to the speaker's, host/pad_speaker.c */
+        hos_pad_speaker_fill(f, frames);   /* (longshot) the game's sounds added to the speaker's, host/pad_speaker.c */
         return;
     }
     /* the Vibration strength, once, on the samples the DSP made: its law stays the core's (a gain before it would go
@@ -336,7 +336,7 @@ static void usb_pull(void *user, uint8_t *out, int len) {   /* (the sound card's
             const float v = f[i * 4 + ch] * g;
             f[i * 4 + ch] = v < -1.0f ? -1.0f : v > 1.0f ? 1.0f : v;
         }
-    /* (YM) the game's sounds added to channels 0 and 1, HD Haptics' taps on 1 kept: host/pad_speaker.c, after the
+    /* (longshot) the game's sounds added to channels 0 and 1, HD Haptics' taps on 1 kept: host/pad_speaker.c, after the
        strength above, which is the vibration's and not theirs */
     hos_pad_speaker_fill(f, frames);
 }

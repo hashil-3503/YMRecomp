@@ -100,13 +100,13 @@ extern uint64_t hos_space_end;   /* web: the guest window ends where the host's 
 #else
 #define HOS_SPACE_END 0x8000000000ULL
 #endif
-/* (YM) host pointer of the n guest bytes at a, NULL unless all of them lie in the guest window. For addresses
+/* (longshot) host pointer of the n guest bytes at a, NULL unless all of them lie in the guest window. For addresses
    and sizes host code takes from guest memory or arguments before it reads or writes there: GP alone wraps around
    to any host address. */
 static inline void *hos_guest_range(uint64_t a, uint64_t n) {
     return a < (uint64_t)HOS_SPACE_END && n <= (uint64_t)HOS_SPACE_END - a ? GP(a) : (void *)0;
 }
-/* (YM) Host code's bulk writes of guest memory: n bytes at guest address a filled with a value, or copied from
+/* (longshot) Host code's bulk writes of guest memory: n bytes at guest address a filled with a value, or copied from
    host memory. The write, then the mark of its pages (HOS_WRITTEN), in that order: the renderer's capture takes a mark
    and then copies the page, so a mark set before the bytes could be taken with the old bytes, and nothing would say
    the page changed again. Any thread may call them at any time: the mark is a lock-free store, as the lifted code's
@@ -134,14 +134,14 @@ extern int hos_trace;
 void hos_log(const char *fmt, ...);
 void hos_log_at(int level, const char *fmt, ...);
 void hos_log_flush(void);
-/* (YM) the slow-frame recorder (host/slow_frames.c, HOS_SLOW_FRAMES): its path (NULL: off), the sampler's interval, a
+/* (longshot) the slow-frame recorder (host/slow_frames.c, HOS_SLOW_FRAMES): its path (NULL: off), the sampler's interval, a
    present (rx_nvn_present), a sample and a sweep's end (the all-thread samplers) */
 const char *hos_slow_frames_path(void);
 int hos_slow_frames_every_ms(void);
 void hos_slow_frame_present(void);
 void hos_slow_sample(int64_t sweep_ns, const char *text);
 void hos_slow_sweep_done(void);
-/* (YM) an A/B within one run (host/hos_ab.c, HOS_AB=<switch>=<value>[,<seconds>[,<warm-up seconds>]]): the side now,
+/* (longshot) an A/B within one run (host/hos_ab.c, HOS_AB=<switch>=<value>[,<seconds>[,<warm-up seconds>]]): the side now,
    -1 when no A/B runs or in its warm-up, else 0 (the switch's normal value) or 1 (the A/B's value): one relaxed load, cheap
    enough for a per-call path. A switch's reader takes the A/B as v = hos_ab_value(<its name, a literal>, v_normal): v_normal
    unless the A/B names that switch and side 1 runs. Both sides pay the same for the call (a load, then a look at a small
@@ -158,7 +158,7 @@ int hos_ab_frame(int64_t from_ns, int64_t to_ns);
 void hos_ab_start(void);     /* (hos_main.c, before the game's threads) */
 void hos_ab_present(void);   /* (rx_nvn_present: the host's per-side sums) */
 void hos_ab_end(void);       /* (hos_close_finish: their line in the log) */
-/* (YM) the profiling mode (host/profiling.c, HOS_PROFILE=1): its folder (NULL: off), its switches set (after
+/* (longshot) the profiling mode (host/profiling.c, HOS_PROFILE=1): its folder (NULL: off), its switches set (after
    YM_env.txt), its threads started (hos_prof_start), a timed event into its events.txt, and a sampler's line written
    (packed with HOS_SAMPLE_PACKED) */
 const char *hos_profiling_dir(void);

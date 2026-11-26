@@ -1,4 +1,4 @@
-// (YM) The indexed descriptor arrays the programs declare: a texture, texture buffer, storage image or image buffer
+// (longshot) The indexed descriptor arrays the programs declare: a texture, texture buffer, storage image or image buffer
 // descriptor of a stage whose count is above 1, which the shader indexes (a handle read at a dynamic offset of a constant
 // buffer, or from a handle table). host_info() gives the translator no device limits, so it sizes a dynamically indexed array
 // with HostTranslateInfo's default limit, up to 1024 elements (texture_pass.cpp DynamicDescriptorCount, DESCRIPTOR_MAX_COUNT),

@@ -106,7 +106,7 @@ HLE(_ZN2nn5codec17GetOpusPacketSizeEPKhm) {
 HLE(_ZN2nn5codec33DecodeOpusInterleavedWithHardwareEPNS0_23HardwareOpusDecoderTypeEPmPiPsmPKvm) {
     Dec *d = dec_of(ARG(0));
     const uint64_t out_size = ARG(4), in_size = ARG(6);
-    /* (YM) both buffers in guest memory, and the frame count an int (a 64-bit size was cut to any int) */
+    /* (longshot) both buffers in guest memory, and the frame count an int (a 64-bit size was cut to any int) */
     const uint8_t *in = (const uint8_t *)hos_guest_range(ARG(5), in_size);
     if (!d || in_size < 8 || !in) { RET(0x1F0); return; }
     const uint32_t len = be32(in);

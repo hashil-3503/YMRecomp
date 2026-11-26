@@ -1,4 +1,4 @@
-// (YM) RX_VK_RECORDER: the command buffer calls as packets, step 1 of a recorder thread (the "sync" phase).
+// (longshot) RX_VK_RECORDER: the command buffer calls as packets, step 1 of a recorder thread (the "sync" phase).
 //
 // Every vkCmd* call vk_work.h routes here is copied into a packet: its value arguments, and every array and struct it points to (the
 // descriptor writes and the image/buffer/texel infos they point to, push constant bytes, vertex buffer arrays, the rendering info and
@@ -193,7 +193,7 @@ constexpr uint64_t kPartsSpin = 10000;   // (parts: the recorder's spin with not
 inline bool (*g_wait_on_address)(volatile void* addr, void* compare, size_t size, uint32_t ms) = nullptr;
 inline void (*g_wake_by_address)(void* addr) = nullptr;
 
-/// (YM) The Insert menu's Threaded rendering, the recorder's half of it (threaded_rendering.h; vk_menu.cpp
+/// (longshot) The Insert menu's Threaded rendering, the recorder's half of it (threaded_rendering.h; vk_menu.cpp
 /// menu_recorder_thread, set by vk_replay.cpp before anything runs): true, the recorder thread, as RX_VK_RECORDER=thread
 /// (the row On, its Auto from 4 cores with mirrored buffer pools, or Auto alone with 6 or more cores when only mirrors are
 /// absent).

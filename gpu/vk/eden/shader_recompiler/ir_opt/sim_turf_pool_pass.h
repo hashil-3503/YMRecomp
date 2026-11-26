@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) The large-scale simulated turf's lists moved into renderer-owned buffers so high-demand area settings do
+// (longshot) The large-scale simulated turf's lists moved into renderer-owned buffers so high-demand area settings do
 // not overflow the game's fixed record storage. Grass distance (#1382) only changes reach/fade uniforms for separate
 // short decorative blades and never binds these lists; flowers, shrubs and other foliage use other paths again.
 //

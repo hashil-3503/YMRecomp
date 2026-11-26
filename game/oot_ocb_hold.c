@@ -1,4 +1,4 @@
-/* (YM) The neighbouring map the OptimizeChangeBank thread preloads, kept while the game's choice only flickers: the
+/* (longshot) The neighbouring map the OptimizeChangeBank thread preloads, kept while the game's choice only flickers: the
    lifted f_832b9880 hands its choice to hos_oot_ocb_pick before it asks for the unit and lets the others go (the hook
    site preload.choice: game/sites/sites.toml, game/oot_sites.c); game/oot_ocb_hold.h has why and the rule.
    HOS_OCB_HOLD_MS=<ms>: a new choice is taken once it has stayed the choice that long (OCB_HOLD_DEFAULT_MS with no switch);

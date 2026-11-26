@@ -195,7 +195,7 @@ static WB read_wb(uint64_t p) {
     return w;
 }
 
-/* (YM) a wave buffer whose data (and ADPCM context) lie in guest memory: the mixer reads them for as long as the
+/* (longshot) a wave buffer whose data (and ADPCM context) lie in guest memory: the mixer reads them for as long as the
    voice plays, and a size from the game's data walked its reads past the guest window, into the host's memory (into the
    sound) or a fault in the mixer */
 static int wb_in_guest(const WB *w) {
@@ -353,7 +353,7 @@ static void reverb_frame(Reverb *rv, Mix *m) {
     const float refl = rv->refl > -10000 ? mb_gain(rv->refl) : 0.0f;
     const float late = rv->reverb > -10000 ? mb_gain(rv->reverb) : 0.0f;
     const float dry = rv->dry;
-    /* (YM) the game's delays are any 64-bit TimeSpan: clamped as doubles, before they become ints, and from both
+    /* (longshot) the game's delays are any 64-bit TimeSpan: clamped as doubles, before they become ints, and from both
        sides (a negative late delay read before the line) */
     const double pre_f = (double)rv->refl_delay_ns * RATE / 1e9, late_f = (double)rv->late_delay_ns * RATE / 1e9;
     const int pre_d = pre_f > 0 ? (pre_f < REV_PRE / 2 - 1 ? (int)pre_f : REV_PRE / 2 - 1) : 0;
@@ -861,7 +861,7 @@ static void au_device_name(unsigned device, char *out, size_t size) {
 #endif
 }
 static uint64_t au_ms(void) { return (uint64_t)GetTickCount64(); }
-/* (YM) Which output Windows has as its default now (the waveOut mapper's preferred device, its number and name):
+/* (longshot) Which output Windows has as its default now (the waveOut mapper's preferred device, its number and name):
    a key that changes when the default does; 0 when unknown. A device opened as the default stays on that device when
    Windows moves its default (a Bluetooth headset gone and back), so the output section asks every second */
 #ifndef DRVM_MAPPER_PREFERRED_GET
@@ -893,7 +893,7 @@ static void au_opened(HWAVEOUT w) {
 /* The selected/default output's channels (its shared-mode mix format on Windows, SDL's playback format on Linux); 2 when
    unknown. */
 #ifdef _WIN32
-/* (YM) The channels of a mix format that are 5.1 speakers: its channel count when its mask names a centre and a
+/* (longshot) The channels of a mix format that are 5.1 speakers: its channel count when its mask names a centre and a
    pair behind or beside the player (5.1 back or side, 7.1), else 2. A device with more channels than speakers (an
    audio interface's outputs, a Scarlett's 8 with mask 0; quad without a centre; no mask at all) was counted by its
    channels would have the game mix 5.1, and what it puts in the centre (voices, the ocarina, Link's own sounds) and behind
@@ -953,7 +953,7 @@ static int au_device_channels(void) {
 #else
 static int au_device_channels(void) { return hos_sdl_audio_channels(); }
 #endif
-/* (YM) The Insert menu's Audio output (gpu/vk/menu/audio.cpp): audio_output= in YM_options.ini (host/options_path.c),
+/* (longshot) The Insert menu's Audio output (gpu/vk/menu/audio.cpp): audio_output= in YM_options.ini (host/options_path.c),
    0 Auto, 1 Stereo, 2 5.1, 3 Mono (stereo with a live final average). A number past them is the nearest, as the menu reads
    it. Read from the file, as host/nn_applet.c reads the Handheld profile: the game asks for its speakers only once,
    at its start */
@@ -1045,7 +1045,7 @@ static int out_next;           /* the next candidate: 0 = HOS_AUDIO_DEVICE, 1 = 
 static uint64_t out_opened, out_stall_since;
 static unsigned out_played, out_peak, out_reported;
 static unsigned out_completed; /* completed 10 ms blocks, not merely accepted writes */
-/* (YM) A device gone (a Bluetooth headset off, the audio service restarted: "no driver", "invalid handle" from the
+/* (longshot) A device gone (a Bluetooth headset off, the audio service restarted: "no driver", "invalid handle" from the
    next call) is closed and the default opened again; none opening, the default is tried every second until one does.
    Opened as the default, the output follows Windows': its key (au_default_key) looked at every second, a change reopens
    there. Before, a call that failed this way was only logged, the same block tried again for good, and the game had no
@@ -1799,7 +1799,7 @@ HLE(_ZN2nn5audio17GetSampleByteSizeENS0_12SampleFormatE) {
    a handle only. The three words written into it before overwrote the 16 bytes after it: MKW keeps pool objects
    where those bytes are a heap's links (its "Sound" heap's free list broke). */
 static struct { uint64_t addr, size; int used; } au_pools[1024];
-/* (YM) the handle lives in the game's MemoryPoolType (guest memory): its index is checked against the table */
+/* (longshot) the handle lives in the game's MemoryPoolType (guest memory): its index is checked against the table */
 static int pool_index(uint64_t obj) {
     const int i = get_handle(obj, K_POOL);
     return i >= 0 && i < 1024 && au_pools[i].used ? i : -1;
@@ -2013,7 +2013,7 @@ HLE(_ZN2nn5audio16AcquireVoiceSlotEPNS0_19AudioRendererConfigEPNS0_9VoiceTypeEii
     v->channels = (int)ARG(3) < 1 ? 1 : (int)ARG(3) > MAX_CH ? MAX_CH : (int)ARG(3);
     v->format = (int)ARG(4);
     v->param = ARG(6);
-    if (v->param && ARG(7) >= 32 && hos_guest_range(v->param, 32)) memcpy(v->coefs, GP(v->param), 32);   /* (YM) */
+    if (v->param && ARG(7) >= 32 && hos_guest_range(v->param, 32)) memcpy(v->coefs, GP(v->param), 32);   /* (longshot) */
     v->volume = 1.0f;
     v->pitch = 1.0f;
     v->state = PLAY_STOPPED;

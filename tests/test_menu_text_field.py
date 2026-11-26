@@ -734,7 +734,7 @@ def main():
                      block((ROOT / "gpu/vk/menu/audio.cpp").read_text(encoding="utf-8"), "int speaker_restart_value("),
                      "extern Out output_preview_target;",
                      between(menu, "bool output_size_char(", "struct FieldRow {"),
-                     between(menu, "TextField* editing =", "// ---- (YM) the Controls page:")])
+                     between(menu, "TextField* editing =", "// ---- (longshot) the Controls page:")])
     # (the text queue, to its taker: what follows it in rx_backend.c, the input recordings' callbacks, is another check's)
     host_cut = (between(backend, "enum { TEXT_QUEUE", "static int host_take_text(") +
                 block(backend, "static int host_take_text(") + "\n")

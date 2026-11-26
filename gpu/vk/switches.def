@@ -1,4 +1,4 @@
-// (YM) The switches: every RX_, HOS_ and YM_ name the renderer or the host reads from the environment, one row
+// (longshot) The switches: every RX_, HOS_ and YM_ name the renderer or the host reads from the environment, one row
 // each, sorted by name.
 //   SW(name, kind, type, "what the game does with it unset", "what setting it does")
 //   GONE(name, "the day its reads were deleted", "what a run that still sets it gets")

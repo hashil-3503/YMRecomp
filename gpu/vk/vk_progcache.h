@@ -1,4 +1,4 @@
-// (YM) The program cache's state and reads, shared by vk_shader.cpp (the translator, which saves what it makes and reads
+// (longshot) The program cache's state and reads, shared by vk_shader.cpp (the translator, which saves what it makes and reads
 // back what it has made) and vk_progcache.cpp (the cache itself, outside the translator stamp: see there)
 #pragma once
 #include <atomic>
@@ -71,7 +71,7 @@ void program_cache_load(uint64_t key, std::vector<std::unique_ptr<Program>>& var
 /// The kept variants of key read from the file (in: a handle on it, used under mu when given) and made ready, to variants
 void program_cache_read(FILE* in, std::mutex* mu, uint64_t key, const std::vector<DiskRecord>& recs,
                         std::vector<std::unique_ptr<Program>>& variants);
-// ---- (YM) The load when the game makes a program (vk_programs.cpp): the records by position, one at a time ----
+// ---- (longshot) The load when the game makes a program (vk_programs.cpp): the records by position, one at a time ----
 /// Whether a program of that key is kept and not read in yet
 bool program_cache_has(uint64_t key);
 /// Every such key now (the index's own copy: a create call on the game's thread then takes no lock a disk read holds)
@@ -91,10 +91,10 @@ std::vector<DiskRecord> program_cache_take(uint64_t key, const std::vector<DiskR
 /// needs. program_cache_complete reads the code and makes the module. Null: not a record to read this way
 std::unique_ptr<Program> program_cache_read_light(FILE* in, std::mutex* mu, uint64_t key, const DiskRecord& d);
 bool program_cache_complete_unshared(Program& p, FILE* in);   // (program_cache_complete for a program no other thread has yet)
-/// (YM) The bytes of a light-read program's code its record holds itself: none when its SPIR-V is in the shader store
+/// (longshot) The bytes of a light-read program's code its record holds itself: none when its SPIR-V is in the shader store
 uint64_t program_cache_code_in_record(int64_t code_at, uint64_t words);
 /// The cache's file, for a thread's own handle on it (empty: no cache)
-/// (YM) The program cache, as a preparation that got to its end left it, copied beside the shader store: what a game folder
+/// (longshot) The program cache, as a preparation that got to its end left it, copied beside the shader store: what a game folder
 /// with none of this translator begins from (vk_progcache.cpp seed_path)
 void program_cache_publish();
 std::string program_cache_path();

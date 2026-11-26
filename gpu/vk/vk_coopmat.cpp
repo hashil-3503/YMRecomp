@@ -1,4 +1,4 @@
-// (YM) Native matrix multiplies: OoT's networks (the movie upscaler, the gameplay TAAU) are HMMA.16816.F16
+// (longshot) Native matrix multiplies: OoT's networks (the movie upscaler, the gameplay TAAU) are HMMA.16816.F16
 // programs, which the shuffle expansion in lower_to_maxwell.h runs at a fraction of the speed. With
 // VK_KHR_cooperative_matrix offering 16x8x16 f16 on the subgroup, HMMA lowers to HMMA_nx2 and the SPIR-V back end
 // emits one OpCooperativeMatrixMulAddKHR, moving each lane's fragment registers in and out of its elements.
@@ -445,7 +445,7 @@ bool test_multiply_wmma16() {
 
 // (vk_main.cpp, once the device is made: dev.coop_matrix says the extension and its feature are on)
 namespace {
-// ---- (YM) The software multiplies' form (mma_software.h). The unrolled form is used only where, on this device, it gives every
+// ---- (longshot) The software multiplies' form (mma_software.h). The unrolled form is used only where, on this device, it gives every
 // word the loop gives: a 32-lane shader multiplies kSoftwareTestLanes lanes' fragments once in each form and the words are compared.
 // The fragments are f16 values of every kind (normal at several scales, subnormal, zero, sums that overflow), and every eighth warp
 // is built so that a K group's exact sum lies just off an f16 tie that its f32 rounding lands on, the remainder coming in the
@@ -717,14 +717,14 @@ void coopmat_init() {
     if (Shader::Backend::SPIRV::mesh_fallback_shared_warp)
         logf("vk: the mesh fallback's warps in workgroup memory, its stages at any lane count (RX_VK_MESH_SHARED_WARP=0: the subgroup's)%s",
              Shader::Backend::SPIRV::mesh_fallback_shared_warp_check ? "; checked against the subgroup's (RX_VK_MESH_SHARED_WARP_CHECK)" : "");
-    // (YM) the translation's vendor fixes (device_policy.h fetch_bounds, nan_bits): out-of-bounds texel fetches answer 0,
+    // (longshot) the translation's vendor fixes (device_policy.h fetch_bounds, nan_bits): out-of-bounds texel fetches answer 0,
     // NaN tests on bits
     Shader::Backend::SPIRV::fetch_bounds = dev.policy.fetch_bounds;
     // (dev.features.robustBufferAccess: on exactly when robustBufferAccess2 is, vk_main.cpp create_device)
     Shader::Backend::SPIRV::fetch_bounds_buffers = dev.policy.fetch_bounds && !dev.features.robustBufferAccess;
     Shader::Backend::SPIRV::nan_bits = dev.policy.nan_bits;
     Shader::Backend::SPIRV::mesh_fallback_strict_fmul = dev.policy.mesh_fallback_strict_fmul;
-    // (YM) RX_VK_MMA_SOFTWARE=1: HMMA_nx2 in a shader function on subgroup shuffles, no cooperative matrices
+    // (longshot) RX_VK_MMA_SOFTWARE=1: HMMA_nx2 in a shader function on subgroup shuffles, no cooperative matrices
     // (emit_spirv_warp.cpp, from Lichii): the lowering still gives HMMA_nx2 (dev.native_mma)
     if (const char* sw = std::getenv("RX_VK_MMA_SOFTWARE"); sw && std::atoi(sw)) {
         software_multiplies("subgroup shuffles, RX_VK_MMA_SOFTWARE");

@@ -1,4 +1,4 @@
-// (YM) Quick pipelines (RX_VK_QUICK_MS) and the brief pipeline wait (RX_VK_PIPE_WAIT_MS), for a draw whose full
+// (longshot) Quick pipelines (RX_VK_QUICK_MS) and the brief pipeline wait (RX_VK_PIPE_WAIT_MS), for a draw whose full
 // pipeline build is not done (vk_draw.cpp, draw and quick_pipeline). Ported from Mako, by sharkiix (8292d363): AMD's
 // optimizer took 5-13 s a pipeline for Volvagia's intro, whose colour draws were left out (a black silhouette) or, waited
 // for, froze it. Only pipelines: a shader still translating is waited for as before

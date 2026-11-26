@@ -1,4 +1,4 @@
-// (YM) NVIDIA DLSS Super Resolution, one of the temporal upscaler's engines (vk_dlss.h). The frame chain it draws
+// (longshot) NVIDIA DLSS Super Resolution, one of the temporal upscaler's engines (vk_dlss.h). The frame chain it draws
 // with (the scene's camera and depth, the inputs, the actor motion, the jitter, the picture into the network's output) is
 // vk_temporal.cpp's; here are NGX, DLSS's feature and its evaluation.
 //
@@ -323,7 +323,7 @@ int prepare(VkCommandBuffer cmd, uint32_t rw, uint32_t rh, uint32_t ow, uint32_t
                                           kPresetSettle);
     // (the game's native HDR: State::feature_hdr. What the game presents, not the option and the swapchain: with Native
     // picked and the game's picture not PQ, the scene is LDR, and an HDR feature would get LDR colour)
-    // (YM) and DLAA before the game's bloom and tone map (vk_temporal.cpp temporal_pre_bloom): the scene's linear light,
+    // (longshot) and DLAA before the game's bloom and tone map (vk_temporal.cpp temporal_pre_bloom): the scene's linear light,
     // past 1 at every highlight, before the exposure. The same feature takes the tone-mapped picture, made linear, in a frame
     // that runs it at the network instead
     const bool hdr = present_native_pq.load(std::memory_order_relaxed) || temporal_hdr_input();
@@ -867,7 +867,7 @@ void fg_release(Fg& g) {
     g.fw = g.fh = 0;
 }
 
-// (YM) Why the last set DLSS-G was asked for went to the renderer's own (dlss_fg_skip); none when DLSS-G made it.
+// (longshot) Why the last set DLSS-G was asked for went to the renderer's own (dlss_fg_skip); none when DLSS-G made it.
 // A set with nothing to blend from (a loading hitch) leaves it as it was
 std::atomic<int> fg_skip{FG_SKIP_NONE};
 std::atomic<unsigned> fg_skip_most{0};

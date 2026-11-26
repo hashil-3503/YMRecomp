@@ -1,4 +1,4 @@
-// (YM) A capture's late pages, decided at the replay.
+// (longshot) A capture's late pages, decided at the replay.
 //
 // A capture copies the pages the CPU wrote, on the game's thread, at a submit. A page the GPU also writes may be missing
 // the GPU's words in that copy: the submission that writes them back was not done when the copy was made. Such a page is

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) The NaN guard on float colour outputs (RX_VK_NAN_GUARD=0: off; vk_shader.cpp).
+// (longshot) The NaN guard on float colour outputs (RX_VK_NAN_GUARD=0: off; vk_shader.cpp).
 // It shared a header with the OoT fog and exposure workaround, which is gone.
 
 #pragma once
@@ -12,7 +12,7 @@
 
 namespace Shader::Optimization {
 
-/// (YM) Not a NaN or an infinity into a float colour target. One such pixel in the scene went through the bloom's chain of
+/// (longshot) Not a NaN or an infinity into a float colour target. One such pixel in the scene went through the bloom's chain of
 /// averages to the whole picture: the one-frame white flash, the HUD over it (RX_VK_FRAMELOG, RX_VK_PROBE=2 caught it: a NaN in the
 /// scene target, the blur after it all at its top). What the console's blend does with one is unknown; nothing here wants it.
 /// float_targets: bit i, target i is a float one (an integer target's bits go as they are)

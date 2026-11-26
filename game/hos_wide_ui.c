@@ -1,4 +1,4 @@
-/* (YM) The HUD laid out for the picture's shape (hos_wide_ui_tick below): at its 16:9 size, what sits at a side or
+/* (longshot) The HUD laid out for the picture's shape (hos_wide_ui_tick below): at its 16:9 size, what sits at a side or
    corner of its 16:9 canvas moved out (or in) to the screen's, as a layout made for that shape would place it; panes
    spanning the canvas drawn the screen's width. The pane planner is ozwaldorf's ("Extended" ultrawide menus,
    https://github.com/NotRexed/Hookshot/pull/2843), here for the HUD's layouts on every shape, by

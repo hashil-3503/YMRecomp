@@ -51,19 +51,19 @@ struct HosThread {
     int vc_held, vc_last, vc_queued, vc_escaped, vc_starved;
     volatile int vc_kick;
     int64_t vc_since;
-    /* (YM) a long wait's cause (HOS_VCORE_LOG_MS, vc_long_wait): when it took the core it holds and when a waiter asked
+    /* (longshot) a long wait's cause (HOS_VCORE_LOG_MS, vc_long_wait): when it took the core it holds and when a waiter asked
        for it; and, as a grant ends its wait, the thread that let the core go, its priority, how long it had held it and how
        long before it let go it was asked (-1: never) */
     int64_t vc_held_at, vc_kick_at;
     char vc_by[48];
     int vc_by_prio;
     int64_t vc_by_held, vc_by_asked;
-    /* (YM) the frame trace (RX_VK_FRAME_TRACE, MkwVkHost thread_times): time waiting for a core and time blocked (from
+    /* (longshot) the frame trace (RX_VK_FRAME_TRACE, MkwVkHost thread_times): time waiting for a core and time blocked (from
        hos_vcore_away to hos_vcore_back, the core's wait taken out), in ns, counted while hos_fps_timing is on */
     volatile int64_t vc_wait_total, blocked_total;
     int64_t away_at;
     CONDITION_VARIABLE vc_cv;
-    /* (YM) fibers: the context running now (NULL: ctx, the thread's own), the thread's host fiber once it
+    /* (longshot) fibers: the context running now (NULL: ctx, the thread's own), the thread's host fiber once it
        switched to a guest fiber */
     Ctx *volatile run_ctx;
     void *host_fiber;
@@ -197,7 +197,7 @@ static int log_take_locked(char **out) {
     return n;
 }
 
-/* (YM) A batch goes out in one write. stderr is unbuffered (hos_main.c), so each line was a write of its own: 30-90 a
+/* (longshot) A batch goes out in one write. stderr is unbuffered (hos_main.c), so each line was a write of its own: 30-90 a
    second in play, every one extending the log file. With the game on a slow disk (a SATA SSD, 90% full) those writes kept
    the disk busy: its 4 KB reads took 10-200 ms where they take 0.4 ms, and what the game read from it meanwhile (a page of
    its own code, a file of the game's) waited as long: the long frames of a session. */
@@ -224,7 +224,7 @@ static void log_write(char **lines, int n) {
     fflush(stderr);
 }
 
-/* (YM) and the writer waits a little after the line it is woken for, so the lines of that time go out together: a few
+/* (longshot) and the writer waits a little after the line it is woken for, so the lines of that time go out together: a few
    writes a second however many lines there are. A queue half full goes out at once, before a burst can fill it (a full
    queue has the thread that logs write the line itself). HOS_LOG_BATCH_MS=<ms> (default 250, at most 2000; 0: the lines
    there are at each wake, as before). Nothing waiting is lost: every way out writes the queue first (log_flush,
@@ -341,7 +341,7 @@ static void log_flush(void) {}
 
 void hos_log_flush(void) { log_flush(); }
 
-/* (YM) A line's level as the log writes it: none for info, so the lines most of the log is stay as they were; "[trace] "
+/* (longshot) A line's level as the log writes it: none for info, so the lines most of the log is stay as they were; "[trace] "
    after the thread's tag for the rest, which the launcher's log reads to show info and above unless asked for more */
 static const char *log_level_tag(int level) {
     switch (level) {
@@ -361,7 +361,7 @@ static void hos_vlog(int level, const char *fmt, va_list ap) {
     else if (!strncmp(buf, HOS_REPORT_FATAL_PREFIX, sizeof HOS_REPORT_FATAL_PREFIX - 1))
         hos_crash_record_fatal(NULL, strstr(buf, "VK_ERROR_DEVICE_LOST") ? "device lost" : "Vulkan fatal");
     snprintf(raw, sizeof raw, "[hos %s] %s%s\n", cur ? cur->name : "host", log_level_tag(level), buf);
-    /* (YM) the player's user name out before anything has the line: players send their log in (host/log_redact.h) */
+    /* (longshot) the player's user name out before anything has the line: players send their log in (host/log_redact.h) */
     hos_log_redact(line, sizeof line, raw);
     extern volatile int hos_control_on;   /* (control.c: log lines for its subscribers) */
     if (hos_control_on) {
@@ -396,7 +396,7 @@ void hos_fatal(Ctx *c, const char *fmt, ...) {
     vsnprintf(buf, sizeof buf, fmt, ap);
     va_end(ap);
     log_flush();
-    char clean[2200];   /* (YM) without the player's user name, as every other line (host/log_redact.h) */
+    char clean[2200];   /* (longshot) without the player's user name, as every other line (host/log_redact.h) */
     hos_log_redact(clean, sizeof clean, buf);
     fprintf(stderr, "[hos %s] FATAL: %s", cur ? cur->name : "host", clean);
     if (c) fprintf(stderr, " (lr %#llx sp %#llx)", (unsigned long long)c->x[30], (unsigned long long)c->x[31]);
@@ -419,7 +419,7 @@ static void setup_guest(HosThread *t) {
     G64(t->tlr + 0x1F8) = t->guest_tt;
     t->kernel_handle = (uint32_t)InterlockedIncrement(&next_handle);
     G32(t->guest_tt + TT_HANDLE) = t->kernel_handle;
-    /* (YM) SDK 22's InternalCriticalSection::IsLockedByCurrentThread reads the owner handle from TLR+0x110
+    /* (longshot) SDK 22's InternalCriticalSection::IsLockedByCurrentThread reads the owner handle from TLR+0x110
        directly (SDK 21: ThreadType+0x1B0 through TLR+0x1F8). Left 0, every free mutex looked held by the caller
        and the first heap lock aborted in pthread_mutex_lock. */
     G32(t->tlr + 0x110) = t->kernel_handle;
@@ -658,7 +658,7 @@ void hos_thread_join(HosThread *t) {
     if (away) hos_vcore_back();
 }
 
-/* (YM) The frame trace's main-thread columns (RX_VK_FRAME_TRACE, through MkwVkHost thread_times): the thread named name's
+/* (longshot) The frame trace's main-thread columns (RX_VK_FRAME_TRACE, through MkwVkHost thread_times): the thread named name's
    time so far, in ns: [0] waiting for a virtual core, [1] blocked (in a wait, a sleep or a join, the core given up), both counted
    only while hos_fps_timing is on, and [2] its CPU time (the system's, GetThreadTimes). 0 when no thread has that name */
 int hos_thread_times_of(const char *name, int64_t out[3]) {
@@ -777,7 +777,7 @@ static const NameSpec *match_name_spec(const NameSpec *s, int n, const char *nam
    vk_replay.cpp pins it there): the game's threads run on the others. The replay is on the frame's critical path
    (MKW waits for the last frame's GPU work before it submits the next), and on a core shared with game threads
    it ran ~1.7x slower than alone. Only on machines with 8+ logical processors; HOS_RESERVE_CORE=0: none.
-   (YM) On a CPU with cores of more than one kind, the last core of the fastest kind: the last core of all is an
+   (longshot) On a CPU with cores of more than one kind, the last core of the fastest kind: the last core of all is an
    efficiency core on Intel's hybrid CPUs (an i7-12700K's logical processors 16-19), the slowest place for the replay
    (an i7-13700K's Kokiri Forest: 48.7 fps with it there, 60 on a performance core). EfficiencyClass is higher the faster
    the core, and the same for every core of a CPU of one kind (the last core, as before). Only with 4+ cores of the
@@ -786,7 +786,7 @@ static const NameSpec *match_name_spec(const NameSpec *s, int n, const char *nam
    processor group's cores: the masks the affinity calls take are its group's. On Linux the same choice from
    /sys/devices/cpu_core/cpus (Intel's hybrid CPUs; last_fastest_core below); without that file, the last core, as before.
    Every way, only among the cores the process may run on wholly (its affinity mask: process_cpus, #522). */
-/* (YM) The cores that share the largest L3, on a CPU whose cores do not all share one of the same size: AMD's X3D CPUs
+/* (longshot) The cores that share the largest L3, on a CPU whose cores do not all share one of the same size: AMD's X3D CPUs
    with two CCDs (7900X3D, 7950X3D, 9900X3D, 9950X3D) have the 3D V-Cache on one CCD only (96 MB against 32 MB). Windows
    moves a game there only when its Game Bar knows the program as a game; this one it does not know, so its threads ran on
    both, and the replay's reserved core (the last one) is on the CCD without the cache. On a 9950X3D (SMT off), Castle Town's
@@ -817,7 +817,7 @@ static uint64_t pick_cache_cores(const uint64_t *masks, const uint64_t *sizes, i
     if (physical < 8) return 0;
     return best;
 }
-/* (YM) The logical processors this process may run on (its affinity mask: `start /affinity`, a launcher's, Process
+/* (longshot) The logical processors this process may run on (its affinity mask: `start /affinity`, a launcher's, Process
    Lasso's, taskset's), for the reserved core's choice; every one when the mask cannot be read (Windows gives 0 for a process
    with threads in more than one processor group) */
 static uint64_t process_cpus(void) {
@@ -1019,7 +1019,7 @@ static uint64_t last_fastest_core(int *cores) {
 }
 #endif
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
-/* (YM) A Linux cpulist ("0-7", "0-11,16-19") as a mask of logical processors 0-63; 0 when it does not parse.
+/* (longshot) A Linux cpulist ("0-7", "0-11,16-19") as a mask of logical processors 0-63; 0 when it does not parse.
    (tests/test_reserved_core.py) */
 static uint64_t parse_cpu_list(const char *s) {
     uint64_t mask = 0;
@@ -1039,7 +1039,7 @@ static uint64_t parse_cpu_list(const char *s) {
     }
     return mask;
 }
-/* (YM) Linux: Windows' EfficiencyClass has no file of its own, but on Intel's hybrid CPUs the kernel lists the
+/* (longshot) Linux: Windows' EfficiencyClass has no file of its own, but on Intel's hybrid CPUs the kernel lists the
    performance cores' logical processors in /sys/devices/cpu_core/cpus (the hybrid PMU; the efficiency cores are in
    cpu_atom). Without it the last core was kept, and on those CPUs that is an efficiency core: a Core Ultra 7 265KF's
    logical processor 19 (P-cores 0-7, E-cores 8-19). Those cores are class 1, the others 0, and pick_reserved_core
@@ -1093,7 +1093,7 @@ uint64_t hos_reserved_cpus(void) {
         return mask;
     }
 #if defined(_WIN32)
-    /* (YM) none where the game is kept to the cores of the largest L3 (hos_cache_cpus): they are 8 cores on the CPUs
+    /* (longshot) none where the game is kept to the cores of the largest L3 (hos_cache_cpus): they are 8 cores on the CPUs
        measured (a 9950X3D, SMT off), and with one of them kept for the replay the game's threads had 7. In the market the replay
        then took 9.8-10.0 ms a frame but the frame rate stayed at 56.9-57.4; with the 8 shared, 10.1-10.5 ms and 59.9 fps.
        HOS_RESERVE_CORE=1: the last core of the fastest kind is kept all the same, as on other CPUs. That is normally a core of
@@ -1124,7 +1124,7 @@ uint64_t hos_reserved_cpus(void) {
     SYSTEM_LOGICAL_PROCESSOR_INFORMATION info[256];
     DWORD len = sizeof info;
     if (!GetLogicalProcessorInformation(info, &len)) return mask;
-    /* (YM) of the processors this process may run on. A process kept to some of them (taskset, a launcher's
+    /* (longshot) of the processors this process may run on. A process kept to some of them (taskset, a launcher's
        affinity) had the PC's last core kept all the same, outside its set, and a thread may leave the set: the replay ran
        there, beside whatever else did. A timed session kept to one CCD of a 7900X (CPUs 0-5,12-17) replayed on CPUs 11 and
        23 of the other, with the builds: frames of 2-8 s whenever one ran, and a 13th core when none did. A core counts
@@ -1289,7 +1289,7 @@ static void sleep_ns(int64_t ns, int guest) {
         const int threads = process_threads();   /* (0 elsewhere than Windows: the timer when asked for) */
         int how = hos_short_sleep_timer(getenv("HOS_SHORT_SLEEP_TIMER"), threads);
 #if !defined(_WIN32)
-        /* (YM) Linux: the game's own sleeps wait on the timer whatever the processors, the host's still yield (1).
+        /* (longshot) Linux: the game's own sleeps wait on the timer whatever the processors, the host's still yield (1).
            Yielding, OoT's five idle job workers and sead::MainThread take 3.3-3.6 ms a frame each in Hyrule Field,
            ~9 ms of CPU a frame in all, while one of them waits on a GPU readback. With the timer for all sleeps the
            frame's CPU falls 44.8 -> 35.4 ms at the same median frame.
@@ -1414,7 +1414,7 @@ HLE(_ZN2nn2os19GetCurrentStackInfoEPmS1_) {
     if (ARG(1)) G64(ARG(1)) = cur->stack_size;
 }
 
-/* (YM) nn::os::YieldThread gives up the virtual core only, not the processor (HOS_OS_YIELD=1: SwitchToThread as
+/* (longshot) nn::os::YieldThread gives up the virtual core only, not the processor (HOS_OS_YIELD=1: SwitchToThread as
    well, as before; HOS_AB may flip it, each yield deciding alone). OoT yields after every job and actor callback. On a
    PC of 4 cores in Castle Town's market the job threads' CPU time was about their running time plus their time inside
    SwitchToThread (the six BaseProc executors 107 % of a core measured, 45.5 % of it running, 51.6 % in SwitchToThread):
@@ -1480,7 +1480,7 @@ void hos_sleep_logged(int64_t ns, uint64_t lr) {
     ReleaseSRWLockExclusive(&lk);
 }
 
-/* (YM) OoT's present waits for its frame's GPU work by polling an NVN event, sleeping ~1.6 ms between looks
+/* (longshot) OoT's present waits for its frame's GPU work by polling an NVN event, sleeping ~1.6 ms between looks
    (0x80590500: `while (nvnEventGetValue(e) != 1) SleepThread(...)`, ~3.5 sleeps a frame, 2 ms each on Windows): the
    frame noticed the GPU's signal late, ~7 ms of the 25 ms frame asleep on its critical path. The GPU writes the event
    into guest memory itself, so the sleep looks at it between yields (its virtual core given up) and ends once it is
@@ -1514,7 +1514,7 @@ static int present_poll(Ctx *c, int64_t ns) {
     if (away) hos_vcore_back();
     return 1;
 }
-/* (YM) The FPS counter's Breakdown (gpu/vk/vk_fps.cpp, through MkwVkHost slept_ns): the time slept in OoT's present poll
+/* (longshot) The FPS counter's Breakdown (gpu/vk/vk_fps.cpp, through MkwVkHost slept_ns): the time slept in OoT's present poll
    (0x80590520 above: waiting for its frame's GPU work) and in the window's acquire (host/nn_vi.c: the frame pacing), whichever
    thread they are on (OoT simulates on its main thread and records on its presentation thread, which waits for it), and each
    thread's other guest sleeps. A clock read before and after a sleep, only while the Breakdown shows (hos_fps_timing, set by the
@@ -1627,13 +1627,13 @@ HLE(_ZN2nn2os13GetSystemTickEv) {
     static int on = -1;
     if (on < 0) on = env_on("HOS_TICK_LOG");
     if (on) tick_log(c->x[30]);
-    /* (YM) The graphics module: x19 at its frame-end clock read (main+0x346c770 is after the bl), for nn_vi.c's
+    /* (longshot) The graphics module: x19 at its frame-end clock read (main+0x346c770 is after the bl), for nn_vi.c's
        real-time step */
     if (c->x[30] == 0x8348c770) hos_gfx_module = c->x[19];
     RET(hos_ticks());
 }
 HLE(_ZN2nn2os22GetSystemTickFrequencyEv) { RET(HOS_TICK_HZ); }
-/* (YM) At the counter's own rate, HOS_TICK_HZ (31.25 MHz: 32 ns a tick). These converted at the Switch 1's
+/* (longshot) At the counter's own rate, HOS_TICK_HZ (31.25 MHz: 32 ns a tick). These converted at the Switch 1's
    19.2 MHz (ticks = ns * 12 / 625) while GetSystemTick counts 31.25 MHz, so a tick span came out 1.63x too long: OoT's
    present slept 1.63 ms for its 1 ms poll step (0x80590500: SleepThread(ConvertToTimeSpan(frequency / 1000))), and
    any of its timing through these was off by as much. HOS_TICK_CONVERT_192=1: as before */
@@ -2000,7 +2000,7 @@ static int64_t vc_env_ns(const char *name, int64_t us) {
     const char *e = getenv(name);
     return (e ? atoll(e) : us) * 1000;
 }
-/* (YM) HOS_VCORE_LOG_MS=<ms> (50 by default; 0: none): a wait for a core that long is logged with its cause, the thread
+/* (longshot) HOS_VCORE_LOG_MS=<ms> (50 by default; 0: none): a wait for a core that long is logged with its cause, the thread
    whose release ended it (its priority, how long it had held the core, how long before it let go it was asked to) or how it
    ended otherwise, and the holders of the cores the thread may use as it ends (how long each has held its core, and whether it
    was asked). The first 200 a run; the 5 s "vcores:" line counts them all. Holding vc_lock */

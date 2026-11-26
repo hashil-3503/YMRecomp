@@ -104,7 +104,7 @@ void jobs_push(std::function<void()> fn, bool urgent, const std::atomic<bool>* f
 }
 // Intel's Windows driver: four of the game's big compute pipelines built at once by Intel's compiler (up to 58 s each) can
 // freeze the whole PC. One thread builds them one at a time there, below normal priority, beside the shared workers.
-// (YM) Between two of its builds no compute build is under way: the moment Intel's pipeline cache fetch waits for
+// (longshot) Between two of its builds no compute build is under way: the moment Intel's pipeline cache fetch waits for
 // (pipeline_cache_between_builds). first: the front lane, in order among its own
 void jobs_push_serial(std::function<void()> fn, std::function<void()> on_failure, bool first) {
     fn = with_failure(std::move(fn), std::move(on_failure));

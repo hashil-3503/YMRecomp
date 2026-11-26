@@ -27,7 +27,7 @@ bool temporal_env_chosen();
 bool temporal_scene_format(VkFormat format);
 bool temporal_colour_pair(VkFormat input, VkFormat output);
 bool temporal_wanted();       // (temporal_mode() != GAME)
-/// (YM) No engine (temporal_mode() is GAME: the game's own upscaler or the Upscaler's Off) and AMD FSR 3.1's frame
+/// (longshot) No engine (temporal_mode() is GAME: the game's own upscaler or the Upscaler's Off) and AMD FSR 3.1's frame
 /// interpolation asked for (vk_fsr3fi.h frames_wanted): the chain still takes the scene's camera and skinned draws, and makes
 /// the motion at the gameplay upscale's dispatch for that interpolation (actor motion in it), leaving the picture to the
 /// network. Its inputs are then as good as with an engine drawing
@@ -64,15 +64,15 @@ struct SkinnedDraw {
 };
 void temporal_note_skinned_draw(const SkinnedDraw& k);
 
-/// (YM) The hidden-mesh rule's switches (vk_draw.cpp hidden_depth_draw, gpu/vk/hidden_mesh.h). Bit 0: the depth
+/// (longshot) The hidden-mesh rule's switches (vk_draw.cpp hidden_depth_draw, gpu/vk/hidden_mesh.h). Bit 0: the depth
 /// draws of hidden meshes are left out (unless RX_VK_DLSS_FADED=0); bit 1: the detailed log (RX_VK_DLSS_FADED_LOG=1). 0:
 /// nothing runs. Read once; the first call logs what it is
 int temporal_hidden_mesh_mode();
-/// (YM) Whether `depth` is the depth target of the scene the chain has taken in this frame (its camera's)
+/// (longshot) Whether `depth` is the depth target of the scene the chain has taken in this frame (its camera's)
 bool temporal_scene_depth_is(const Texture* depth);
 VkImageView temporal_reshade_depth(uint32_t width, uint32_t height);
 
-/// (YM) NVIDIA DLAA before the game's bloom and tone map (pre_bloom.h has where and why): with DLAA and the
+/// (longshot) NVIDIA DLAA before the game's bloom and tone map (pre_bloom.h has where and why): with DLAA and the
 /// Upscaler's DLAA before the bloom row on only (RX_VK_DLSS_PRE_BLOOM over it); off, DLAA stays at the gameplay upscale.
 /// A draw of program key that samples what its descriptors list (sampled: vk_draw.cpp gfx_sampled) and draws into colors
 /// (n of them): the frame's passes for the learning,
@@ -83,7 +83,7 @@ VkImageView temporal_reshade_depth(uint32_t width, uint32_t height);
 /// the pipeline, viewport, vertex streams and descriptors bound are not the draw's any more (vk_draw.cpp: bound().reset())
 bool temporal_pre_bloom(VkCommandBuffer cmd, uint64_t key, const std::vector<const Texture*>& sampled, Texture* const* colors,
                         int n);
-/// (YM) The engine takes the scene's linear colour before the tone map (temporal_pre_bloom wanted for this run and
+/// (longshot) The engine takes the scene's linear colour before the tone map (temporal_pre_bloom wanted for this run and
 /// mode): DLSS makes its feature for HDR colour then, with its own exposure (vk_dlss.cpp prepare)
 bool temporal_hdr_input();
 
@@ -116,7 +116,7 @@ void temporal_prewarm(VkCommandBuffer cmd);
 /// The draws of the last frame (vk_replay.cpp status_tick) and the size of the picture the game presented (do_present)
 void temporal_note_frame(int64_t draws);
 void temporal_note_present(uint32_t width, uint32_t height);
-/// (YM) The game asked for its gameplay upscale (temporal_upscale) in this frame or the two before: it draws a 3D
+/// (longshot) The game asked for its gameplay upscale (temporal_upscale) in this frame or the two before: it draws a 3D
 /// scene now, whether or not an engine then drew it (failed, refused, not this frame). Not in its own menus, movies and
 /// loading screens. Without the lock (an atomic frame number)
 bool temporal_scene_now();
@@ -155,9 +155,9 @@ struct TemporalFrame {
     float jitter[2]{};          // (the scene's sub-pixel offset this frame, in render pixels, x right and y down)
     bool reset = false;         // (no history: the first frame, or one after a gap or a camera cut the chain saw)
     float near_z = 0.1f, far_z = 1000.0f, fov_y = 1.0f;   // (the scene's projection's, when it is a plain perspective one)
-    float projection[16]{};     // (YM) the scene's projection without this frame's jitter: FSR 3.1's depth constants
-    uint32_t jitter_phases = 8; // (YM) the length of the jitter's sequence the host runs (dlss_jitter_phases)
-    /// (YM) depth holds 1 - d (the engine's fsr_depth, where the projection puts the near plane at 0: FSR 3.1). Anything
+    float projection[16]{};     // (longshot) the scene's projection without this frame's jitter: FSR 3.1's depth constants
+    uint32_t jitter_phases = 8; // (longshot) the length of the jitter's sequence the host runs (dlss_jitter_phases)
+    /// (longshot) depth holds 1 - d (the engine's fsr_depth, where the projection puts the near plane at 0: FSR 3.1). Anything
     /// else that reads this frame's depth (frame generation, other passes) must look here, not assume the plain depth
     bool depth_reversed = false;
 };
@@ -184,10 +184,10 @@ struct TemporalEngine {
     /// light, unclamped, and takes back linear; null or false: LDR colour, square-root encoded, clamped to 0..1 (an LDR
     /// engine fed more would misread it)
     bool (*hdr)() = nullptr;
-    /// (YM) The depth as FSR's own passes take it: reversed (1 at the near plane) where the game's projection puts the near
+    /// (longshot) The depth as FSR's own passes take it: reversed (1 at the near plane) where the game's projection puts the near
     /// plane at 0 (fsr3_math.h camera_from_projection's flip_depth). AMD FSR 3.1 (vk_fsr3.cpp): its passes are built for that
     bool fsr_depth = false;
-    /// (YM) An evaluation that fails is for that frame only (the network draws it, and the next frame starts a new
+    /// (longshot) An evaluation that fails is for that frame only (the network draws it, and the next frame starts a new
     /// history), not for good: FSR 3.1, whose constants come from the frame's stream
     bool retry = false;
     /// Whether the most recent failed evaluation can be retried on the next frame.

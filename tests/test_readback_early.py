@@ -528,7 +528,7 @@ def main():
     a = p.parse_args()
     memory = (ROOT / "gpu/vk/vk_memory.cpp").read_text(encoding="utf-8")
     replay = (ROOT / "gpu/vk/vk_replay.cpp").read_text(encoding="utf-8")
-    pages = between(memory, "std::mutex wb_pages_mu;", "} // namespace\n/// (YM) Whether any page of")
+    pages = between(memory, "std::mutex wb_pages_mu;", "} // namespace\n/// (longshot) Whether any page of")
     writers = between(memory, "namespace {\nthread_local uint32_t wr_what = 0;", "/// (RX_VK_LOG_RB_WRITERS) the writers of a range's pages")
     inv = block(replay, "void invalidate(uint64_t gpu, uint64_t size) {")
     if inv.index("rb_diag_finish(rbd, v);") > inv.index("rb_diag_done(gpu, size, rbd, d / 1e6, line);"):
@@ -666,7 +666,7 @@ def main():
         run(a.cxx, rec_src, rec_exe)
         probe_src, probe_exe = tmp / "probe.cpp", tmp / ("probe.exe" if os.name == "nt" else "probe")
         probe_src.write_text(PROBE.replace("/* PROBE */", between(replay, "struct RbRelease {",
-                                                                  "/// (YM) invalidate's wait for a write-back's value")),
+                                                                  "/// (longshot) invalidate's wait for a write-back's value")),
                              encoding="utf-8")
         run(a.cxx, probe_src, probe_exe)
         check_src, check_exe = tmp / "check.cpp", tmp / ("check.exe" if os.name == "nt" else "check")

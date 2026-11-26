@@ -1,4 +1,4 @@
-/* (YM) Discord Rich Presence: "Playing YM" with the time played in the player's Discord status, through the local
+/* (longshot) Discord Rich Presence: "Playing YM" with the time played in the player's Discord status, through the local
    IPC of a Discord client running on this PC, and the place Link is while he is in a map ("Kakariko Village"; the title
    and the start say "YM" and the release instead). What it says is the player's to change in YM_options.ini
    (game/discord_activity.c). Nothing leaves the machine but the activity itself, and nothing is sent while the Insert
@@ -40,7 +40,7 @@
 #include "oot_area_names.h"
 #include "oot_heart_containers.h"
 
-#define YM_DISCORD_APP_ID_DEFAULT "1570559772111933578"   /* (the YM application's id, digits) */
+#define YM_DISCORD_APP_ID_DEFAULT ""   /* (none: the id was the Longshot team's Discord application; set discord_app_id= to your own) */
 
 void hos_log(const char *fmt, ...);
 int rx_option(int id, int otherwise);

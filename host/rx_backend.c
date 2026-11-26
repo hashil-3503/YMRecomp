@@ -343,7 +343,7 @@ static float host_aspect_ratio(void) { return hos_aspect_ratio; }
 #ifndef _WIN32
 int hos_sdl_desktop_size(int *width, int *height);   /* hos_sdl.c */
 #endif
-/* (YM) the main screen's size, as host/hos_main.c takes its shape (MkwVkHost.screen_size) */
+/* (longshot) the main screen's size, as host/hos_main.c takes its shape (MkwVkHost.screen_size) */
 static int host_screen_size(int *width, int *height) {
     int hos_monitor_screen_size(int *, int *);
     if (hos_monitor_screen_size(width, height)) return 1;
@@ -389,7 +389,7 @@ int hos_vk_take_key_press(int key) {
 #define host_take_key_press NULL
 #endif
 
-/* (YM) the FPS counter's Breakdown: this thread's sleeps so far (host/hos_thread.c) */
+/* (longshot) the FPS counter's Breakdown: this thread's sleeps so far (host/hos_thread.c) */
 extern _Thread_local int64_t hos_slept_ns[2];
 extern volatile int64_t hos_poll_slept_ns, hos_acquire_slept_ns;
 extern volatile int hos_fps_timing;
@@ -403,11 +403,11 @@ static void host_slept_ns(int64_t out[2]) {
     out[1] = hos_slept_ns[1] + __atomic_load_n(&hos_acquire_slept_ns, __ATOMIC_RELAXED);
 }
 
-/* (YM) MkwVkHost.ab_value (version 36): host/hos.h's hos_ab_value, an inline function, as one the renderer can call. Its
+/* (longshot) MkwVkHost.ab_value (version 36): host/hos.h's hos_ab_value, an inline function, as one the renderer can call. Its
    cost outside an A/B is one load, as for the host's own readers */
 static int host_ab_value(const char *name, int normal) { return hos_ab_value(name, normal); }
 
-/* (YM) typed text for the Insert menu's text fields (MkwVkHost.take_text): the window's thread puts each character and
+/* (longshot) typed text for the Insert menu's text fields (MkwVkHost.take_text): the window's thread puts each character and
    editing key in (host/display.c WM_CHAR and WM_KEYDOWN, host/posix/display_sdl.c SDL's text input and key events), the menu
    takes them out at its frames, in order. Nothing is kept while no field has the keyboard, and the window then takes no text
    (SDL's text input stopped: no input method's window over the game) */
@@ -648,13 +648,13 @@ int rx_start(void *hwnd) {
     flush_early();
     return ok;
 }
-/* (YM) YM --prepare-shaders: the Vulkan back end started with no window and no game, which prepares
+/* (longshot) YM --prepare-shaders: the Vulkan back end started with no window and no game, which prepares
    every shader in its start (gpu/vk/vk_main.cpp started_up) and is then let go. 0 when there is no usable Vulkan */
 int rx_prepare_shaders(void) {
     const MkwVkRenderer *r = load_vulkan("YM_vk.dll");
     return r && r->start(NULL);
 }
-/* (YM) the window is being closed: a back end still preparing its shaders stops and keeps what it made first (a few
+/* (longshot) the window is being closed: a back end still preparing its shaders stops and keeps what it made first (a few
    seconds at most). One without the export (an older one) has nothing to keep */
 #ifndef _WIN32
 /* Startup failure and all close callers share one claim, before either can end the process or clean up. */
@@ -725,7 +725,7 @@ int rx_control_picture(HosControlPicture *out) {
 static void nvn_present_with_generation(const nvn_tex *t, const int crop[4], uint64_t generation) {
     InterlockedIncrement(&presents);
     hos_slow_frame_present();   /* (HOS_SLOW_FRAMES: a late frame's samples written out, host/slow_frames.c) */
-    hos_ab_present();   /* (YM) HOS_AB: the frame counted for its side (host/hos_ab.c) */
+    hos_ab_present();   /* (longshot) HOS_AB: the frame counted for its side (host/hos_ab.c) */
     if (hos_control_on) control_picture_note(t, crop);
     if (vk && generation && vk->nvn_present_trial) vk->nvn_present_trial(t, crop, generation);
     else if (vk) vk->nvn_present(t, crop);
@@ -840,7 +840,7 @@ void rx_nvn_program_released(const nvn_prog *p) { vk ? vk->nvn_program_released(
 void rx_nvn_program_created(const nvn_prog *p) {
     if (vk && vk->nvn_program_created) vk->nvn_program_created(p);
 }
-/* (YM) A texture's texels read or written by the CPU (nvnTextureReadTexels / WriteTexels) wait in the Vulkan back end
+/* (longshot) A texture's texels read or written by the CPU (nvnTextureReadTexels / WriteTexels) wait in the Vulkan back end
    for the GPU to finish everything submitted before (vk_replay.cpp finish), and that work can itself wait for a signal the
    game's main thread makes later (seen with the next frame's work held at OoT's frame limiter). The calling thread held its
    virtual core through that wait, and the main thread's frame needed a worker allowed on that core only: SceneLowPriority's
@@ -885,7 +885,7 @@ void rx_nvn_write_texels(const nvn_tex *t, unsigned level, unsigned layer0, cons
     if (away) hos_vcore_back();
 }
 void rx_nvn_invalidate(uint64_t gpu, uint64_t size) {
-    /* (YM) nothing there it can wait for (the back end's lock-free look: nothing ever written back, no texture the GPU
+    /* (longshot) nothing there it can wait for (the back end's lock-free look: nothing ever written back, no texture the GPU
        wrote): done with the core kept, as on the console, where the call is a cache operation. OoT makes it per shape per
        view in its model work, each a release of the core and a wait for one again */
     if (vk && vk->nvn_invalidate_quick && vk->nvn_invalidate_quick(gpu, size)) return;
@@ -911,7 +911,7 @@ int rx_option(int id, int otherwise) {
     return vk && vk->option ? vk->option(id) : otherwise;
 }
 void rx_option_set(int id, int value) { if (vk && vk->option_set) vk->option_set(id, value); }
-/* (YM) the control bridge (host/control.c): the Vulkan back end's, none without it (0) */
+/* (longshot) the control bridge (host/control.c): the Vulkan back end's, none without it (0) */
 int rx_control_frame_info(int64_t *presents, int64_t *draws, int *width, int *height) {
     if (!vk || !vk->frame_info) return 0;
     vk->frame_info(presents, draws, width, height);

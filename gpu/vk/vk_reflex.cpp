@@ -1,4 +1,4 @@
-// (YM) NVIDIA Reflex through VK_NV_low_latency2, without NVIDIA's Streamline (vk_reflex.h).
+// (longshot) NVIDIA Reflex through VK_NV_low_latency2, without NVIDIA's Streamline (vk_reflex.h).
 //
 // While the Insert menu's NVIDIA Reflex row (Off / On / On + Boost; RX_VK_REFLEX=0 / 1 / 2 over it) is on, the swapchain is
 // made with latency mode on (VkSwapchainLatencyCreateInfoNV) and its sleep mode set from the row; turning the row on or off
@@ -100,7 +100,7 @@ void mark(VkLatencyMarkerNV m, uint64_t id = 0) {
 }
 
 // doc: docs/dev/reference/architecture.md#frame-generations-presents (rule 6: under FIFO the made frames do not queue)
-/// (YM) Under FIFO (V-Sync On; Auto with DLSS Frame Gen) with a fixed frame generation multiplier, the game's frames
+/// (longshot) Under FIFO (V-Sync On; Auto with DLSS Frame Gen) with a fixed frame generation multiplier, the game's frames
 /// no faster than the multiplier's share of refresh - refresh^2/3600: 157 a second at 165 Hz, the rate NVIDIA's own Reflex
 /// keeps a G-SYNC display under with V-Sync, RX_VK_FG_FIFO_CAP=1. At the refresh or past it FIFO shows one frame a refresh
 /// and the sets queue

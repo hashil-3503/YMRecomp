@@ -1,4 +1,4 @@
-"""(YM) An A/B within one run (HOS_AB, host/hos_ab.c) read from the frame trace: each side's frame times
+"""(longshot) An A/B within one run (HOS_AB, host/hos_ab.c) read from the frame trace: each side's frame times
 (scripts/perf.py ab <frames.csv>... [--boot 2000] [--seed 1] [--json]).
 
 <frames.csv> is the frame trace of a run with HOS_AB and RX_VK_FRAME_TRACE=1 set: logs/YM_frames.csv in the game folder

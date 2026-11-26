@@ -57,14 +57,14 @@ struct Texture {
     // contents
     bool uploaded = false;    // from guest memory, as of upload_gen
     uint64_t upload_gen = 0;
-    uint64_t retry_frame = 0;   // (YM) an image whose upload failed: tried again from this frame (vk_texture.cpp)
+    uint64_t retry_frame = 0;   // (longshot) an image whose upload failed: tried again from this frame (vk_texture.cpp)
     uint64_t map_sig = 0;     // (a texture in a virtual pool: its pages' mapping when last uploaded)
     std::vector<uint64_t> page_map;   // (and each 64 KB page's guest address then: what a remap changed)
     struct Run { uint64_t off, guest, n; };   // (and its storage as runs of contiguous guest memory)
     std::vector<Run> runs;
     uint32_t runs_maps_gen = ~0u;             // (the GPU mappings' generation the runs were made at)
     bool gpu_written = false; // the GPU rendered, copied or stored into it: the image is the content
-    bool only_cleared = false; // (YM) all the GPU did was clear it: what the CPU writes after still counts (a font cache's glyphs)
+    bool only_cleared = false; // (longshot) all the GPU did was clear it: what the CPU writes after still counts (a font cache's glyphs)
     uint64_t gpu_gen = 0;     // (the memory generation when the GPU last wrote it: CPU writes after it are taken)
     bool released = false;    // its texture was finalized after the GPU wrote it: CPU writes count again
     uint64_t release_gen = 0;
@@ -76,7 +76,7 @@ struct Texture {
     bool writeback_noted = false;  // (in the list of textures waiting for that)
     uint64_t written_back_hash = 0; // (its memory's hash after that write-back: still its own texels there, or the CPU's since)
     uint64_t verify_hash = 0;      // (RX_VK_VERIFY_DIM: its guest memory's hash when last uploaded)
-    uint64_t blocks_hash = 0;      // (YM) decoded ASTC: its blocks' hash at its last whole upload, 0 when unknown (astc_reuse.h)
+    uint64_t blocks_hash = 0;      // (longshot) decoded ASTC: its blocks' hash at its last whole upload, 0 when unknown (astc_reuse.h)
     bool freed_listed = false;     // (finalized by the game and listed by blocks_hash: its image may serve a new texture)
     bool reuse_retire = false;     // (its image served one: it goes at the next texture_frame unless used again first)
     uint32_t checked_epoch = 0;
@@ -135,7 +135,7 @@ uint64_t texture_destroy_generation();
 /// still stands at generation `now` (texture_destroy_generation()): no generation between the two is that texture's going
 /// or one that makes every resolved view stale. False for id 0 (nothing was resolved) and past what the log holds.
 bool texture_still_resolved(uint32_t id, uint64_t since, uint64_t now);
-/// (YM) Whether t, listed at gpu, is still that texture with that image: not destroyed since (t is only compared until
+/// (longshot) Whether t, listed at gpu, is still that texture with that image: not destroyed since (t is only compared until
 /// it is found, so a freed one is never read). Replay thread
 bool texture_alive(uint64_t gpu, const Texture* t, VkImage image);
 // (YM, RX_VK_FRAME_TRACE: time no other column has; totals in ns, the trace takes their differences)
@@ -186,7 +186,7 @@ void copy_block_attachment(VkCommandBuffer cmd, const Texture& tex, VkImage bloc
                            bool to_attachment);
 VkImageView texture_view(Texture* tex, const nvn_tex* t, const nvn_view* v, VkImageViewType view_type, ViewUse use,
                          VkFormat* format_out = nullptr, VkFormat force_format = VK_FORMAT_UNDEFINED);
-/// (YM) The format rules texture_get and texture_view follow (vk_texture.cpp), shared with the pipeline state list
+/// (longshot) The format rules texture_get and texture_view follow (vk_texture.cpp), shared with the pipeline state list
 VkFormat image_format_of(VkFormat vf, bool astc_decoded);
 VkFormat view_format_of(VkFormat image, bool astc_decoded, bool bc, int view_nvn, ViewUse use, VkFormat force_format);
 /// The format a draw renders in on this device, into a texture of NVN format tex_nvn through a view of NVN format view_nvn
@@ -228,7 +228,7 @@ void texture_log_guest(const Texture* t);
 void texture_describe_written(uint64_t gpu, uint64_t size, std::string& out);
 /// (a host hook's fast check, any thread) whether a texture the GPU wrote may lie in virtual pages [gpu, gpu + size)
 bool texture_gpu_written_in(uint64_t gpu, uint64_t size);
-bool texture_gpu_written_ever(uint64_t gpu, uint64_t size);   // (YM) its list ever, without a lock: invalidate_quick
+bool texture_gpu_written_ever(uint64_t gpu, uint64_t size);   // (longshot) its list ever, without a lock: invalidate_quick
 /// Textures the GPU wrote in [gpu, gpu + size) read back and written into their memory, block linear, as the GPU
 /// would have left them there: before those virtual pages are unmapped or remapped (the work recorded before is
 /// submitted; the replay's lock held). How many were.
@@ -244,7 +244,7 @@ uint64_t texture_bytes();
 void full_barrier(VkCommandBuffer cmd, const char* why = "barrier (other)");
 /// Full barriers recorded and left out (RX_VK_BARRIER_DEDUPE_OFF=1: none), since the start
 void barrier_stats(int64_t* made, int64_t* left_out);
-/// (YM) Set around a draw's sampled-texture lookups (vk_draw.cpp): a new ASTC texture there may wait for a later frame
+/// (longshot) Set around a draw's sampled-texture lookups (vk_draw.cpp): a new ASTC texture there may wait for a later frame
 /// once this frame's uploads passed their budget (texture_touch). Never for compute: a dispatch may bake what it reads once
 extern thread_local bool upload_defer_ok;
 /// The barrier a draw pass starts with: vk_texture.cpp, the rule above its definition (full where anything but draw passes came
@@ -253,14 +253,14 @@ void pass_start_barrier(VkCommandBuffer cmd);
 /// Pass starts with the fragment-stage barrier, since the start
 int64_t pass_barriers_relaxed();
 void texture_stats(int64_t* uploads, int64_t* astc_gpu, int64_t* bytes_uploaded);
-/// (YM) whether texture_read_texels' walk of r at that row stride (0: the region's own) and its own image stride
+/// (longshot) whether texture_read_texels' walk of r at that row stride (0: the region's own) and its own image stride
 /// stays within avail bytes of the data it is given (overflow-checked: the stride is the game's)
 bool texels_fit(const nvn_tex* t, const NVNcopyRegion* r, uint64_t row, uint64_t avail);
 /// ReadTexels / WriteTexels: the CPU's copy of a region of the texture in guest memory (vk_texture.cpp)
 void texture_read_texels(const nvn_tex* t, unsigned level, unsigned layer0, const NVNcopyRegion* r, uint8_t* dst,
                          uint64_t row, uint64_t img, bool write);
 
-/// (YM) Called first on a thread that the replaying thread may have made: on Linux a new thread inherits its maker's
+/// (longshot) Called first on a thread that the replaying thread may have made: on Linux a new thread inherits its maker's
 /// affinity, the replay's one core inside a ReplayPin (vk_replay.cpp), until it registers with host/posix/win32_posix.c,
 /// which gives it the process's affinity, as Windows starts a new thread. Nothing on Windows (vk_texture.cpp)
 void helper_thread_start();

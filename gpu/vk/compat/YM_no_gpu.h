@@ -1,4 +1,4 @@
-// (YM) Why the Vulkan loader listed no GPU at all, where the PC says: for the renderer's log line (gpu/vk/vk_main.cpp
+// (longshot) Why the Vulkan loader listed no GPU at all, where the PC says: for the renderer's log line (gpu/vk/vk_main.cpp
 // pick_device) and the window after the start (builder/crates/crash/src/facts.rs reads that line back), one implementation for the
 // host (C) and the renderer (C++).
 //

@@ -1,4 +1,4 @@
-// (YM) What of a large GPU-written binding goes without a write-back (RX_VK_WB_MAX_KB), learned from what the CPU touches.
+// (longshot) What of a large GPU-written binding goes without a write-back (RX_VK_WB_MAX_KB), learned from what the CPU touches.
 //
 // OoT writes tens of MB a frame through the GPU that the CPU never reads (culling lists and per-frame buffers: 2 x 15 MB, 9.5 MB,
 // 4 x 6.3 MB ... in Hyrule Field), and all of it was copied back to guest memory at the end of its submission: ~68 MB a frame over

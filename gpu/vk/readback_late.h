@@ -1,4 +1,4 @@
-// (YM) RX_VK_READBACK_LATE=<rule>[,<rule>...]: the CPU reads of GPU results that do not wait for their write-back
+// (longshot) RX_VK_READBACK_LATE=<rule>[,<rule>...]: the CPU reads of GPU results that do not wait for their write-back
 // (vk_replay.cpp invalidate). The CPU then reads what guest memory holds: the newest write-back already made, the frame
 // before's. Unset: default_sizes(), the culling camera block's 0x3980 bytes on every PC, and on the Steam Deck and
 // handhelds `newest` too (device_policy.h readback_late_newest: +20% on a Steam Deck OLED) (below: the game reads it right

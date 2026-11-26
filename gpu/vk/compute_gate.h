@@ -1,4 +1,4 @@
-// (YM) How many of the GPU driver's compute compiles run at once (vk_draw.cpp cached_compute and prepare_run's
+// (longshot) How many of the GPU driver's compute compiles run at once (vk_draw.cpp cached_compute and prepare_run's
 // warm_compute: the shader preparation, the precompile, the mesh fallback's compute pipelines and play's own builds).
 //
 // One on every worker (half the CPUs in the preparation's first part, every CPU in the precompile) is right where a

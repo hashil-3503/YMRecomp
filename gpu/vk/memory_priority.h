@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) VK_EXT_memory_priority's rule (RX_VK_MEMORY_PRIORITY, off by default), apart from Vulkan so that
+// (longshot) VK_EXT_memory_priority's rule (RX_VK_MEMORY_PRIORITY, off by default), apart from Vulkan so that
 // tests/test_memory_priority.py can run it.
 //
 // When other programs hold VRAM, or the card is too small for what is loaded, the system moves part of the game's device memory

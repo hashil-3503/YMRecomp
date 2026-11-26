@@ -59,7 +59,7 @@ def main():
                  "evicted_from_memory[evicted_key(tex->gpu, tex->width, tex->height, tex->nvn_format)] = tex->guest_size;"):
         if need not in failed:
             raise SystemExit("FAIL: the failed upload's branch has no: " + need)
-    epoch = touch.index("    tex->checked_epoch = epoch;\n    // (YM) an image whose last upload failed")
+    epoch = touch.index("    tex->checked_epoch = epoch;\n    // (longshot) an image whose last upload failed")
     wait = touch.find("if (tex->retry_frame > frame_no) return tex;")
     seen = touch.find("const uint64_t seen_before = tex->gpu_wrote_seen;")
     wrote = touch.index("gpu_wrote_into(*tex)")

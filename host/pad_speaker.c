@@ -1,4 +1,4 @@
-/* (YM) The controller's speaker: the DualSense's own sound card, its first two channels (host/pad_speaker.h).
+/* (longshot) The controller's speaker: the DualSense's own sound card, its first two channels (host/pad_speaker.h).
 
    Three threads meet here. The game's mixer (host/nn_audio.c) writes the chosen sounds, mono at 48 kHz, into a ring;
    a stream on the pad's endpoint pulls the speaker's two channels from it: the vibration's (host/rumble_renhdrum.c, its

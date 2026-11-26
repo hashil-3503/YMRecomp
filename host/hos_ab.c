@@ -1,4 +1,4 @@
-/* (YM) An A/B within one run: HOS_AB=<switch>=<value>[,<seconds>[,<warm-up seconds>]].
+/* (longshot) An A/B within one run: HOS_AB=<switch>=<value>[,<seconds>[,<warm-up seconds>]].
 
    Two runs of the same build differ by a few fps (the PC's other work, its clocks, where the game's threads land), more than
    the 2-5 % a change is often worth. Here one run measures both sides: after the warm-up (20 s from the start of the process),

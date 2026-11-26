@@ -146,7 +146,7 @@ static void game_case(const char *rel, char *out, size_t cap) { hos_romfs_case(r
 /* a mod's romfs folder, recursively: rel is the path inside the RomFS so far ("" at its root) */
 static int index_romfs(const char *host_dir, const char *rel, int depth, int mod) {
     if (depth > 32) return 0;   /* (YM: no RomFS is this deep) */
-    if (!depth) {   /* (YM) the romfs folder itself a link (to / in a mod's archive): the walk covered the whole disk */
+    if (!depth) {   /* (longshot) the romfs folder itself a link (to / in a mod's archive): the walk covered the whole disk */
         const DWORD at = GetFileAttributesA(host_dir);
         if (at != INVALID_FILE_ATTRIBUTES && (at & FILE_ATTRIBUTE_REPARSE_POINT)) {
             hos_log("mods: %s is a link to a folder: left out", host_dir);
@@ -171,7 +171,7 @@ static int index_romfs(const char *host_dir, const char *rel, int depth, int mod
             hos_log("mods: %s\\%s: its path is too long: left out", host_dir, fd.cFileName);
             continue;
         }
-        /* (YM) a link to a folder is not followed (two links back up made the walk endless); links to files are
+        /* (longshot) a link to a folder is not followed (two links back up made the walk endless); links to files are
            (mod managers place files as links) */
         if ((fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) && (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
             hos_log("mods: %s is a link to a folder: left out", host);

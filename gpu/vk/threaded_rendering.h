@@ -1,4 +1,4 @@
-// (YM) Threaded rendering, the Insert menu's row (vk_menu.cpp, threaded_rendering= in YM_options.ini): Auto, On or
+// (longshot) Threaded rendering, the Insert menu's row (vk_menu.cpp, threaded_rendering= in YM_options.ini): Auto, On or
 // Off, as one rule every reader shares: the menu (vk_menu.cpp threaded_choice resolves it once, at the start, and hands each
 // reader its half: menu_render_thread, menu_recorder_thread), the replay (vk_replay.cpp render_thread_mode), the recorder
 // (vk_recorder.h mode_from_env), the host's present poll (HOS_OPT_RENDER_THREAD, host/nvn_native.c, through async_on) and the
@@ -72,14 +72,14 @@ enum { AUTO = 0, ON = 1, OFF = 2 };   // (the row's values, in V-Sync's order: A
 /// everywhere and the row changes nobody's default; nothing else needs to change to turn Auto off again. Still open with it
 /// on: the game's large GPU-written tables (Hyrule Field's culling tables) can be read a frame old behind the game.
 constexpr bool kAutoEnabled = true;
-/// (YM) Auto's tier, in physical cores the process may run on (the game's own threads, the render thread and the
+/// (longshot) Auto's tier, in physical cores the process may run on (the game's own threads, the render thread and the
 /// recorder beside one another): from kAutoCores the render thread and the recorder thread. On 4 cores on 18 Nov the render
 /// thread alone was 67.6 / 67.9 fps against 60.9 / 62.1 for both, and 65.5 / 65.0 serial; on 22 Nov's code both threads
 /// were +22 % on a mask of 4 cores and 8 threads and +13 % on 4 of 4 (the tables above). The count follows the process's
 /// affinity mask, not the PC's cores: a 4-core, 8-thread CPU held to 2 cores' 4 siblings counts 2. Where the core masks
 /// cannot be read, usable_cores counts logical processors instead (its fallback, older than this tier)
 constexpr unsigned kAutoCores = 4;
-/// (YM) Physical-core threshold for running the recorder thread alone under Auto when buffer-pool mirrors are absent
+/// (longshot) Physical-core threshold for running the recorder thread alone under Auto when buffer-pool mirrors are absent
 /// (integrated GPUs where !f.discrete(), or RX_VK_MIRROR=0): only the render thread runs a frame ahead of replay and needs
 /// buffer-pool mirrors, while the recorder thread replays synchronously under replay_mu and offloads only Vulkan command
 /// recording and submits (RX_VK_RECORDER_PARTS). Holding this tier at 6 physical cores leaves 4- and 5-core non-mirrored
@@ -120,11 +120,11 @@ constexpr Choice choose(int setting, unsigned cores, bool unsafe, bool auto_enab
     return auto_picks(cores);
 }
 
-/// (YM) Auto picked the threads: the caller's last safety check, one that reads the device (the buffer pools'
+/// (longshot) Auto picked the threads: the caller's last safety check, one that reads the device (the buffer pools'
 /// mirrors), is asked only then
 constexpr bool auto_picked(const Choice& c) { return c.why == Why::AutoBothThreads; }
 
-/// (YM) Auto's fallback when buffer-pool mirrors are absent (integrated GPUs where !f.discrete(), or RX_VK_MIRROR=0):
+/// (longshot) Auto's fallback when buffer-pool mirrors are absent (integrated GPUs where !f.discrete(), or RX_VK_MIRROR=0):
 /// only the render thread runs a frame ahead of replay and needs mirrors, whereas the recorder thread replays synchronously
 /// under replay_mu and offloads only Vulkan command recording and submits (RX_VK_RECORDER_PARTS). Keep the render thread off;
 /// at kAutoRecorderOnlyCores (6) or more physical cores run the recorder thread alone, and below that turn both off (leaving
@@ -135,7 +135,7 @@ constexpr Choice without_mirrors(const Choice& c, unsigned cores) {
     return {false, false, Why::AutoUnsafe};
 }
 
-/// (YM) Auto's count: the physical cores among the logical processors the process may run on. `core_masks`: one mask
+/// (longshot) Auto's count: the physical cores among the logical processors the process may run on. `core_masks`: one mask
 /// a physical core, of its logical processors (GetLogicalProcessorInformation's RelationProcessorCore entries, an SMT core's
 /// two siblings in one mask; on Linux host/posix's, from sysfs core_id and physical_package_id), `n` of them; `usable`: the
 /// affinity mask. A core counts once when any of its logical processors is usable, so a 4-core, 8-thread CPU is 4. 0: none
@@ -146,7 +146,7 @@ constexpr unsigned cores_of(const uint64_t* core_masks, unsigned n, uint64_t usa
     return cores;
 }
 
-/// (YM) The start's line for the choice (vk_menu.cpp logs it once, after "vk: Threaded rendering: "): `cores` Auto's
+/// (longshot) The start's line for the choice (vk_menu.cpp logs it once, after "vk: Threaded rendering: "): `cores` Auto's
 /// count, `cpus` the logical processors the process may run on, `unsafe` what made Auto not safe (AutoUnsafe only)
 inline void describe(char* out, size_t size, const Choice& c, unsigned cores, unsigned cpus, const char* unsafe) {
     switch (c.why) {

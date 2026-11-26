@@ -77,7 +77,7 @@ static inline DWORD hos_game_path_a(char *buf, DWORD size) {
 }
 #endif
 
-/* (YM) The window's title: the game's own name, "The Legend of Zelda: Ocarina of Time (YM)", the first line of
+/* (longshot) The window's title: the game's own name, "The Legend of Zelda: Ocarina of Time (longshot)", the first line of
    YM_title.txt in the game folder (UTF-8), which the builder writes from the game's .nup (builder/crates/game-files/src/title.rs); fallback
    when the folder has none (a build from an unpacked dump, a development build). Read once */
 #include <stdio.h>

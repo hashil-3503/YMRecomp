@@ -1,4 +1,4 @@
-// (YM) Dear ImGui over the window's image (vk_imgui.cpp, third_party/imgui): the context, its Vulkan backend on the
+// (longshot) Dear ImGui over the window's image (vk_imgui.cpp, third_party/imgui): the context, its Vulkan backend on the
 // renderer's device, the fonts, and the textures. The Insert menu, the FPS counter and the start-up screen draw with it
 // (vk_menu.cpp, vk_ui.h). Nothing here runs while nothing is shown: no ImGui frame, no render pass.
 #pragma once

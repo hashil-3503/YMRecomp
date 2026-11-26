@@ -1,4 +1,4 @@
-/* (YM) An AV1 decoder on dav1d, for nn::codec's AV1 decoder (host/nn_video.c), on Windows.
+/* (longshot) An AV1 decoder on dav1d, for nn::codec's AV1 decoder (host/nn_video.c), on Windows.
 
    OoT's movies (romfs/Movie: the intro, ...) are 1080p AV1, and the static FFmpeg in the CPM cache has no AV1 decoder. Without
    this they go to Media Foundation (host/mf_av1.c): the synchronous decoder of Microsoft's AV1 Video Extension, its software

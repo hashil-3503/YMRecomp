@@ -1,7 +1,7 @@
 /* nn::hid: one Pro Controller (FullKey style) on Npad No.1, from every XInput gamepad and the keyboard and mouse at
    once. Buttons map by position (the Xbox bottom face button is the Switch's bottom one, B).
 
-   (YM) What presses each button, on a gamepad and on the keyboard, is the player's: the Insert menu's Controls
+   (longshot) What presses each button, on a gamepad and on the keyboard, is the player's: the Insert menu's Controls
    page (gpu/vk/vk_menu.cpp) changes it, kept in YM_options.ini (binds_load). The defaults:
    Keyboard (totk-pc-recomp's layout): WASD left stick, arrows or IJKL right stick (camera), Space X (jump), E A
    (action), Shift B (run/cancel), Q L (abilities), R R, Z ZL, X or F ZR (bow), Ctrl left-stick click (crouch), C
@@ -544,7 +544,7 @@ static void stick_max(int32_t stick[4], const int32_t v[4]) {
         if ((v[i] < 0 ? -v[i] : v[i]) > (stick[i] < 0 ? -stick[i] : stick[i])) stick[i] = v[i];
 }
 
-/* ---- (YM) the controls: the gamepad inputs (by position) and the keys that press each Switch button, from
+/* ---- (longshot) the controls: the gamepad inputs (by position) and the keys that press each Switch button, from
    YM_options.ini in the user folder (host/options_path.c) when it has them: pad_<button>=<position>[,<position>] (HOS_PAD_*, -1 none) and
    key_<button>=<key code>,<key code> (Windows key codes, 0 none), <button> one of bind_names. Read once, at the
    first use; what the file leaves out keeps its default. Keys only, after the Switch's buttons (HOS_KEY_*): the left
@@ -602,7 +602,7 @@ static _Thread_local int input_keys[HOS_KEY_N][2], input_pads[HOS_KEY_N][2];
 static int sampled_key(int i, int k) { return input_snapshot_active ? input_keys[i][k] : (int)key_bind[i][k]; }
 static int sampled_pad(int i, int k) { return input_snapshot_active ? input_pads[i][k] : pad_bind[i][k]; }
 
-/* ---- (YM) the ocarina's five note controls, driven by the wait flag the hook sites ocarina.wait* set ---- */
+/* ---- (longshot) the ocarina's five note controls, driven by the wait flag the hook sites ocarina.wait* set ---- */
 volatile uint64_t hos_oc_note_bits;
 volatile int hos_oc_wait;
 volatile int hos_oc_last_kind;
@@ -994,7 +994,7 @@ void hos_filter_stick(int16_t x, int16_t y, int zone, int32_t out[2]) {
 static volatile int xinput_pads_now;   /* (xinput_poll: the controllers XInput has, while it is polled) */
 int hos_xinput_pads(void) { return xinput_pads_now; }   /* (host/prompts.c: Auto's face) */
 
-/* (YM) XInput's controllers, read on a thread of their own (xinput_main), never on the game's: XInputGetState on
+/* (longshot) XInput's controllers, read on a thread of their own (xinput_main), never on the game's: XInputGetState on
    a slot with no controller in it is slow (it looks for the device again, a millisecond or more, longer with Bluetooth
    or a virtual pad's driver installed), and with no controller SDL reads, the game's input read asked all four empty
    slots each second, in one read. Players on a keyboard and mouse got that hitch every second, and a controller
@@ -1167,7 +1167,7 @@ static int pads_in_background(const char *env, int menu) {
     return env ? !env_value_off(env) : menu != 0;
 }
 
-/* (YM) Whether a pad's motion counts: when its buttons do, with the game's window in front, or behind another
+/* (longshot) Whether a pad's motion counts: when its buttons do, with the game's window in front, or behind another
    window when the player asked for the pads there. Otherwise GetSixAxisSensorStates hands out the pad at rest, so a
    gyro moved while the player is in another window does not turn the camera. tests/test_motion_background.py */
 static int motion_counts(int front, const char *env, int menu) {
@@ -1367,7 +1367,7 @@ static uint64_t oc_pad_word(uint64_t buttons) {
     return w;
 }
 
-/* (YM) Walking on the keyboard. The movement keys push the left stick to its edge, so on the keyboard Link always
+/* (longshot) Walking on the keyboard. The movement keys push the left stick to its edge, so on the keyboard Link always
    ran. While the Walk control's key is held (Caps Lock unless the Controls page changes it), or with the Controls tab's
    Walk mode on Toggle from one press of it to the next, they tilt it to the Walk speed row's share of the way instead,
    where the game walks him (move_keys_stick). Only the movement keys: the camera keys, the mouse, the controllers and
@@ -1419,7 +1419,7 @@ static void read_input(uint64_t *buttons, uint64_t *taps, int32_t stick[4]) {
     ReleaseSRWLockShared(&input_bind_lock);
     void hos_mouse_native_stick(int held);
     game_autoload_input();
-    /* (YM) HOS_CONTROL: the control bridge's presses (host/control.c); one that asked to be exclusive keeps the
+    /* (longshot) HOS_CONTROL: the control bridge's presses (host/control.c); one that asked to be exclusive keeps the
        player's devices out while it lasts */
     const int control_exclusive = hos_control_input(buttons, stick);
     if (control_exclusive) {
@@ -1432,7 +1432,7 @@ static void read_input(uint64_t *buttons, uint64_t *taps, int32_t stick[4]) {
        left set in a shell no longer leaves the game without controls), and otherwise the pads count only
        while the game's window is in front, like the keyboard: XInput is global, so a test run in the background
        used to follow the player's pad (and pressed things in its own menus). */
-    /* (YM) The player's devices count during a script too (the user plays along in test runs):
+    /* (longshot) The player's devices count during a script too (the user plays along in test runs):
        the presses add to theirs. HOS_INPUT_EXCLUSIVE=1: the script alone until 5 s after its last press */
     static int exclusive = -1;
     if (exclusive < 0) exclusive = env_on("HOS_INPUT_EXCLUSIVE");
@@ -1441,7 +1441,7 @@ static void read_input(uint64_t *buttons, uint64_t *taps, int32_t stick[4]) {
         hud_shortcut(0, 0);
         goto done;
     }
-    /* (YM) A scripted press (HOS_INPUT_SCRIPT, HOS_INPUT_LIVE) and the control bridge's are the test's
+    /* (longshot) A scripted press (HOS_INPUT_SCRIPT, HOS_INPUT_LIVE) and the control bridge's are the test's
        own: scripted_input() and hos_control_input() put them in above, so they count with the game's window behind
        another one, and a test run can drive the game on one monitor while the player works in the front window.
        HOS_INPUT_SCRIPT_BACKGROUND=1 used to skip the gate below, which let only the player's devices through: the
@@ -1464,9 +1464,9 @@ static void read_input(uint64_t *buttons, uint64_t *taps, int32_t stick[4]) {
         walk_held(0, 0, rx_option(HOS_OPT_WALK_MODE, 0) == 1);   /* (behind: a toggled walk is kept) */
         goto done;
     }
-    int deck_builtin_input = 0;   /* (YM) the Deck's built-in controls give gameplay input: its mouse must not */
+    int deck_builtin_input = 0;   /* (longshot) the Deck's built-in controls give gameplay input: its mouse must not */
     uint64_t down = 0;   /* (the pads' buttons and the bound keys down at this read) */
-    {   /* (YM) while the Insert menu is open the pads are its own, as the keyboard is (key()), and after it
+    {   /* (longshot) while the Insert menu is open the pads are its own, as the keyboard is (key()), and after it
            closed each input it had waits until it is let go (the press that closed it never reaches the game); the
            others and the sticks count again at once, so one input that stays down (a worn trigger, a second pad)
            no longer keeps the rest from the game */
@@ -1506,7 +1506,7 @@ static void read_input(uint64_t *buttons, uint64_t *taps, int32_t stick[4]) {
     static int native_looked;
     if (!native_looked) native_looked = 1, native_env = getenv("HOS_MOUSE_NATIVE");
     const int mode = native_env ? !env_value_off(native_env) : rx_option(6, 0);   /* (2: Off, the mouse never captured) */
-    /* (YM) The Deck's built-in controls expose a mouse as well as a pad, and Steam's Desktop layout drives it
+    /* (longshot) The Deck's built-in controls expose a mouse as well as a pad, and Steam's Desktop layout drives it
        with their right stick too, so while those controls give gameplay input the mouse's motion must steer nothing:
        Native's camera hook is not asked for, and the stick path's motion is dropped below. The mouse is still taken
        in (mouse_stick) so its pointer stays held at the center and never flies across the window. */
@@ -1567,7 +1567,7 @@ volatile uint64_t hos_hid_buttons;   /* (the buttons the game was last given: Hi
 /* GetNpadStates(State* out, int count, unsigned int const& npadId): the latest state first */
 static void npad_states(Ctx *c) {
     uint64_t out = ARG(0);
-    /* (YM) at most the 16 states a console keeps, all in guest memory: a count from the game's arguments wrote
+    /* (longshot) at most the 16 states a console keeps, all in guest memory: a count from the game's arguments wrote
        0x28 bytes a state past any buffer, and past the guest window */
     int count = (int)ARG(1) < 0 ? 0 : (int)ARG(1) > 16 ? 16 : (int)ARG(1);
     if (!hos_guest_range(out, (uint64_t)count * STATE_SIZE) || !hos_guest_range(ARG(2), 4)) {
@@ -1743,7 +1743,7 @@ HLE(_ZN2nn3hid21ShowControllerSupportEPNS0_27ControllerSupportResultInfoERKNS0_2
 /* Handles: six-axis ones are opaque u32s; a vibration handle is {u8 style type (3 = full key), u8 npad id, u8 device
    index (0 left, 1 right), u8 reserved}, which the SDK's vibration classes read. Vibration goes nowhere yet. */
 HLE(_ZN2nn3hid23GetSixAxisSensorHandlesEPNS0_19SixAxisSensorHandleEiRKjNS_4util10BitFlagSetILi32ENS0_12NpadStyleTagEEE) {
-    /* (YM) OoT asks for two (a Joy-Con pair) but runs its motion path only when three come back: at two its
+    /* (longshot) OoT asks for two (a Joy-Con pair) but runs its motion path only when three come back: at two its
        third source (the console's own, through JCMS) stays dead, and that branch is what marks motion active for the
        aim. The count says three; only the handles asked for are written, so a caller's array
        sized for two is never written past (the handles are opaque: GetSixAxisSensorStates does not read them). */
@@ -1755,7 +1755,7 @@ HLE(_ZN2nn3hid23GetSixAxisSensorHandlesEPNS0_19SixAxisSensorHandleEiRKjNS_4util1
 }
 /* SixAxisSensorState, 0x60 bytes: {i64 delta time (ns), i64 sampling number, f32 acceleration[3] (G), angular velocity[3]
    (revolutions a second), angle[3] (revolutions), direction[3][3], u32 attributes (1 connected), pad}. Newest first.
-   (YM) With Motion controls on and a pad with a gyroscope (host/pad_sdl.c), the state OoT aims with
+   (longshot) With Motion controls on and a pad with a gyroscope (host/pad_sdl.c), the state OoT aims with
    (host/hos_motion.h: the full state, as the console and Eden build it); else a pad lying still. */
 HLE(_ZN2nn3hid22GetSixAxisSensorStatesEPNS0_18SixAxisSensorStateEiRKNS0_19SixAxisSensorHandleE) {
     /* (the sampling number goes up once per reading, as the hardware's does: while live it is the readings' own count,
@@ -1883,7 +1883,7 @@ static void vibration_send(uint64_t handle, uint64_t value) {
     memcpy(v, GP(value), sizeof v);
     const int dev = (G32(handle) >> 16) & 1;
     rumble_map(v, vibration_amp[dev]);
-    {   /* (YM) what the game asks for: the first values, then a count now and then */
+    {   /* (longshot) what the game asks for: the first values, then a count now and then */
         static long long n, strong;
         static float peak;
         if (v[0] > peak) peak = v[0];
@@ -1894,7 +1894,7 @@ static void vibration_send(uint64_t handle, uint64_t value) {
     }
     void hos_sdl_rumble_hd(int side, const float value[4]);   /* pad_sdl.c: the value as it is, for HD rumble */
     hos_sdl_rumble_hd(dev, v);
-    /* (YM) the same four values, as they are, to RenHDrum's backends (host/rumble_renhdrum.c): they keep the
+    /* (longshot) the same four values, as they are, to RenHDrum's backends (host/rumble_renhdrum.c): they keep the
        bands apart, which rumble_map above has just flattened for the motors */
     void rh_push(int side, const float value[4]);
     rh_push(dev, v);

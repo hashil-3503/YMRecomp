@@ -1,4 +1,4 @@
-/* (YM) The controller's speaker (host/pad_speaker.c): a DualSense on a cable is a four-channel 48 kHz sound card
+/* (longshot) The controller's speaker (host/pad_speaker.c): a DualSense on a cable is a four-channel 48 kHz sound card
    as well as a pad, and its first two channels can play through the speaker in the pad. The game's mixer hands the
    sounds of the classes the player chose (host/audio_source.h: Navi's voice, targeting, the ocarina, ...) to
    hos_pad_speaker_write, and they come out of the pad instead of, or as well as, the game's output.

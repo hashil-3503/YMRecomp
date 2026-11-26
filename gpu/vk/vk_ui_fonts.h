@@ -1,4 +1,4 @@
-// (YM) The overlays' three fonts (vk_imgui.cpp loads them for the renderer's menu), apart from the renderer's headers:
+// (longshot) The overlays' three fonts (vk_imgui.cpp loads them for the renderer's menu), apart from the renderer's headers:
 // vk_ui.h's drawing needs only these.
 #pragma once
 

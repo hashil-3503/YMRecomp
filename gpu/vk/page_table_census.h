@@ -1,4 +1,4 @@
-// (YM) Guest memory's page table, for the pointers shaders follow (vk_memory.cpp guest_pages_set), covers three windows,
+// (longshot) Guest memory's page table, for the pointers shaders follow (vk_memory.cpp guest_pages_set), covers three windows,
 // as the shaders read it (spirv_emit_context.cpp kGuestPagesBase, kGuestPagesBase2, kGuestPagesBase3): 8 GB from 64 GB, where
 // the heap is, 16 GB from 496 GB, where the game's GPU allocator puts its storage buffers, and 4 GB from 1 TB, NVN's virtual
 // pools, whose entries are written as their storage buffers are bound (page_table_cover). A load through a pointer into a pool

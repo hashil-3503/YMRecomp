@@ -226,7 +226,7 @@ static Obj *obj(uint64_t key, int kind) {
 /* obj without the checkpoint, for lookups under a host lock: a checkpoint there can give the core up and wait for one
    while the lock is held, and a thread that holds a core can then block on that lock (wait_any's scan under mw_lock vs
    poke_multiwait: a stall until the 250 ms vcore escape) */
-/* (YM) HOS_OBJ_CACHE=<entries> (16384 when unset): the per-thread cache with that many entries (256 to 65536,
+/* (longshot) HOS_OBJ_CACHE=<entries> (16384 when unset): the per-thread cache with that many entries (256 to 65536,
    rounded up to a power of two), made on the heap at the thread's first lookup, instead of the fixed 1024; and a log
    line every 10 s with its lookups and misses. OoT's f_80364080 (under the graphics front end's record pass,
    0x806602e0) searches a table whose every slot has its own mutex, locking and unlocking each slot it passes: a search
@@ -803,7 +803,7 @@ HLE(_ZN2nn2os23SignalConditionVariableEPNS0_21ConditionVariableTypeE) {
     WakeConditionVariable(&cv->cv);
     ReleaseSRWLockExclusive(&cv->lk);
 }
-/* (YM) Broadcast: every waiter wakes. Left to the guest SDK, it signals the kernel key at cv+4, which no HLE waiter
+/* (longshot) Broadcast: every waiter wakes. Left to the guest SDK, it signals the kernel key at cv+4, which no HLE waiter
    sleeps on, so its waiters slept on until some Signal (the movie framework's reply and buffer queues, NVIDIA's OS layer:
    untimed waits). Horizon moves all the waiters onto the mutex, so each is owed it, as a Signal's one is (cv_reserve: one mutex for all of them, at most 8 owed).
    (cv_in, not cv_waiting: a waiter counted in by cv_count_in but not yet in cv_enter is owed nothing; it reads the new
@@ -1218,9 +1218,9 @@ HLE(_ZN2nn2os24InitializeLightSemaphoreEPNS0_18LightSemaphoreTypeEii) { sema_ini
 HLE(_ZN2nn2os22FinalizeLightSemaphoreEPNS0_18LightSemaphoreTypeE) { drop(ARG(0)); }
 HLE(_ZN2nn2os21AcquireLightSemaphoreEPNS0_18LightSemaphoreTypeE) { sema_acquire(obj(ARG(0), K_SEMA)); }
 HLE(_ZN2nn2os21ReleaseLightSemaphoreEPNS0_18LightSemaphoreTypeE) { sema_release(obj(ARG(0), K_SEMA), 1); }
-/* (YM) the count overload, which OoT imports: left to the guest SDK it would bypass the host's state */
+/* (longshot) the count overload, which OoT imports: left to the guest SDK it would bypass the host's state */
 HLE(_ZN2nn2os21ReleaseLightSemaphoreEPNS0_18LightSemaphoreTypeEi) { sema_release(obj(ARG(0), K_SEMA), (int)ARG(1)); }
-/* (YM) the timed and try acquires: left to the guest SDK they read its count words, which the HLE never writes, and
+/* (longshot) the timed and try acquires: left to the guest SDK they read its count words, which the HLE never writes, and
    wait on a kernel key no HLE release signals (the C library's timed semaphore wait and NVIDIA's OS layer call
    TimedAcquireSemaphore). */
 HLE(_ZN2nn2os21TimedAcquireSemaphoreEPNS0_13SemaphoreTypeENS_8TimeSpanE) { RET(sema_acquire_for(obj(ARG(0), K_SEMA), (int64_t)ARG(1))); }

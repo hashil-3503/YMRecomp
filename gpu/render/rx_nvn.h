@@ -56,7 +56,7 @@ typedef struct { uint32_t magic, flags, origin, depth_mode; } nvn_dev;
 typedef struct { void *dev; uint32_t flags; uint64_t cmd_sz, comp_sz, ctl_sz, flush; uint64_t mem, mem_sz; } nvn_queue_builder;
 typedef struct { uint32_t magic; uint64_t submits; } nvn_queue;
 
-/* a memory pool: mem = guest address of its storage (0: a virtual pool), gpu = its GPU address. (YM) The object
+/* a memory pool: mem = guest address of its storage (0: a virtual pool), gpu = its GPU address. (longshot) The object
    is guest memory, so it holds no host pointers: a virtual pool's page table is found by its GPU address. */
 typedef struct { void *dev; uint64_t mem; uint64_t size; uint32_t flags; } nvn_pool_builder;   /* mem: guest address */
 typedef struct {
@@ -108,12 +108,12 @@ typedef struct { uint32_t magic; uint64_t gpu; } nvn_event;   /* gpu: the 32-bit
 typedef struct { void *dev; uint64_t native; int32_t ntex, interval, active; uint64_t tex[4]; } nvn_win_builder;   /* tex: guest addresses */
 typedef struct {
     uint32_t magic; int32_t ntex, interval, next, active, crop[4];
-    uint64_t tex[4];                      /* (YM) guest addresses, checked at each use */
+    uint64_t tex[4];                      /* (longshot) guest addresses, checked at each use */
     uint64_t presents;
 } nvn_win;
 
 /* a command buffer: records go to a growable host buffer (never into the game's command memory) */
-/* (YM) The object is guest memory: the recording buffer's pointers (seg, cur, end) are kept in a host table
+/* (longshot) The object is guest memory: the recording buffer's pointers (seg, cur, end) are kept in a host table
    (host/nvn_native.c cmd_rec), and the object holds only its slot there, which names the object it belongs to. */
 typedef struct {
     uint32_t magic, recording;
@@ -200,9 +200,9 @@ typedef struct { uint64_t type, addr; } nvn_p_counter;
 #define NVN_COUNTER_WRITTEN (1ull << 32)   /* (type: the report's counter word is in memory already: a clear flag, host/nvn_native.c) */
 typedef struct { uint64_t src, dst, size; } nvn_p_copy_bb;
 typedef struct { uint64_t dst, size; /* data follows */ } nvn_p_update_ub;
-/* (YM) compute push constants: the bytes at offset in the compute driver bank's push area */
+/* (longshot) compute push constants: the bytes at offset in the compute driver bank's push area */
 typedef struct { uint32_t offset, size; /* data follows */ } nvn_p_push_const;
-/* (YM) a buffer range filled with a 32-bit value */
+/* (longshot) a buffer range filled with a 32-bit value */
 typedef struct { uint64_t dst, size; uint32_t value, pad; } nvn_p_clear_buf;
 typedef struct { int32_t enable, index; } nvn_p_restart;
 /* (mkw-recomp) indirect draws: up to max draws of `stride`-byte arguments at `indirect` (indexed: count, instances,
@@ -237,7 +237,7 @@ void rx_nvn_submit(const uint64_t *handles, int n);
 void rx_nvn_submit_q(const uint64_t *handles, int n, uint64_t queue);
 /* fence value of everything submitted so far; waits until the GPU reached a fence (1: reached, 0: timed out) */
 uint64_t rx_nvn_fence(void);
-uint64_t rx_nvn_fence_q(uint64_t queue);   /* (YM) a fence of one queue */
+uint64_t rx_nvn_fence_q(uint64_t queue);   /* (longshot) a fence of one queue */
 /* submits and presents queued so far / replayed so far (recordings released after a submit stay until it replayed) */
 uint64_t rx_nvn_pushed(void);
 uint64_t rx_nvn_replayed(void);
@@ -256,7 +256,7 @@ void rx_nvn_set_texture_pool_size(int n);
 void rx_nvn_texture_released(const nvn_tex *t);
 void rx_nvn_texture_created(const nvn_tex *t);
 void rx_nvn_program_released(const nvn_prog *p);
-/* (YM) a program was given its shaders (the Vulkan back end loads what it kept for it; WebGPU: nothing) */
+/* (longshot) a program was given its shaders (the Vulkan back end loads what it kept for it; WebGPU: nothing) */
 void rx_nvn_program_created(const nvn_prog *p);
 /* CPU reads / writes of a texture (ReadTexels / WriteTexels) */
 void rx_nvn_read_texels(const nvn_tex *t, unsigned level, unsigned layer0, const NVNcopyRegion *r, uint8_t *dst,

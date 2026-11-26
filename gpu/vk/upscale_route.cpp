@@ -1,4 +1,4 @@
-// (YM) The gameplay upscale as drawn, for the FPS counter's footer: upscale_route.h
+// (longshot) The gameplay upscale as drawn, for the FPS counter's footer: upscale_route.h
 #include "upscale_route.h"
 
 #include <atomic>

@@ -602,7 +602,7 @@
   "source": "read"
  },
  "mkwvk::color_types_of": {
-  "does": "(YM) The colour output types a program is translated for: each target's, by its format (Shader::AttributeType). The draw's, and the pipeline state list's from the formats it maps the game's to (state_targets).",
+  "does": "(longshot) The colour output types a program is translated for: each target's, by its format (Shader::AttributeType). The draw's, and the pipeline state list's from the formats it maps the game's to (state_targets).",
   "source": "read"
  },
  "mkwvk::completed": {
@@ -622,7 +622,7 @@
   "source": "read"
  },
  "mkwvk::copy_split": {
-  "does": "(YM) whole's n copies in helpers + 1 parts: the first on the calling thread, the others queued for the helpers. Under 128 copies (512 KB) all on the calling thread: waking the helpers costs more than they save..",
+  "does": "(longshot) whole's n copies in helpers + 1 parts: the first on the calling thread, the others queued for the helpers. Under 128 copies (512 KB) all on the calling thread: waking the helpers costs more than they save..",
   "source": "read"
  },
  "mkwvk::cpu_words_merge": {
@@ -642,7 +642,7 @@
   "source": "read"
  },
  "mkwvk::desc_slotgen_on": {
-  "does": "(YM) the Descriptor reuse row / RX_VK_DESC_SLOTGEN=1: a draw keeps its descriptors through registrations of the texture slots it does not sample. What it does sample is checked by slot version, and the samplers by their registrations' generation, instead of the global one every registration moves..",
+  "does": "(longshot) the Descriptor reuse row / RX_VK_DESC_SLOTGEN=1: a draw keeps its descriptors through registrations of the texture slots it does not sample. What it does sample is checked by slot version, and the samplers by their registrations' generation, instead of the global one every registration moves..",
   "source": "read"
  },
  "mkwvk::desc_slots_kept": {
@@ -698,7 +698,7 @@
   "source": "read"
  },
  "mkwvk::fence_q": {
-  "does": "(YM) A fence of one queue (nvnQueueFenceSync): the value of that queue's last submission.",
+  "does": "(longshot) A fence of one queue (nvnQueueFenceSync): the value of that queue's last submission.",
   "source": "read"
  },
  "mkwvk::finish_recording": {
@@ -782,7 +782,7 @@
   "source": "read"
  },
  "mkwvk::jitter_sample": {
-  "does": "(YM) The host's camera jitter (the hook sites jitter.view*, host/rx_backend.c): the scene's size while a temporal upscaler draws, NVIDIA DLSS or AMD FSR 4 (vk_temporal.cpp) or AMD FSR 3.1 (vk_fsr3_inputs.cpp), whichever it is (one at a time: the Upscaler row); 0, no jitter, otherwise.",
+  "does": "(longshot) The host's camera jitter (the hook sites jitter.view*, host/rx_backend.c): the scene's size while a temporal upscaler draws, NVIDIA DLSS or AMD FSR 4 (vk_temporal.cpp) or AMD FSR 3.1 (vk_fsr3_inputs.cpp), whichever it is (one at a time: the Upscaler row); 0, no jitter, otherwise.",
   "source": "read"
  },
  "mkwvk::log_big_copy": {
@@ -1038,7 +1038,7 @@
   "source": "read"
  },
  "mkwvk::temporal_stand_in": {
-  "does": "(YM) A temporal upscaler (NVIDIA DLSS, AMD FSR 4: vk_temporal.cpp) in place of the gameplay upscale network, when one is on and its inputs are as expected: the network's input as it samples it, its output's storage view.",
+  "does": "(longshot) A temporal upscaler (NVIDIA DLSS, AMD FSR 4: vk_temporal.cpp) in place of the gameplay upscale network, when one is on and its inputs are as expected: the network's input as it samples it, its output's storage view.",
   "source": "read"
  },
  "mkwvk::texture_answer": {
@@ -1126,7 +1126,7 @@
   "source": "read"
  },
  "mkwvk::wait_recorded": {
-  "does": "(YM) Waits for the recording submission value f (or the recording of value f) was finished in, on the recordings' timeline: true when that recording is known (the result in *ok), false when it is not (f not finished yet).",
+  "does": "(longshot) Waits for the recording submission value f (or the recording of value f) was finished in, on the recordings' timeline: true when that recording is known (the result in *ok), false when it is not (f not finished yet).",
   "source": "read"
  },
  "mkwvk::watch_tex": {

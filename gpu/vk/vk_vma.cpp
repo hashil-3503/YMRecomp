@@ -37,7 +37,7 @@ static uint64_t device_local_heap_bytes() {
     return heap;
 }
 
-// (YM) RX_VK_MEMORY_PRIORITY's priorities (memory_priority.h), read once. With the extension on, VMA gives each pool of
+// (longshot) RX_VK_MEMORY_PRIORITY's priorities (memory_priority.h), read once. With the extension on, VMA gives each pool of
 // ours and each allocation with a memory object of its own the priority in its create info, and a zero left there is the
 // lowest there is: every pool and every allocation below sets one. Off, VMA ignores them all
 static const memory_priority::Tiers& memory_tiers() {
@@ -81,7 +81,7 @@ bool image_pool_tried = false;
 // would halve, at twice the memory objects: the driver allows ~4096, the imported pools take ~2400)
 const uint64_t kImageBlock = (getenv("RX_VK_IMAGE_BLOCK_MB") ? (uint64_t)std::max(16, atoi(getenv("RX_VK_IMAGE_BLOCK_MB"))) : 32u) << 20;
 
-// (YM) and the render targets' images in blocks of their own (texture_get's for a target: OoT's transient ones, made and let go
+// (longshot) and the render targets' images in blocks of their own (texture_get's for a target: OoT's transient ones, made and let go
 // all the time). In the same blocks as the textures that stay, each one gone left a hole beside a texture that kept its block: the
 // pool's 47-54 blocks (6-6.9 GB) held 1.9-3.6 GB of images in Kokiri Forest, VRAM sat at 93-98% of what the driver allows, and an
 // image made there then took 30-70 ms (RTX 5070)
@@ -162,7 +162,7 @@ VmaPool images_pool() {
     return image_pool;
 }
 
-// (YM) The sampled textures' own pool, when they are compacted (unless RX_VK_COMPACT=0): VMA's defragmentation asks to move any
+// (longshot) The sampled textures' own pool, when they are compacted (unless RX_VK_COMPACT=0): VMA's defragmentation asks to move any
 // allocation of the pool it works on, and only vk_texture.cpp's images can be moved (it knows what they hold and who uses
 // them) or kept from being freed while a pass is open. The render targets' images stay in their blocks above; DLSS's, the
 // frame interpolation's and the scratch ones in the images' pool
@@ -273,7 +273,7 @@ bool image_compact_pass_end(uint64_t* freed_bytes, uint32_t* freed_blocks) {
 // scratch ones. vk_texture.cpp takes the ones it knows off it, and the rest is the budget line's "other images". Counted apart
 // by where the memory is, [0] a device-local heap and [1] system memory: the last resort below puts an image there when VRAM is full
 static std::atomic<uint64_t> image_bytes[2]{};
-// (YM) the user data of the allocations made in the render targets' blocks: allocation_fit_info tells them by it. VMA never
+// (longshot) the user data of the allocations made in the render targets' blocks: allocation_fit_info tells them by it. VMA never
 // makes memory of their own there (their pool's block size is set), so another target may be bound to one (pool_take_memory)
 char target_blocks_tag;
 /// Whether an image may be in the targets' blocks: their memory type among those it can use, which VMA does not check for a pool
@@ -318,7 +318,7 @@ bool create_image(const VkImageCreateInfo& ci, VkImage& image, VmaAllocation& al
         vai.flags &= ~VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
         if (vmaCreateImage(vma, &ci, &vai, &image, &allocation, nullptr) == VK_SUCCESS) return made();
     }
-    // (YM) VRAM is full (a 4 GB card at a high resolution, #96): an image left unmade is a black screen, so it goes
+    // (longshot) VRAM is full (a 4 GB card at a high resolution, #96): an image left unmade is a black screen, so it goes
     // to system memory instead, slow but drawn
     VmaAllocationCreateInfo sai{};
     sai.usage = VMA_MEMORY_USAGE_AUTO;
@@ -333,7 +333,7 @@ void destroy_image(VkImage image, VmaAllocation allocation) {
     vmaDestroyImage(vma, image, allocation);
 }
 
-// ---- (YM) Images destroyed on a thread of their own (destroy_image_later): on NVIDIA's Windows driver a vmaDestroyImage
+// ---- (longshot) Images destroyed on a thread of their own (destroy_image_later): on NVIDIA's Windows driver a vmaDestroyImage
 // is a kernel call of a millisecond and more, and texture_frame made them on the render thread, many in one present when the
 // camera turned (Project ReLink measured 2.4 ms of each frame over 25 ms there, against 0.1 ms of the others: 31689010,
 // 5224e821). The views, the buffer and the memory objects that go with an image go with it. VMA is thread-safe here (no
@@ -811,7 +811,7 @@ bool vram_usage(uint64_t* used, uint64_t* budget, uint64_t* block_free) {
     // so the rule below can be seen at work on any card)
     static const bool test_follow = env_on("RX_VK_TEST_ALLOWED_FOLLOW");
     if (test_follow && (test_allowed || test_file) && t && u > t) t = u;
-    // (YM) an allowance the driver gives as the count itself is past: AMD's Windows driver, once a process is over what it
+    // (longshot) an allowance the driver gives as the count itself is past: AMD's Windows driver, once a process is over what it
     // allows, reports the allowance as what the process uses (5940 of 5940 MB, the allowance rising with the count). Taken as it
     // is, the count is within it: room in the blocks keeps the 97% squeeze waiting and the hold's line rises with the count, while
     // the driver pages: frames of seconds. vram_compact::past_allowance makes it a tenth under the count, so every rule sees the

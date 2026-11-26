@@ -149,7 +149,7 @@ def main():
     check_source(replay, fails)
     # (the lost wait's result and line, before vk_timeline_wait; a tree from before has neither, and its waits are cut as they
     # are, to show what they said)
-    start = replay.find("/// (YM) What the calling thread's last wait on the recordings' timeline came back with")
+    start = replay.find("/// (longshot) What the calling thread's last wait on the recordings' timeline came back with")
     end = replay.find("} // namespace\nuint64_t vk_timeline_completed()")
     pieces = replay[start:end] if 0 <= start < end else ""
     try:

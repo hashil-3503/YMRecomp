@@ -1,4 +1,4 @@
-// (YM) A temporal upscaler in place of OoT's gameplay upscale network: the frame chain (vk_temporal.h), shared by the
+// (longshot) A temporal upscaler in place of OoT's gameplay upscale network: the frame chain (vk_temporal.h), shared by the
 // engines that draw with it, NVIDIA DLSS (vk_dlss.cpp), AMD FSR 4 (vk_fsr4.cpp) and Intel XeSS (vk_xess.cpp).
 // The chain was NVIDIA DLSS's: the camera, the inputs pass, the actor motion and the jitter's state, here so that DLSS and
 // FSR share them.
@@ -26,7 +26,7 @@
 //    the depth and the actor motion then have no invisible body in front of the room. RX_VK_DLSS_FADED=0: drawn.
 //  - the engine scales them to the output's size; shaders/dlss_out.comp squares that back to linear colour into the
 //    network's output.
-//  - (YM) NVIDIA DLAA, the scene at the output's size, runs before the game's bloom and tone map instead
+//  - (longshot) NVIDIA DLAA, the scene at the output's size, runs before the game's bloom and tone map instead
 //    (temporal_pre_bloom; pre_bloom.h has the frame's passes and how the place is learned): on the scene's linear colour, a
 //    feature made for HDR colour with its own exposure, its picture written back into the scene. The bloom, the tone map and
 //    the passes after them then take the anti-aliased scene, and the network's dispatch becomes a copy, as with the Upscaler's
@@ -125,7 +125,7 @@ int temporal_mode() {
     if (dlss > 0) v = dlss >= 2 ? ur::DLAA : ur::DLSS;   // (2 and up: DLAA, as RX_VK_DLSS was clamped before)
     else if (fsr4 > 0) v = fsr4 >= 2 ? ur::FSR4_AA : ur::FSR4;
     else if (xess > 0) v = xess >= 2 ? ur::XESS_AA : ur::XESS;
-    // (YM) FSR 3.1, the row's 3 or RX_VK_FSR=1, is an engine of this chain (vk_fsr3.h fsr3_on_chain): its inputs are the
+    // (longshot) FSR 3.1, the row's 3 or RX_VK_FSR=1, is an engine of this chain (vk_fsr3.h fsr3_on_chain): its inputs are the
     // chain's, the skinned draws' motion in them. A switch above goes over the row's FSR 3.1 (fsr3_chosen asks
     // temporal_env_chosen); RX_VK_FSR=1 goes over them
     if (fsr3_on_chain() && fsr3_chosen()) return ur::FSR3;
@@ -143,7 +143,7 @@ bool temporal_off() { return opts.dlss == ur::OFF && temporal_mode() == ur::GAME
 bool temporal_full_scale() { return ur::full_scale(temporal_mode()); }
 
 namespace {
-/// (YM) DLAA before the game's bloom and tone map (temporal_pre_bloom) now, the mode being DLAA: the Upscaler's DLAA
+/// (longshot) DLAA before the game's bloom and tone map (temporal_pre_bloom) now, the mode being DLAA: the Upscaler's DLAA
 /// before the bloom row (opts.dlss_pre_bloom, off by default; RX_VK_DLSS_PRE_BLOOM over it for a run, vk_menu.cpp). Read at
 /// each call, the row changing at once; a change is logged
 bool pre_bloom_wanted(int mode) {
@@ -224,7 +224,7 @@ struct State {
     VkDescriptorSetLayout prep_hdr_set = VK_NULL_HANDLE, out_hdr_set = VK_NULL_HANDLE;
     VkPipelineLayout prep_hdr_layout = VK_NULL_HANDLE, out_hdr_layout = VK_NULL_HANDLE;
     VkPipeline prep_hdr = VK_NULL_HANDLE, out_hdr = VK_NULL_HANDLE;
-    // (YM) dlss_prep.comp for the scene before its tone map (temporal_pre_bloom): linear light already, taken as it is
+    // (longshot) dlss_prep.comp for the scene before its tone map (temporal_pre_bloom): linear light already, taken as it is
     VkDescriptorSetLayout prep_lin_set = VK_NULL_HANDLE;
     VkPipelineLayout prep_lin_layout = VK_NULL_HANDLE;
     VkPipeline prep_lin = VK_NULL_HANDLE;
@@ -249,7 +249,7 @@ struct State {
     TemporalJitter jitter;    // (one completed scene size, sequence and frame)
     std::unordered_map<VkImage, VkImageView> depth_views;
     uint64_t depth_views_gen = 0;
-    // (YM) DLAA before the bloom (temporal_pre_bloom, pre_bloom.h): this frame's passes, the place learned from the frame
+    // (longshot) DLAA before the bloom (temporal_pre_bloom, pre_bloom.h): this frame's passes, the place learned from the frame
     // before, the frame it last ran in (the network then copies), and the scene's colour views (sampled and stored in one)
     pre_bloom::Frame pre;
     uint64_t pre_frame = 0;            // (the frame `pre` lists)
@@ -268,7 +268,7 @@ struct State {
     int reason_repeats = 0;
     const TemporalEngine* told_first = nullptr;
     bool told_camera = false;
-    // (YM) frame generation's inputs with no engine drawing (fg_inputs, temporal_fg_inputs): their own camera history,
+    // (longshot) frame generation's inputs with no engine drawing (fg_inputs, temporal_fg_inputs): their own camera history,
     // apart from the engine's, so neither takes the other's frame before for its own
     float fg_last_vp[16]{};
     float fg_last_jitter[2]{};
@@ -498,7 +498,7 @@ bool make_pipelines() {
     if (!s.out_hdr && !make_pipeline(BUILTIN_SPV_ARGS(DLSS_OUT_COMP_SPV), out_types, 2, 8, s.out_hdr_set,
                                      s.out_hdr_layout, s.out_hdr, &out_hdr_spec))
         return false;
-    // (YM) the scene before its tone map (temporal_pre_bloom): linear light, not squared (kSquare off), with the HDR
+    // (longshot) the scene before its tone map (temporal_pre_bloom): linear light, not squared (kSquare off), with the HDR
     // ceiling, for a feature made for HDR colour; its picture goes back by out_hdr, as it is
     static const PrepSpec prep_lin_data{16384.0f, VK_FALSE};
     static const VkSpecializationInfo prep_lin_spec{2, prep_hdr_entries, sizeof prep_lin_data, &prep_lin_data};
@@ -558,7 +558,7 @@ VkImageView depth_view(Texture* t) {
     return v;
 }
 
-/// (YM) A view of the scene's colour target in its own format, level 0, to sample and to store into (temporal_pre_bloom:
+/// (longshot) A view of the scene's colour target in its own format, level 0, to sample and to store into (temporal_pre_bloom:
 /// the engine's picture written back into it). Made once per image, as depth_view's
 VkImageView color_view(const Texture* t) {
     State& s = st();
@@ -999,7 +999,7 @@ void temporal_note_scene_draw(const Texture* color0, uint32_t width, uint32_t he
     k.valid = true;
     if (reshade::depth_requested.load(std::memory_order_relaxed))
         s.reshade_depth = {depth, width, height, k.depth_gen, now};
-    // (YM) DLAA before the bloom: the scene at the output's size (as last seen: a frame that changed it runs DLAA at the
+    // (longshot) DLAA before the bloom: the scene at the output's size (as last seen: a frame that changed it runs DLAA at the
     // network), and this frame's pass list started (temporal_pre_bloom)
     const bool pre = pre_bloom_wanted(temporal_mode()) && width == s.out_w.load(std::memory_order_relaxed) &&
                      height == s.out_h.load(std::memory_order_relaxed);
@@ -1217,7 +1217,7 @@ void temporal_prewarm(VkCommandBuffer cmd) {
          evaluated ? ", one evaluation" : ", its evaluation failed");
 }
 
-// ---- (YM) the depth draws of hidden meshes (vk_draw.cpp hidden_depth_draw has the why) ----
+// ---- (longshot) the depth draws of hidden meshes (vk_draw.cpp hidden_depth_draw has the why) ----
 int temporal_hidden_mesh_mode() {
     static const int mode = [] {
         const bool rule = env_switch("RX_VK_DLSS_FADED") != 0;          // (unset: on)
@@ -1409,7 +1409,7 @@ bool stretch(VkCommandBuffer cmd, uint64_t key, bool known, Texture* in, VkImage
     return true;
 }
 
-/// (YM) Frame generation's inputs with no engine drawing (temporal_fg_inputs: the game's own upscaler, or the Upscaler's
+/// (longshot) Frame generation's inputs with no engine drawing (temporal_fg_inputs: the game's own upscaler, or the Upscaler's
 /// Off, with AMD FSR 3.1's frame interpolation asked for): the chain's motion, the camera's and the skinned draws' own
 /// (actor_motion), made as an engine's would be and handed to FSR's (vk_fsr3_inputs.h take_motion), whose own is the
 /// camera's alone. Nothing is upscaled: the network runs (or Off's stretch, after this), and no jitter is asked of the host
@@ -1497,7 +1497,7 @@ void fg_inputs(VkCommandBuffer cmd, bool known, Texture* in, VkImageView in_view
              "%ux%u, with no engine drawing", actors, rw, rh);
     }
 }
-/// (YM) DLAA before the bloom did not run this frame, so it runs at the network, after the bloom and the tone map: why,
+/// (longshot) DLAA before the bloom did not run this frame, so it runs at the network, after the bloom and the tone map: why,
 /// when it changes and every 600th time
 bool pre_fail(const char* why) {
     State& s = st();
@@ -1508,7 +1508,7 @@ bool pre_fail(const char* why) {
     return false;
 }
 
-/// (YM) At the frame's end (its gameplay upscale): the place of the next frame's DLAA before the bloom (pre_bloom.h learn),
+/// (longshot) At the frame's end (its gameplay upscale): the place of the next frame's DLAA before the bloom (pre_bloom.h learn),
 /// logged when it changes (the first 20 times, then every 600th)
 void pre_learn(State& s) {
     const pre_bloom::Trigger t = pre_bloom::learn(s.pre);
@@ -1528,7 +1528,7 @@ void pre_learn(State& s) {
     s.pre_trigger = t;
 }
 
-/// Whether to log the engine's first picture: another engine, or (YM) the other place, before the bloom or at the network
+/// Whether to log the engine's first picture: another engine, or (longshot) the other place, before the bloom or at the network
 /// (the first 20 changes, then every 600th: a scene that moves it back and forth says so without filling the log)
 bool route_told(State& s, const TemporalEngine* e, bool pre) {
     static uint64_t changes = 0;
@@ -1577,7 +1577,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
     // Give queued small scenes three frames to reach the requested native size.
     // Some games keep a smaller scene even at full scale: then use native AA at that size.
     // Creating DLAA for that queued scene would replace the feature twice in successive frames.
-    // (YM) The same for FSR 4's and XeSS's native AA entered from their scaled mode: the queued frames are drawn by the
+    // (longshot) The same for FSR 4's and XeSS's native AA entered from their scaled mode: the queued frames are drawn by the
     // scaled engine. Made at a queued size, FSR 4's native context can fail at the VRAM limit, and the engine then stays off
     // until the player changes the upscaler
     const bool entering_native =
@@ -1623,7 +1623,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
                     : ur::is_xess(mode) ? "PsychoV35 waits for the native HDR XeSS context"
                     : mode == ur::FSR3  ? "PsychoV35 waits for the native HDR FSR 3.1 path"
                                         : "PsychoV35 waits for the native HDR DLSS feature");
-    // (YM) the scene before its tone map goes past 1 at every highlight: only a feature made for HDR colour takes it
+    // (longshot) the scene before its tone map goes past 1 at every highlight: only a feature made for HDR colour takes it
     // (vk_dlss.cpp prepare, temporal_hdr_input)
     if (pre && (!engine.e->hdr || !engine.e->hdr())) return no("its feature is not made for HDR colour");
     // (the pair of formats: the PsychoV35 network's RGBA16F, or the scene's own RGBA16F before the bloom (PsychoV35's too),
@@ -1640,7 +1640,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
         s.history_input = in->format;
         s.last_frame = 0;
     }
-    // (YM) before the bloom or at the network: the scene's linear light or the tone-mapped picture, a history of each
+    // (longshot) before the bloom or at the network: the scene's linear light or the tone-mapped picture, a history of each
     // of its own. A frame that moves it from one to the other starts a new one
     if (s.pre_last != pre) s.pre_last = pre, s.last_frame = 0;
     if (ready == 2) s.engines_made++, s.last_frame = 0;   // (made just now: a new history)
@@ -1653,7 +1653,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
         !make_image(cmd, s.output, VK_FORMAT_R16G16B16A16_SFLOAT, dw, dh, VK_IMAGE_USAGE_TRANSFER_DST_BIT))   // (FSR 3.1 copies in)
         return no("its images were not made");
 
-    // (YM) the projection without this frame's jitter, for an engine that makes its depth constants from it (FSR 3.1), and
+    // (longshot) the projection without this frame's jitter, for an engine that makes its depth constants from it (FSR 3.1), and
     // its depth reversed for FSR's passes where the near plane is at 0 (fsr3_math.h): bit 3 of the prep's flags
     float projection[16];
     std::memcpy(projection, cam.projection, sizeof projection);
@@ -1690,7 +1690,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
     const bool hdr = engine.e->hdr && engine.e->hdr();
     // The network receives perceptual colour after the scene pass: decode it even when its storage is RGBA16F.
     if (rgba && !make_rgba_output()) return no("the RGBA16F output shader was not made");
-    // (YM) the scene before its tone map is linear light already: taken as it is (prep_lin), and given back as it is
+    // (longshot) the scene before its tone map is linear light already: taken as it is (prep_lin), and given back as it is
     const VkPipeline prep_pipe = pre ? s.prep_lin : hdr ? s.prep_hdr : s.prep;
     const VkPipeline out_pipe = rgba ? s.out_rgba : hdr ? s.out_hdr : s.out;
     const VkPipelineLayout prep_layout = pre ? s.prep_lin_layout : hdr ? s.prep_hdr_layout : s.prep_layout;
@@ -1779,7 +1779,7 @@ bool draw_engine(VkCommandBuffer cmd, State& s, int mode, const Camera& cam, uin
     // (NVIDIA DLSS Frame Generation through NGX, vk_dlss.cpp: this frame's depth, motion and camera for the present's made
     // frames. Nothing unless the run asked for it)
     dlss_fg_inputs(cmd, f, cam.projection, cam.current, cam.jitter, motion);
-    // (YM) and AMD FSR 3.1's frame interpolation: this motion, the skinned draws' own in it, over the camera's alone that
+    // (longshot) and AMD FSR 3.1's frame interpolation: this motion, the skinned draws' own in it, over the camera's alone that
     // its own inputs made at this dispatch (vk_fsr3_inputs.h take_motion). Nothing unless it is asked for
     if (motion && fsr3fi::frames_wanted()) (void)fsr3_inputs::take_motion(cmd, f.motion.image, rw, rh);
     s.last_frame = now;
@@ -1820,7 +1820,7 @@ bool temporal_fg_inputs() { return temporal_mode() == ur::GAME && fsr3fi::frames
 bool temporal_upscale(VkCommandBuffer cmd, uint64_t key, bool known, Texture* in, VkImageView in_view, Texture* out,
                       VkImageView out_view, uint32_t out_level) {
     const int mode = temporal_mode();
-    // (YM) no engine, and AMD FSR 3.1's frame interpolation asked for: the chain's motion for it all the same, the
+    // (longshot) no engine, and AMD FSR 3.1's frame interpolation asked for: the chain's motion for it all the same, the
     // network (or Off's stretch) drawing the picture as before
     if (temporal_fg_inputs()) fg_inputs(cmd, known, in, in_view, out, out_level);
     if (mode == ur::GAME) return temporal_off() && stretch(cmd, key, known, in, in_view, out, out_view, out_level);
@@ -1852,7 +1852,7 @@ bool temporal_upscale(VkCommandBuffer cmd, uint64_t key, bool known, Texture* in
         State& s;
         ~SkinsDone() { s.skins.clear(); }
     } skins_done{s};
-    // (YM) DLAA before the bloom (temporal_pre_bloom): this frame's passes teach the next where it runs (pre_bloom.h).
+    // (longshot) DLAA before the bloom (temporal_pre_bloom): this frame's passes teach the next where it runs (pre_bloom.h).
     // Where it ran in this frame, the network's input is its picture through the game's bloom, tone map and the passes after
     // them: copied in place of the network (its own anti-aliasing would go over DLAA's), as the Upscaler's Off copies it
     const uint64_t now = texture_frame_no();

@@ -1,4 +1,4 @@
-// (YM) A nothrow new that keeps its null at the commit limit. The renderer's new_handler (vk_main.cpp,
+// (longshot) A nothrow new that keeps its null at the commit limit. The renderer's new_handler (vk_main.cpp,
 // new_refused) waits for memory when an allocation is refused, and stops the game with the out-of-memory notice when none comes
 // back: a throwing new can do nothing else with a refusal. A nothrow new has a fallback of its own for a null (an arena's
 // chunk, a capture's staging block), and libc++'s and libstdc++'s nothrow new call the throwing one and turn

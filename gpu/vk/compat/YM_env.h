@@ -1,4 +1,4 @@
-/* (YM) One rule for the game's on/off switches, in C (host/) and C++ (gpu/vk, its translator):
+/* (longshot) One rule for the game's on/off switches, in C (host/) and C++ (gpu/vk, its translator):
 
      env_on(name)           unset, empty, 0, false, off or no (any case): off; anything else, 1 or a value: on
      env_on_or(name, def)   unset: def; set: as env_on reads it (a switch that is on, or decided elsewhere, until it is set)

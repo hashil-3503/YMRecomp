@@ -1,4 +1,4 @@
-// (YM) AMD FSR 3.1's upscaler as our own dispatches over AMD's vendored passes, and its place in the gameplay upscale's
+// (longshot) AMD FSR 3.1's upscaler as our own dispatches over AMD's vendored passes, and its place in the gameplay upscale's
 // dispatch (fsr3_upscale, at the end); see vk_fsr3.h.
 //
 // The resource table and the per-pass binding lists are the SDK's, not ours: ffx_fsr3upscaler.cpp decides the formats and
@@ -802,7 +802,7 @@ bool fsr3_on_chain() {
 
 bool fsr3_wanted() { return !fsr3_on_chain() && fsr3_chosen(); }
 
-// ---- (YM) FSR 3.1 as an engine of the temporal chain (vk_temporal.cpp) ----
+// ---- (longshot) FSR 3.1 as an engine of the temporal chain (vk_temporal.cpp) ----
 // The chain's frame into the passes above: its colour (the network's input as it samples it), its depth reversed for FSR
 // (the chain's prep takes it so for an engine with fsr_depth), its motion toward the frame before in render pixels with the
 // skinned draws' own drawn over the camera's (vk_temporal.cpp actor_motion), and the jitter the host gave the camera. The

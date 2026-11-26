@@ -1,4 +1,4 @@
-// (YM) The temporal upscalers' depth with a hidden character: the depth draws of a skinned mesh the game has
+// (longshot) The temporal upscalers' depth with a hidden character: the depth draws of a skinned mesh the game has
 // stopped showing are left out. Plain code with no Vulkan calls: tests/test_hidden_mesh_depth.py compiles it alone, and
 // vk_draw.cpp (hidden_depth_draw) gives it the draws and has the why.
 //

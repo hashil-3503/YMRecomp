@@ -95,7 +95,7 @@ HLE(_ZN2nn2oe18GetDesiredLanguageEv) {
    (MKW docked composes 3840 x 2160) */
 int hos_ini_option(const char *key, int otherwise);
 #define ini_option hos_ini_option
-/* (YM) An option's text in YM_options.ini (the Insert menu's choices, gpu/vk/vk_menu.cpp; where it is:
+/* (longshot) An option's text in YM_options.ini (the Insert menu's choices, gpu/vk/vk_menu.cpp; where it is:
    host/options_path.c), the last line that sets it, its line end cut: whether there was one */
 static int ini_text(const char *key, char *out, size_t size) {
     if (!size) return 0;
@@ -125,7 +125,7 @@ static int handheld(void) {
     }
     return v;
 }
-/* (YM) The Insert menu's Output resolution (output_res=, HOS_OUTPUT_RES over it), docked only: a size, "<width>x<height>",
+/* (longshot) The Insert menu's Output resolution (output_res=, HOS_OUTPUT_RES over it), docked only: a size, "<width>x<height>",
    each side a multiple of 8 (rounded down to one), at least 640 x 360, at most 5120 x 2880's pixels (the largest the render
    targets' pool, hos_rt_pool_size, was played at) and between 5:4 and 48:9 in shape (host/hos_main.c's screen shapes); anything
    else is the game's own size, said in the log. The menu offers 2048x1152 and the screen's display modes (gpu/vk/display_modes.h;
@@ -188,7 +188,7 @@ uint32_t hos_output_size(int height) {
     if (!output_mode()) return height ? 1440 : 2560;
     return height ? output_h : output_w;
 }
-/* (YM) The render targets' GPU pool (builder/crates/edits/src/patches.rs), 0x13100000 bytes as shipped, for 2560 x 1440: a 3840x2160 3D at
+/* (longshot) The render targets' GPU pool (builder/crates/edits/src/patches.rs), 0x13100000 bytes as shipped, for 2560 x 1440: a 3840x2160 3D at
    the 4K output ran out of it. Scaled with the output's pixels, or the widescreen picture's when it has more (host/hos_main.c:
    hos_wide_out, the output's height at the screen's shape: 7680 x 2160 for a 32:9 screen at the 4K output, twice the pixels the pool
    was scaled for, or the game crashes as Kokiri Forest loads, a null pointer or "texture handle ids -1");
@@ -278,11 +278,11 @@ static uint64_t now_posix(void) {
 HLE(_ZN2nn4time23StandardUserSystemClock14GetCurrentTimeEPNS0_9PosixTimeE) { G64(ARG(0)) = now_posix(); RET(0); }
 HLE(_ZN2nn4time26StandardNetworkSystemClock14GetCurrentTimeEPNS0_9PosixTimeE) { G64(ARG(0)) = now_posix(); RET(0); }
 /* StandardSteadyClock::now() -> time_point (std::chrono, rep int64, period seconds): one register, x0.
-   (YM) It was a 24-byte SteadyClockTimePoint written through x8; OoT reads x0 and leaves x8 unset (it was 0:
+   (longshot) It was a 24-byte SteadyClockTimePoint written through x8; OoT reads x0 and leaves x8 unset (it was 0:
    the write faulted at guest 0). MKW does not import it. */
 HLE(_ZN2nn4time19StandardSteadyClock3nowEv) { RET((uint64_t)(hos_now_ns() / 1000000000LL)); }
 
-/* (YM) nn::socket::detail::Poll(pollfd* fds, unsigned long n, int timeout_ms): offline, no descriptor is ever
+/* (longshot) nn::socket::detail::Poll(pollfd* fds, unsigned long n, int timeout_ms): offline, no descriptor is ever
    ready. OoT's gRPC poll engine (nn.npln.GrpcDispatcher) calls it through a function pointer, past the socket
    imports the runtime stubs, and the SDK's own Poll aborted on the uninitialized socket layer. It waits out the
    timeout (an infinite one in 50 ms steps, which the poll loop takes as a spurious wake) and reports a timeout. */
@@ -302,7 +302,7 @@ static void socket_poll(Ctx *c) {
 HLE(_ZN2nn6socket6detail4PollEP6pollfdmi) { socket_poll(c); }
 HLE(_ZN2nn6socket6detail4PollEPNS0_6PollFdEmi) { socket_poll(c); }
 
-/* (YM) nn::account::EnsureNetworkServiceAccountIdTokenCacheAsync(AsyncContext*, UserHandle const&): offline,
+/* (longshot) nn::account::EnsureNetworkServiceAccountIdTokenCacheAsync(AsyncContext*, UserHandle const&): offline,
    so no network service account. The generic stub's 0 said the task started, and OoT's npln worker (main
    0x8214eac0) then waited on the AsyncContext nothing had set up. This failure (account module 124, description
    280) takes the game's error branch right after the call. */
@@ -310,7 +310,7 @@ HLE(_ZN2nn7account44EnsureNetworkServiceAccountIdTokenCacheAsyncEPNS0_12AsyncCon
     RET(124 | (280 << 9));
 }
 
-/* (YM) nn::nsd::GetEnvironmentIdentifier(EnvironmentIdentifier* out): char[8]; retail units say "lp1".
+/* (longshot) nn::nsd::GetEnvironmentIdentifier(EnvironmentIdentifier* out): char[8]; retail units say "lp1".
    OoT (main 0x8243f490) only checks for a "t-" test prefix. Left to the SDK it asks the nsd service over HIPC. */
 HLE(_ZN2nn3nsd24GetEnvironmentIdentifierEPNS0_21EnvironmentIdentifierE) {
     if (ARG(0)) { memset(GP(ARG(0)), 0, 8); memcpy(GP(ARG(0)), "lp1", 3); }
@@ -400,10 +400,10 @@ HLE(_ZN2nn3err9ShowErrorENS_6ResultE) { hos_log("err: the game shows error %#x (
    send it to the prepo service. Reports are dropped. ---------------------------------------------------------- */
 HLE(_ZN2nn5prepo10PlayReport4SaveEv) { RET(0); }
 HLE(_ZN2nn5prepo10PlayReport4SaveERKNS_7account3UidE) { RET(0); }
-/* (YM) PlayReport::Send(Uid const&), SDK 22's: kept nowhere, as Save. Left to the SDK it opened the prepo
+/* (longshot) PlayReport::Send(Uid const&), SDK 22's: kept nowhere, as Save. Left to the SDK it opened the prepo
    service through sm: and aborted on the empty reply (OoT's PlayReporter thread, ~5 minutes into a game). */
 HLE(_ZN2nn5prepo10PlayReport4SendERKNS_7account3UidE) { RET(0); }
-/* (YM) prepo::AsyncContext: the report "sent" at once. GetCompletionEvent(SystemEvent* out) gives an event
+/* (longshot) prepo::AsyncContext: the report "sent" at once. GetCompletionEvent(SystemEvent* out) gives an event
    already signaled (the SDK's own aborted on the context the empty IPC reply left), GetResult success. */
 void hos_system_event_init(uint64_t key, int autoclear);   /* nn_os_sync.c */
 void hos_system_event_signal(uint64_t key);
@@ -450,7 +450,7 @@ HLE(_ZN2nn7account26GetNetworkServiceAccountIdEPNS0_23NetworkServiceAccountIdERK
 }
 /* nn::oe::GetCurrentGraphicsScale() -> a tier in w0, which the game sizes its frame by (0 x1, 1 x0.8, 2 x0.667: hos_output_parse) */
 HLE(_ZN2nn2oe23GetCurrentGraphicsScaleEv) {
-    /* (YM) HOS_GRAPHICS_SCALE=<f>: another scale, a test of whether the game sizes its picture by it (4K, issue 68) */
+    /* (longshot) HOS_GRAPHICS_SCALE=<f>: another scale, a test of whether the game sizes its picture by it (4K, issue 68) */
     static float scale = 0;
     static volatile LONG told;
     if (scale == 0) scale = getenv("HOS_GRAPHICS_SCALE") ? (float)atof(getenv("HOS_GRAPHICS_SCALE")) : 1.0f;

@@ -1,4 +1,4 @@
-// (YM) The programs' life (vk_programs.cpp): what the game does with its programs (makes them, gives them their shaders,
+// (longshot) The programs' life (vk_programs.cpp): what the game does with its programs (makes them, gives them their shaders,
 // frees them), what each needed when it was first drawn or dispatched, and one set of counters for all of it (the census).
 // Not part of the translator stamp: a change here keeps every player's translated programs.
 #pragma once

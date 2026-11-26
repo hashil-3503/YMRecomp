@@ -1,4 +1,4 @@
-/* (YM) The RomFS index's reader: romfs_index.h says what it is, builder/crates/game-files/src/romfs.rs has the
+/* (longshot) The RomFS index's reader: romfs_index.h says what it is, builder/crates/game-files/src/romfs.rs has the
    format and writes it. */
 #include "romfs_index.h"
 #include "romfs.h"   /* (HOS_ROMFS_PATH, hos_romfs_fold: declarations only) */

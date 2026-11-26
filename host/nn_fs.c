@@ -20,7 +20,7 @@
 #endif
 #include "../game/game.h"   /* (the game's hooks this file calls) */
 
-/* (YM) A game folder whose deepest file passes 260 characters (MAX_PATH: "E:\Games\...\romfs\Event\EventSetting\
+/* (longshot) A game folder whose deepest file passes 260 characters (MAX_PATH: "E:\Games\...\romfs\Event\EventSetting\
    Ev..." at 262) is read too. The host paths here are up to HOS_FS_PATH bytes, and on Windows each file call goes through
    its wide function: the path converted from the game's UTF-8 strings and, when it is
    long and absolute, given the extended-length prefix \\?\ (with its / made \ and a doubled separator made one), which
@@ -98,7 +98,7 @@ static BOOL fs_FindNextFile(HANDLE h, WIN32_FIND_DATAA *fd) {
 
 const char *hos_romfs_dir, *hos_user_dir;
 
-/* (YM) The run's save folder (host/save_dir.h): the profile's saves/; chosen once, at the start (hos_main.c) */
+/* (longshot) The run's save folder (host/save_dir.h): the profile's saves/; chosen once, at the start (hos_main.c) */
 static char save_dir_chosen[SAVE_DIR_MAX];
 static int save_dir_state;   /* (0 not chosen yet, 1 chosen: save_dir_chosen the folder, or empty for the user folder's; -1 refused) */
 static const char *save_dir_from;
@@ -124,13 +124,13 @@ const char *hos_saves_root(void) {
     const char *c = hos_save_dir_chosen();
     return c ? c : hos_user_dir;
 }
-/* (YM) The RomFS is read through romfs.h, whichever place it is in: the player's .nup through the builder's index
+/* (longshot) The RomFS is read through romfs.h, whichever place it is in: the player's .nup through the builder's index
    (hos_main.c opens it when the game folder has one and no romfs folder), or a romfs folder. Paths under hos_romfs_dir
    are read there after the mods, the overlay and the stand-ins had their say: a file gets a handle that reads it
    through romfs.h (Handle.rom; h is no host handle), a folder is listed from it. */
 HosRomfsIndex *hos_romfs_index;
 
-/* (YM) path's part under hos_romfs_dir (the RomFS's), when path is in it; NULL otherwise */
+/* (longshot) path's part under hos_romfs_dir (the RomFS's), when path is in it; NULL otherwise */
 static const char *romfs_rel(const char *path) {
     if (!hos_romfs_dir) return NULL;
     size_t i = 0;
@@ -142,7 +142,7 @@ static const char *romfs_rel(const char *path) {
     return path + i;
 }
 
-/* (YM) path's part under the RomFS (oot_damaged_files.c: then read it with romfs.h); NULL otherwise */
+/* (longshot) path's part under the RomFS (oot_damaged_files.c: then read it with romfs.h); NULL otherwise */
 const char *hos_fs_romfs_rel(const char *path) { return romfs_rel(path); }
 
 
@@ -198,7 +198,7 @@ static int mount_entry(const char *name, const char *root, int writable, Save *s
 static int mount(const char *name, const char *root, int writable) { return mount_entry(name, root, writable, NULL); }
 
 
-/* (YM) a guest path below its mount stays below it on the host: no "." or ".." part, no \\ or : (a drive or a
+/* (longshot) a guest path below its mount stays below it on the host: no "." or ".." part, no \\ or : (a drive or a
    Windows stream), no control characters; on Windows also no part ending in a dot or a space (Windows drops them) and
    no device name (CON, NUL, COM1, COM\u00b9, "NUL .txt"...) */
 static int guest_path_ok(const char *rest) {
@@ -240,7 +240,7 @@ static int save_guard(const char *root, const char *rel);
 /* "mount:/a/b" -> host path (a mod's file instead of the RomFS one, when a mod has it: mods.c). Returns 0 if the mount
    is unknown, or the path leaves it (guest_path_ok); 2 for a staged save, 1 otherwise. */
 static int host_path(const char *guest_mem, char *out, size_t cap, int *writable) {
-    /* (YM) one copy of the path, read once: another guest thread may change guest memory between the check and
+    /* (longshot) one copy of the path, read once: another guest thread may change guest memory between the check and
        the use */
     char guest[FS_PATH_MAX];
     if ((size_t)snprintf(guest, sizeof guest, "%s", guest_mem) >= sizeof guest) return 0;
@@ -269,7 +269,7 @@ static int host_path(const char *guest_mem, char *out, size_t cap, int *writable
 /* For other OS layer parts that open game files themselves (videos): "mount:/a/b" -> host path, 0 if unknown. */
 int hos_fs_host_path(const char *guest, char *out, size_t cap) { return host_path(guest, out, cap, NULL); }
 
-/* (YM) a guest string: "" unless it lies in guest memory and ends within FS_PATH_MAX bytes */
+/* (longshot) a guest string: "" unless it lies in guest memory and ends within FS_PATH_MAX bytes */
 static const char *gstr(uint64_t a) {
     if (!a || a >= (uint64_t)HOS_SPACE_END) return "";
     const uint64_t room = (uint64_t)HOS_SPACE_END - a;
@@ -887,14 +887,14 @@ HLE(_ZN2nn2fs8MountRomEPKcPvm) {
     if (!hos_romfs_dir) hos_fatal(c, "fs: MountRom but no RomFS folder given (--romfs)");
     RET(mount(gstr(ARG(0)), hos_romfs_dir, 0) ? 0 : R_NOT_MOUNTED);
 }
-/* (YM) MountRom(char const* name): the cacheless overload OoT uses (SDK 22). Left to the SDK it opens the
+/* (longshot) MountRom(char const* name): the cacheless overload OoT uses (SDK 22). Left to the SDK it opens the
    file-system proxy over IPC and aborts on the empty reply. */
 HLE(_ZN2nn2fs8MountRomEPKc) {
     if (!hos_romfs_dir) hos_fatal(c, "fs: MountRom but no RomFS folder given (--romfs)");
     RET(mount(gstr(ARG(0)), hos_romfs_dir, 0) ? 0 : R_NOT_MOUNTED);
 }
 
-/* (YM) the committed folder for the control bridge's saves (host/control.c) */
+/* (longshot) the committed folder for the control bridge's saves (host/control.c) */
 static char save_root[HOS_FS_PATH];
 int hos_fs_save_root(char *out, size_t cap) {
     AcquireSRWLockShared(&save_lock);
@@ -1192,7 +1192,7 @@ HLE(_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci) {
     const char *g = gstr(ARG(1));
     /* (mkw-recomp 16bc3bc: the host's file calls block, so the virtual core goes to another thread meanwhile, as
        Horizon would run another while this one waits for the file system. OoT's ARes loaders held it up to 250 ms.)
-       (YM) From before host_path: the first open of a button-prompt file builds it there (prompts.c,
+       (longshot) From before host_path: the first open of a button-prompt file builds it there (prompts.c,
        ~300 ms on Linux), and other threads that open it meanwhile wait in there for the build; with the core held
        through that, threads waiting for the core would run without one */
     const int away = hos_vcore_away();
@@ -1233,7 +1233,7 @@ HLE(_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci) {
         RET(R_PATH_NOT_FOUND); return;
     }
     const char *in_romfs = !want_write && !save ? romfs_rel(path) : NULL;
-    HosRomfsFile *rom = in_romfs ? hos_romfs_open(in_romfs) : NULL;   /* (YM) the RomFS: romfs.h */
+    HosRomfsFile *rom = in_romfs ? hos_romfs_open(in_romfs) : NULL;   /* (longshot) the RomFS: romfs.h */
     if (in_romfs && !rom) {
         if (away) hos_vcore_back();
         if (hos_trace || fs_trace()) hos_log("fs: OpenFile(%s): not found", g);
@@ -1336,7 +1336,7 @@ static uint64_t read_at(Ctx *c, uint64_t id, int64_t off, uint64_t buf, uint64_t
         *oom = 1;
         return 0;
     }
-    if (fh->rom) {   /* (YM) from the RomFS (romfs.h), at the file's offset: a positional read, no lock */
+    if (fh->rom) {   /* (longshot) from the RomFS (romfs.h), at the file's offset: a positional read, no lock */
         const int64_t got = hos_romfs_file_read(fh->rom, (uint64_t)off, GP(buf), size);
         done = got > 0 ? (uint64_t)got : 0;
     }
@@ -1403,7 +1403,7 @@ static void fs_write_file(Ctx *c, Handle *fh) {
     DWORD put = 0;
     int ok = 0;
     fh->written = 1;
-    /* (YM) from guest memory only, and the whole size: a DWORD cut wrote less than asked and said so */
+    /* (longshot) from guest memory only, and the whole size: a DWORD cut wrote less than asked and said so */
     if (ARG(3) <= 0xFFFFFFFFu && hos_guest_range(ARG(2), ARG(3))) {
         if (ARG(3) && !hos_commit(ARG(2), ARG(3))) {   /* (as the read: refused, an error, not a short write) */
             if (fh->save) { SaveNote *n = save_note(fh->save, fh->relative, 'F'); if (n) n->failed = 1; }
@@ -1542,7 +1542,7 @@ static void delete_tree(const char *dir) {
             if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..")) continue;
             char sub[HOS_FS_PATH];
             snprintf(sub, sizeof sub, "%s\\%s", dir, fd.cFileName);
-            /* (YM) a link (a symbolic link, a junction) goes itself: never what it points to */
+            /* (longshot) a link (a symbolic link, a junction) goes itself: never what it points to */
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) { if (!DeleteFileA(sub)) RemoveDirectoryA(sub); }
             else if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) delete_tree(sub);
             else DeleteFileA(sub);
@@ -1564,7 +1564,7 @@ static void fs_delete_directory_recursively(Ctx *c, const char *path, Save *save
         if (ok) save_changed(save, relative, 'T', "delete tree");
         RET(ok ? 0 : R_PATH_NOT_FOUND); return;
     }
-    /* (YM) the folder named itself a link: the link goes, never what it points to (as for the links inside) */
+    /* (longshot) the folder named itself a link: the link goes, never what it points to (as for the links inside) */
     const DWORD at = GetFileAttributesA(path);
     if (at != INVALID_FILE_ATTRIBUTES && (at & FILE_ATTRIBUTE_REPARSE_POINT)) {
         if (!DeleteFileA(path)) RemoveDirectoryA(path);
@@ -1665,7 +1665,7 @@ HLE(_ZN2nn2fs13OpenDirectoryEPNS0_15DirectoryHandleEPKci) {
     dh->is_dir = (int)ARG(2);   /* mode: 1 directories, 2 files, 3 both */
     snprintf(dh->path, sizeof dh->path, "%s", pat);   /* (for GetDirectoryEntryCount) */
     const char *in_romfs = romfs_rel(path);
-    if (in_romfs) {   /* (YM) a folder of the RomFS: its listing from romfs.h, then the mods' own entries */
+    if (in_romfs) {   /* (longshot) a folder of the RomFS: its listing from romfs.h, then the mods' own entries */
         dh->find = INVALID_HANDLE_VALUE, dh->find_done = 1, dh->path[0] = 0;
         if (hos_romfs_list(in_romfs, add_extra, dh) >= 0) dh->find = NULL;
     } else {
@@ -1680,7 +1680,7 @@ HLE(_ZN2nn2fs13OpenDirectoryEPNS0_15DirectoryHandleEPKci) {
     G64(ARG(0)) = new_handle(dh);
     RET(0);
 }
-/* (YM) A directory's listing is read, counted and closed under one lock: a CloseDirectory on another guest thread freed
+/* (longshot) A directory's listing is read, counted and closed under one lock: a CloseDirectory on another guest thread freed
    the handle (and its find handle) while a ReadDirectory or GetDirectoryEntryCount still walked it */
 static SRWLOCK dir_lock = SRWLOCK_INIT;
 /* ReadDirectory(long* count, DirectoryEntry* entries, DirectoryHandle, long max) */
@@ -1716,7 +1716,7 @@ HLE(_ZN2nn2fs13ReadDirectoryEPlPNS0_14DirectoryEntryENS0_15DirectoryHandleEl) {
     G64(ARG(0)) = (uint64_t)n;
     RET(0);
 }
-/* (YM) GetDirectoryEntryCount(long* count, DirectoryHandle): every entry the open mode lists, read or not */
+/* (longshot) GetDirectoryEntryCount(long* count, DirectoryHandle): every entry the open mode lists, read or not */
 HLE(_ZN2nn2fs22GetDirectoryEntryCountEPlNS0_15DirectoryHandleE) {
     AcquireSRWLockExclusive(&dir_lock);
     Handle *dh = get_handle(c, ARG(1));

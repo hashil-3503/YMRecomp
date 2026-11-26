@@ -1,4 +1,4 @@
-// (YM) NVIDIA DLSS's actor motion (vk_dlss.cpp): what is worked out on the CPU for a skinned draw drawn again, kept
+// (longshot) NVIDIA DLSS's actor motion (vk_dlss.cpp): what is worked out on the CPU for a skinned draw drawn again, kept
 // apart so tests/test_dlss_actor.cpp checks it without a GPU. Header only, no Vulkan.
 #pragma once
 
@@ -22,13 +22,13 @@ inline uint64_t key(uint64_t vbuf, uint64_t ibuf, int count, int base_vertex, ui
 }
 inline bool same_model(uint64_t a, uint64_t b) { return a >> 8 == b >> 8; }
 
-/// (YM) A copy of a model, for pair_by_place: where it is (place_of) and which draw of the model it is (its n-th)
+/// (longshot) A copy of a model, for pair_by_place: where it is (place_of) and which draw of the model it is (its n-th)
 struct Placed {
     float place[3];
     int nth;
 };
 
-/// (YM) Which of the frame before's copies of a model each of this frame's copies is, by place: for each of `now`, an
+/// (longshot) Which of the frame before's copies of a model each of this frame's copies is, by place: for each of `now`, an
 /// index into `then`, or -1 (none: the camera's motion then, never another copy's). All copies are paired at once, the
 /// nearest pairs first, and never further apart than `reach` (in world units, moved between the two frames). On a tie (the
 /// same geometry drawn twice for one object, both at one place) the same n-th draw pairs first. The pairing by draw order
@@ -96,7 +96,7 @@ inline std::vector<int> pair_by_place(const std::vector<Placed>& now, const std:
     return pairs;
 }
 
-/// (YM) Where a skinned draw is, to tell copies of one model apart: its origin plus the mean of its bones'
+/// (longshot) Where a skinned draw is, to tell copies of one model apart: its origin plus the mean of its bones'
 /// translations. pose: the origin (12 bytes, then 4 of padding), then nbones 3 x 4 row-major matrices, as the actor pass
 /// keeps it (world = sum(w B p) + origin). A model placed by its origin differs there; copies placed by their bones at one
 /// origin differ in the bones (the game's copies of one model share an origin on a grid of 10 units, the Gossip Stones

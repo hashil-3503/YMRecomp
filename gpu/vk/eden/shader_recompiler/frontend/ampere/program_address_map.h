@@ -8,7 +8,7 @@
 
 namespace Shader::Ampere {
 constexpr u64 NativeAddressMapMagic = 0x50414d4e4544454eULL;
-// (YM) The most native instructions a program may have, for the capture, the lowering and this map: as many as fit
+// (longshot) The most native instructions a program may have, for the capture, the lowering and this map: as many as fit
 // in the largest code area the renderer reads (a control section whose area ends past 16 MiB is refused: control_end,
 // gpu/vk/vk_shader.cpp), 16 bytes each. The GPU has no instruction count of its own: Maxwell and Ampere address a program
 // by a 32-bit offset in its program region, and an Ampere BRA's offset has 50 bits. (65,536, 1 MiB, refused compute

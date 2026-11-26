@@ -1,4 +1,4 @@
-/* (YM) The Insert menu's Skip title screen row: the most recent save, and the presses that load it (oot_autoload.c). */
+/* (longshot) The Insert menu's Skip title screen row: the most recent save, and the presses that load it (oot_autoload.c). */
 #pragma once
 #include <stddef.h>
 #include <stdint.h>

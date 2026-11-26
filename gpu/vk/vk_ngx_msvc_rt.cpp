@@ -1,4 +1,4 @@
-// (YM) NVIDIA DLSS in the llvm-mingw build of YM_vk.dll: what NVIDIA's static NGX loader (nvsdk_ngx_s.lib, built
+// (longshot) NVIDIA DLSS in the llvm-mingw build of YM_vk.dll: what NVIDIA's static NGX loader (nvsdk_ngx_s.lib, built
 // with Microsoft's compiler against its static C++ runtime, /MT) asks of that runtime and the MinGW one does not have.
 // The C parts it shares with the static FFmpeg libraries (/GS's cookie and handler, _fltused) are host/mingw_msvc_shims.c,
 // linked into this DLL too; these are the C++ ones. Its C library calls go to the UCRT (api-ms-win-crt-*), and its C++ frame

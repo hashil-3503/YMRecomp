@@ -141,7 +141,7 @@ void ConvertDepth(EmitContext& ctx, Id vertex) {
     ctx.OpStore(ctx.OpAccessChain(ctx.output_f32, ctx.output_position, vertex, ctx.Const(2U)), z);
 }
 
-/// (YM) The fallback's records: one per primitive corner, its validity word and the stage buffer's vertex and
+/// (longshot) The fallback's records: one per primitive corner, its validity word and the stage buffer's vertex and
 /// primitive lines. A mesh workgroup writes its workgroup index and a fixed number of records for it; the generated
 /// vertex stage reads one record per vertex.
 u32 FallbackRecordWords(const MeshInfo& mesh) {
@@ -233,7 +233,7 @@ Id LineIndex(EmitContext& ctx, Id element, u32 base, u32 num_lines, Id line) {
     return ctx.OpIAdd(ctx.U32[1], first, ctx.OpShiftLeftLogical(ctx.U32[1], line, ctx.Const(5U)));
 }
 
-/// (YM) A loop that is not unrolled: body(index) for index = first, first + step, ... below end. var is a function variable
+/// (longshot) A loop that is not unrolled: body(index) for index = first, first + step, ... below end. var is a function variable
 /// of the entry block (EmitMeshPrologue): one declared at the call, mid-function, is invalid SPIR-V
 template <typename Func>
 void Loop(EmitContext& ctx, Id var, Id first, Id end, u32 step, Func&& body) {
@@ -257,7 +257,7 @@ void Loop(EmitContext& ctx, Id var, Id first, Id end, u32 step, Func&& body) {
 /// The Soa layout's records (MeshFallbackLayout): record k of the workgroup's, base + k, is corner k % corners of primitive
 /// k / corners, its index byte at 4 + k. The threads take the records in turn, and each line's words are neighbours: line l of
 /// record r at H + l * fit + r.
-/// (YM) Two loops, not unrolled: thread t takes records t, t + threads, ... below taken, and writes each one's lines in
+/// (longshot) Two loops, not unrolled: thread t takes records t, t + threads, ... below taken, and writes each one's lines in
 /// turn, so at each step the threads write one line's neighbouring words, as the unrolled form did. Unrolled, a thread had a
 /// store of its own for every line of every record it could take (348 for 126 primitives of 3 corners and 28 lines), which
 /// Mesa's Intel compiler took minutes and gigabytes over, as it did the Aos form's (MeshFallbackEpilogue)
@@ -296,7 +296,7 @@ void WriteFallbackLines(EmitContext& ctx, Id base, Id taken) {
 
 /// A mesh workgroup takes records for its primitives' corners from the records buffer's allocator and writes them; the vertex
 /// stage's indirect draw covers the records taken (MESH_FALLBACK_DRAW_WORD). A task's flag first bounds its count.
-/// (YM) The records are written by one loop over their words, the workgroup's threads side by side: thread t writes
+/// (longshot) The records are written by one loop over their words, the workgroup's threads side by side: thread t writes
 /// words t, t + threads, ... of the workgroup's records, each word a load from the attribute region and a store. They were
 /// written out unrolled, a primitive's corners and every line of each, its own address each: 348 stores a thread for a mesh
 /// of 126 primitives and 28 lines, which Mesa's Intel compiler (Iris Xe, 32 lanes) took 207 s and 3.8 GB to build (41 s and
@@ -435,7 +435,7 @@ u32 task_cap(u32 threads) {   // (RX_VK_TASK_CAP=<n>: mesh workgroups a task may
 
 void TaskEpilogue(EmitContext& ctx) {
     Barrier(ctx);
-    // (YM) at most one mesh workgroup a task thread: each thread keeps or culls one meshlet (the programs compact them by subgroup
+    // (longshot) at most one mesh workgroup a task thread: each thread keeps or culls one meshlet (the programs compact them by subgroup
     // ballot). It was 65535, and a payload word a task left unwritten is anything: when the task culled everything, tens of thousands of
     // mesh workgroups for a draw held the GPU past Windows' two seconds, and the device was lost, on about half the first starts
     const Id count{ctx.OpUMin(ctx.U32[1], LoadWord(ctx, PayloadWord(ctx, ctx.Const(1U))),
@@ -540,7 +540,7 @@ void MeshEpilogue(EmitContext& ctx) {
             std::array<Id, 3> indices;
             for (u32 element = 0; element < corners; ++element) {
                 const Id address{ctx.OpIAdd(ctx.U32[1], byte, ctx.Const(element))};
-                // (YM) within the vertices: an index byte the program left unwritten is anything, and an index
+                // (longshot) within the vertices: an index byte the program left unwritten is anything, and an index
                 // past the vertex count is undefined (a device fault on NVIDIA)
                 indices[element] = Clamped(ctx, ctx.OpLoad(ctx.U32[1], SharedWord(ctx, ctx.mesh_map, address)),
                                            mesh.max_vertices);
@@ -669,7 +669,7 @@ Id EmitIsbeRead(EmitContext& ctx, Id address) {
             return ctx.OpIAdd(ctx.U32[1], workgroup, first);
         }
         if (ctx.wants_mesh_first && Sirit::ValidId(ctx.rescaling_push_constants)) {
-            // (YM) + the draw's first workgroup: NVN draws [first, first + count). Without it every draw began at 0: the
+            // (longshot) + the draw's first workgroup: NVN draws [first, first + count). Without it every draw began at 0: the
             // foliage's draws (first up to ~1900) drew the first records again and again, and the forest had no leaves
             const Id table{ctx.OpLoad(ctx.U64, ctx.OpAccessChain(ctx.TypePointer(spv::StorageClass::PushConstant, ctx.U64),
                                                                   ctx.rescaling_push_constants, ctx.Const(ctx.mesh_first_member_index)))};
@@ -686,7 +686,7 @@ Id EmitIsbeRead(EmitContext& ctx, Id address) {
     const Id index{ctx.OpShiftRightLogical(ctx.U32[1], address, ctx.Const(2U))};
     const Id pointer{PayloadWord(ctx, index)};
     const Id word{ctx.mesh_fallback ? LoadWord(ctx, pointer) : ctx.OpLoad(ctx.U32[1], pointer)};   // (the fallback's: a device address)
-    // (YM) a fallback mesh workgroup is a slot, task workgroup * threads + its index: address 0 is that index in its task,
+    // (longshot) a fallback mesh workgroup is a slot, task workgroup * threads + its index: address 0 is that index in its task,
     // from 0 as OpEmitMeshTasksEXT numbers them. It was the slot, which picked a meshlet past the end of every task's list
     const Id within{ctx.mesh_fallback && ctx.runtime_info.mesh_fallback_task
                         ? ctx.OpUMod(ctx.U32[1], FallbackSlot(ctx), ctx.Const(ctx.runtime_info.mesh_fallback_task_threads))
@@ -695,7 +695,7 @@ Id EmitIsbeRead(EmitContext& ctx, Id address) {
                         word);
 }
 
-/// (YM) ISBERD.O: the word EmitIsbeWriteAttribute writes at that address, read back (a task program reads its
+/// (longshot) ISBERD.O: the word EmitIsbeWriteAttribute writes at that address, read back (a task program reads its
 /// payload: one of OoT's task programs stopped at it)
 Id EmitIsbeReadOutput(EmitContext& ctx, Id address) {
     const Id index{ctx.OpShiftRightLogical(ctx.U32[1], address, ctx.Const(2U))};
@@ -732,7 +732,7 @@ void EmitIsbeWriteMapU32(EmitContext& ctx, const IR::Value& address, Id value) {
 
 void EmitMeshPrologue(EmitContext& ctx) {
     if (ctx.stage == Stage::Mesh && ctx.mesh_fallback) {
-        // (YM) the epilogue's loop index (MeshFallbackEpilogue): a function's variables open its first block, and the
+        // (longshot) the epilogue's loop index (MeshFallbackEpilogue): a function's variables open its first block, and the
         // prologue is the first thing in it. Before anything else here
         ctx.mesh_fallback_epilogue_word = ctx.AddLocalVariable(
             ctx.TypePointer(spv::StorageClass::Function, ctx.U32[1]), spv::StorageClass::Function);
@@ -742,7 +742,7 @@ void EmitMeshPrologue(EmitContext& ctx) {
     // (YM, mma_layout.h mesh_fallback_shared_warp) the shared warp's lane and its words at zero, before the barriers below
     WarpPrologue(ctx);
     if (ctx.stage == Stage::Task) {
-        // (YM) the count starts at nothing: task payload memory holds whatever the last task left, and a task that keeps no meshlet
+        // (longshot) the count starts at nothing: task payload memory holds whatever the last task left, and a task that keeps no meshlet
         // never writes it. The barrier: every thread has done this before any of them goes on to write the real count
         StoreWord(ctx, PayloadWord(ctx, ctx.Const(1U)), ctx.u32_zero_value);
         Barrier(ctx);
@@ -751,7 +751,7 @@ void EmitMeshPrologue(EmitContext& ctx) {
         return;
     }
     if (ctx.mesh_fallback && ctx.runtime_info.mesh_fallback_task) {
-        // (YM) the slot its task gave this workgroup, from the map at its index of the dispatch (TaskEpilogue). Read here,
+        // (longshot) the slot its task gave this workgroup, from the map at its index of the dispatch (TaskEpilogue). Read here,
         // in the entry block, it serves every use; a load, no branch (see below)
         ctx.mesh_fallback_slot =
             LoadWord(ctx, BufferWordAt(ctx, PushU64(ctx, ctx.mesh_fallback_payload_member_index), WorkgroupId(ctx)));

@@ -1,4 +1,4 @@
-// (YM) Windows side of perf_os.h: CreateProcessW with no window and no inherited handles, waited for off the
+// (longshot) Windows side of perf_os.h: CreateProcessW with no window and no inherited handles, waited for off the
 // frame path. Quoting is cmd.exe's and all paths are UTF-8, never the system's ANSI code page.
 #ifdef _WIN32
 

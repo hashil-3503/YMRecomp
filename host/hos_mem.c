@@ -286,7 +286,7 @@ static void discard_pages(uint64_t addr, uint64_t size) {
 #endif
 }
 
-/* (YM) the address regions (hos_region_alloc's), at most cap of them into out ({start, end}); how many there are. For
+/* (longshot) the address regions (hos_region_alloc's), at most cap of them into out ({start, end}); how many there are. For
    host/prompts.c: where the game keeps its resources */
 int hos_regions(uint64_t (*out)[2], int cap) {
     LOCK();
@@ -365,7 +365,7 @@ void hos_mark_written(const void *p, size_t n) {
 }
 #endif
 
-/* (YM) a heap of size bytes ends below the address regions and the guest window's end (no wrap-around: the size
+/* (longshot) a heap of size bytes ends below the address regions and the guest window's end (no wrap-around: the size
    comes from the game). Also svc SetHeapSize's check (hos_svc.c) */
 int hos_heap_size_fits(uint64_t size) {
     const uint64_t limit = region_floor < HOS_SPACE_END ? region_floor : HOS_SPACE_END;
@@ -397,7 +397,7 @@ HLE(_ZN2nn2os17SetMemoryHeapSizeEm) {
         for (uint64_t a = HOS_HEAP_BASE + hos_heap_size; a < HOS_HEAP_BASE + size; a += 4096) *(volatile uint8_t *)GP(a) = 0;
         hos_log("heap: %llu MB prefaulted in %.0f ms", (unsigned long long)((size - hos_heap_size) >> 20), (hos_now_ns() - t0) / 1e6);
     }
-    /* (YM) Windows: the heap is left reserved and committed as it is touched (mkw_glue.c commit_on_touch), not all at
+    /* (longshot) Windows: the heap is left reserved and committed as it is touched (mkw_glue.c commit_on_touch), not all at
        once. OoT asks for ~6.9 GB and touches a fraction of it; committed, all of it counted against RAM plus the page file
        (a 12 GB commit charge at the title screen against a 5 GB working set), and players hit "out of memory" with GBs of
        RAM free. Host calls that hand guest memory to the kernel (nn_fs.c ReadFile/WriteFile) commit their range first.
@@ -489,7 +489,7 @@ static void pages_report_locked(void) {
     }
 }
 
-/* (YM) what the game is told it uses: base (its program, and the system's share) plus the heap and its mapped pages;
+/* (longshot) what the game is told it uses: base (its program, and the system's share) plus the heap and its mapped pages;
    base alone with HOS_MEMINFO_OLD=1. QueryMemoryInfo below, and svc GetInfo's used memory (hos_svc.c). Never more than the
    console's total: nothing refuses AllocateMemoryPages by default (HOS_PAGES_LIMIT), and past the total the game's
    free = total - used would wrap to a huge figure and it would map without limit again */

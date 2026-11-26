@@ -122,7 +122,7 @@ std::string options_path() {
 int64_t prof_ns[PROF_COUNT];
 Device dev;
 PFN_vkGetInstanceProcAddr instance_proc() { return vkx::instance_proc_addr(); }
-/// (YM) The driver as it names itself (VkPhysicalDeviceDriverProperties: "NVIDIA 580.95.05", "radv Mesa 25.2.4"), else its
+/// (longshot) The driver as it names itself (VkPhysicalDeviceDriverProperties: "NVIDIA 580.95.05", "radv Mesa 25.2.4"), else its
 /// version number: the log's "vk: driver:" line and the menu's Save my pipeline list (vk_menu.cpp)
 std::string driver_text() {
     VkPhysicalDeviceDriverProperties drv{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES};
@@ -141,7 +141,7 @@ std::string driver_text() {
 
 std::string device_name_text() { return std::string(dev.props.deviceName, strnlen(dev.props.deviceName, sizeof dev.props.deviceName)); }
 
-/// (YM) Milliseconds on the steady clock: the log's last line and the preparation's watchdog
+/// (longshot) Milliseconds on the steady clock: the log's last line and the preparation's watchdog
 int64_t steady_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
@@ -247,7 +247,7 @@ bool create_instance() {
     }
 #endif
 #ifndef _WIN32
-    // (YM) Mesa's Intel compiler (driconf shader_spilling_rate, read when the driver loads, ignored by the others): when a
+    // (longshot) Mesa's Intel compiler (driconf shader_spilling_rate, read when the driver loads, ignored by the others): when a
     // program does not fit its registers it spills some and allocates the whole program again, rounds of one at first and then
     // of (spilled so far / rate). Held to 32 lanes an Iris Xe has 32 registers a lane, and MKW's large compute programs spill
     // thousands: at Mesa's default one is not built after 20 minutes and 13 GB, at 2 in 32 s and 1.7 GB (3 and 4 are much
@@ -261,14 +261,14 @@ bool create_instance() {
     VkInstanceCreateInfo ci{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     ci.pApplicationInfo = &app;
     std::vector<const char*> ext_list(exts, exts + n_exts);
-    {   // (YM) what NVIDIA DLSS needs (vk_dlss.cpp; nothing in a build without it)
+    {   // (longshot) what NVIDIA DLSS needs (vk_dlss.cpp; nothing in a build without it)
         uint32_t n = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, &n, nullptr);
         std::vector<VkExtensionProperties> all(n);
         vkEnumerateInstanceExtensionProperties(nullptr, &n, all.data());
         dlss_instance_extensions(ext_list, all);
         xess_instance_extensions(ext_list, all, app.apiVersion);   // (YM: Intel XeSS's, when its library is there: vk_xess.cpp)
-        // (YM) the HDR10 colour space for the Insert menu's HDR (the menu's settings are read after the instance is made, so
+        // (longshot) the HDR10 colour space for the Insert menu's HDR (the menu's settings are read after the instance is made, so
         // whenever the driver has it; the SDR choice in create_swapchain keeps to the sRGB surface)
         if (has_extension(all, VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME))
             ext_list.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME), dev.swapchain_colorspace = true;
@@ -292,7 +292,7 @@ bool pick_device() {
     vkEnumeratePhysicalDevices(dev.instance, &n, nullptr);
     std::vector<VkPhysicalDevice> all(n);
     vkEnumeratePhysicalDevices(dev.instance, &n, all.data());
-    if (!n) {   // (YM) no device at all: no Vulkan driver lists a GPU. Why, where the PC says (NVIDIA's driver not loaded, a
+    if (!n) {   // (longshot) no device at all: no Vulkan driver lists a GPU. Why, where the PC says (NVIDIA's driver not loaded, a
                 // real-time kernel): the window after the start reads this line (builder/crates/crash/src/facts.rs)
         YMNoGpu why;
 #ifdef _WIN32
@@ -370,7 +370,7 @@ bool pick_device() {
     return true;
 }
 
-/// (YM) Whether the shaders' float adds to storage buffers are asked to be the GPU's own atomic (create_device):
+/// (longshot) Whether the shaders' float adds to storage buffers are asked to be the GPU's own atomic (create_device):
 /// RX_VK_NATIVE_FADD by the switches' rule (YM_env.h env_value_off: 0, false, off, no or empty is off, any other
 /// value on); unset, with NVIDIA's driver, with AMD's Windows driver on Radeon 860M/840M (0x1114) from 0x8001a0
 /// (Adrenalin 26.10.1), and with Intel's Windows driver on the GPU families it was run on: the Xe-LPG
@@ -422,7 +422,7 @@ bool create_device() {
         return mesh_rule::choose(getenv("RX_VK_MESH_SHADERS"), getenv("RX_VK_FORCE_MESH_FALLBACK"));
     }();
     const int mesh_mode = mesh_choice.mode;
-    // (YM) RADV's native task/mesh path deadlocks the GPU: the gfx ring and RADV's gang compute ring
+    // (longshot) RADV's native task/mesh path deadlocks the GPU: the gfx ring and RADV's gang compute ring
     // end up waiting on each other, and a mesh-only draw hangs with the compute queue empty (devcoredumps on an
     // RX 6800: no VM fault; waves stuck on gfx in the second). Task + mesh draws alone on the fallback still crash, so
     // only full Compute is stable there, and the reports span Navi 2x (RX 6800, RX 6600 XT) and the APUs (the Steam Deck
@@ -464,7 +464,7 @@ bool create_device() {
     // (YM, RX_VK_MEMORY_PRIORITY, off by default: memory_priority.h. The extension is asked for only with the switch on)
     if (memory_priority::parse(getenv("RX_VK_MEMORY_PRIORITY")).on) optional(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME, dev.memory_priority);
     optional(VK_EXT_IMAGE_2D_VIEW_OF_3D_EXTENSION_NAME, dev.view_2d_of_3d);
-    // (YM) on by default: with a marker before each draw and dispatch the device has not been lost (five
+    // (longshot) on by default: with a marker before each draw and dispatch the device has not been lost (five
     // runs); without them it was, every run, shortly after OoT's first gameplay frames (nvlddmkm event 153; the
     // extension alone, RX_VK_CHECKPOINTS=ext, did not keep it). The race they hide is not found yet.
     // RX_VK_CHECKPOINTS=0: off
@@ -475,7 +475,7 @@ bool create_device() {
         optional(VK_AMD_BUFFER_MARKER_EXTENSION_NAME, dev.buffer_marker);
     optional(VK_EXT_DEVICE_FAULT_EXTENSION_NAME, dev.device_fault);
     optional(VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME, dev.coop_matrix);
-    // (YM) the GPU's own float add on storage buffers: the game's RED/ATOM.ADD.F32 become one OpAtomicFAddEXT instead
+    // (longshot) the GPU's own float add on storage buffers: the game's RED/ATOM.ADD.F32 become one OpAtomicFAddEXT instead
     // of a compare-exchange loop, which gives up after CAS_LOOP_MAX_TRIES attempts and loses that add (eden
     // spirv_emit_context.cpp DefineStorageBuffers). By default with NVIDIA's driver, AMD's Windows driver on 0x1114 from 0x8001a0, and Intel's Windows driver on the
     // Meteor Lake, Arrow Lake, Panther Lake and Lunar Lake iGPUs and the Arc B-series (native_fadd_wanted); RX_VK_NATIVE_FADD=1 asks for it on any GPU, =0 keeps the loop
@@ -513,7 +513,7 @@ bool create_device() {
     q.queueFamilyIndex = dev.queue_family;
     q.queueCount = 1;
     q.pQueuePriorities = &priority;
-    // (YM) The presents on a queue of a compute family of their own, beside the replay's: RX_VK_PRESENT_QUEUE=1 (the
+    // (longshot) The presents on a queue of a compute family of their own, beside the replay's: RX_VK_PRESENT_QUEUE=1 (the
     // switches' yes/no rule; off by default on every PC). On the replay's queue vkQueuePresentKHR blocks with dev.present_mu
     // held, ~0.8 ms a present with frame interpolation at 4x and up to 8, and the game's main and presentation threads wait
     // there to submit. A second queue of the graphics family takes that lock off the presents, but its presents block longer
@@ -671,7 +671,7 @@ bool create_device() {
     dev.provoking_vertex = dev.provoking_vertex && pv.provokingVertexLast;
     dev.vertex_divisor = dev.vertex_divisor && vdiv.vertexAttributeInstanceRateDivisor;   // (a divisor over 1 needs the feature, not only the extension)
     dev.conditional_rendering = dev.conditional_rendering && cond.conditionalRendering;
-    // (YM) the occlusion queries' real counts (vk_replay.cpp, RX_VK_OCC_QUERIES): a sample count, not only "any", and
+    // (longshot) the occlusion queries' real counts (vk_replay.cpp, RX_VK_OCC_QUERIES): a sample count, not only "any", and
     // their reset from the CPU once read (both on when the device has them: the queried chain is what it is created with)
     dev.occlusion_precise = f.features.occlusionQueryPrecise == VK_TRUE;
     dev.host_query_reset = f12.hostQueryReset == VK_TRUE;
@@ -739,7 +739,7 @@ bool create_device() {
     // (task and mesh shader counts in pipeline statistics, a feature of their own: RADV has it off on RDNA2, and a query
     // pool made with those counts all the same can hang the GPU)
     dev.mesh_queries = dev.mesh_shader && mesh.meshShaderQueries;
-    // (YM) RDNA1 and older GPUs: no mesh shaders, but task and mesh programs run as compute shaders
+    // (longshot) RDNA1 and older GPUs: no mesh shaders, but task and mesh programs run as compute shaders
     // that write their vertices to buffers, drawn through an ordinary graphics pipeline. It needs buffer device addresses.
     dev.mesh_fallback = !dev.mesh_shader && f12.bufferDeviceAddress && !env_on("RX_VK_NO_MESH_FALLBACK");
     if (dev.mesh_fallback)
@@ -771,7 +771,7 @@ bool create_device() {
     dev.sparse_images = (families[dev.queue_family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) && f.features.sparseBinding &&
                         f.features.sparseResidencyImage2D && !(getenv("RX_VK_SPARSE") && !atoi(getenv("RX_VK_SPARSE")));
     dev.sparse_buffers = (families[dev.queue_family].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) && f.features.sparseBinding;
-    {   // (YM) what this PC is, learnt once, and the defaults it gets by it: device_policy.h. Most sites still ask the
+    {   // (longshot) what this PC is, learnt once, and the defaults it gets by it: device_policy.h. Most sites still ask the
         // device their own way and decide for themselves; the log's "vk: policy:" lines show what the rules give this PC
         dev.driver = fadd_driver;   // (asked above; kept, as the facts point at its driverInfo)
         dev.driver.pNext = nullptr;
@@ -841,7 +841,7 @@ bool create_device() {
         dev.policy = device_policy(pf);
         // (and the switches over them, read once, by one rule: device_policy_env)
         device_policy_env(dev.policy, pf, [](const char* name) -> const char* { return getenv(name); });
-        // (YM) the translation's vendor and driver workarounds (device_policy.h fetch_bounds, nan_bits, gather_offset),
+        // (longshot) the translation's vendor and driver workarounds (device_policy.h fetch_bounds, nan_bits, gather_offset),
         // each forced by its RX_VK_ switch
         device_policy_fixes_env(dev.policy, [](const char* name) -> const char* { return getenv(name); });
         native_zstd_default.store(dev.policy.native_zstd_keep_core ? 2 : 1, std::memory_order_release);
@@ -849,7 +849,7 @@ bool create_device() {
              dev.driver.driverName, dev.driver.driverInfo, (int)dev.policy.fetch_bounds, (int)dev.policy.nan_bits,
              (int)dev.policy.gather_offset);
     }
-    // (YM) Intel XeSS's features (vk_xess.cpp), last, into the chain as it will be made: the library sets what it needs in
+    // (longshot) Intel XeSS's features (vk_xess.cpp), last, into the chain as it will be made: the library sets what it needs in
     // the renderer's structures and adds what it lacks (VK_EXT_mutable_descriptor_type's); nothing without its library, and a
     // refusal leaves the chain as it was and XeSS out for the run
     void* chain = &f;
@@ -916,7 +916,7 @@ std::string device_report_text() {
     if (drv.driverInfo[0]) text += std::string(" ") + drv.driverInfo;
     return text;
 }
-/// (YM) The UNORM format of an sRGB one (the same bytes, read and written as they are), else the format itself
+/// (longshot) The UNORM format of an sRGB one (the same bytes, read and written as they are), else the format itself
 VkFormat unorm_of(VkFormat f) {
     switch (f) {
     case VK_FORMAT_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_UNORM;
@@ -925,13 +925,13 @@ VkFormat unorm_of(VkFormat f) {
     default: return f;
     }
 }
-/// (YM) The views of the swapchain's images let go (before the swapchain they view: the device idle already)
+/// (longshot) The views of the swapchain's images let go (before the swapchain they view: the device idle already)
 void swap_views_drop() {
     for (auto view : dev.swap_views)
         if (view) vkDestroyImageView(dev.device, view, nullptr);
     dev.swap_views.clear();
 }
-/// (YM) A view of each of the swapchain's images, for Dear ImGui's overlays (vk_imgui.cpp), when they can be drawn into,
+/// (longshot) A view of each of the swapchain's images, for Dear ImGui's overlays (vk_imgui.cpp), when they can be drawn into,
 /// in the format given (the swapchain's, or its UNORM one when the swapchain was made mutable)
 void swap_views_make(VkImageUsageFlags usage, VkFormat format) {
     swap_views_drop();
@@ -948,12 +948,12 @@ void swap_views_make(VkImageUsageFlags usage, VkFormat format) {
     }
 }
 
-/// (YM) Frame generation as the swapchain is made for it: the fixed multiplier, 2 to 4 (more takes no more images), or 0
+/// (longshot) Frame generation as the swapchain is made for it: the fixed multiplier, 2 to 4 (more takes no more images), or 0
 /// for off and Auto, as it runs (vk_framegen.h framegen_now: at most DLSS FG's top while it makes the frames). Its present
 /// mode under V-Sync Auto and its spare images follow it; present_image makes the swapchain again when it changes
 int swapchain_framegen() { const int framegen = framegen_now(); return framegen >= 2 ? std::min(framegen, 4) : 0; }
 
-/// (YM) Whether the swapchain is made for NVIDIA DLSS Frame Generation: a fixed multiplier, and DLSS-G making the sets
+/// (longshot) Whether the swapchain is made for NVIDIA DLSS Frame Generation: a fixed multiplier, and DLSS-G making the sets
 /// (vk_dlss.cpp dlss_fg_runs: asked for, on a device it runs on, its runtime making as many frames as the multiplier asks).
 /// V-Sync Auto is FIFO for it, where it was measured; the renderer's own methods and other GPUs keep Auto's mailbox (or
 /// immediate). present_image makes the swapchain again when it changes: NGX's answer comes at the start-up screen or the
@@ -1057,7 +1057,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
         if ((f.format == VK_FORMAT_B8G8R8A8_UNORM || f.format == VK_FORMAT_R8G8B8A8_UNORM) &&
             f.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             fmt = f;
-    // (YM) the Insert menu's HDR: a 10-bit HDR10 surface when the display lists one (Windows: "Use HDR" on in its display
+    // (longshot) the Insert menu's HDR: a 10-bit HDR10 surface when the display lists one (Windows: "Use HDR" on in its display
     // settings), the picture then written by framegen_hdr. Otherwise the SDR one above, and why (dev.hdr_sdr_why: Windows'
     // own setting tells "HDR off" from "the driver lists none with HDR on", as NVIDIA's can), said
     // again when the reason or the display asked about changes, and when the menu's HDR was turned off in between
@@ -1106,11 +1106,11 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     if (invalidate_lost_surface(result)) return false;
     if (result != VK_SUCCESS || modes.empty())
         logf("vk: querying present modes failed (VkResult %d, count %u); trying mandatory FIFO mode", (int)result, n);
-    // (YM) the Insert menu's V-Sync (menu_vsync: RX_VK_FIFO=1 On, RX_VK_IMMEDIATE=1 Off for a run): On is FIFO, as on a
+    // (longshot) the Insert menu's V-Sync (menu_vsync: RX_VK_FIFO=1 On, RX_VK_IMMEDIATE=1 Off for a run): On is FIFO, as on a
     // card or driver with vsync forced; Auto and Off as below. FIFO is the one mode every driver has
     VkPresentModeKHR mode = VK_PRESENT_MODE_FIFO_KHR;
     const int vsync = menu_vsync();
-    // (YM) V-Sync Auto with DLSS Frame Generation at 2x and up: FIFO. Mailbox, NVIDIA's Fast Sync, puts the made frames on
+    // (longshot) V-Sync Auto with DLSS Frame Generation at 2x and up: FIFO. Mailbox, NVIDIA's Fast Sync, puts the made frames on
     // the refresh grid whenever they come slower than the display (DLSS Frame Gen 3x: ~135 shown on a 165 Hz screen), so evenly
     // timed presents still reached the screen unevenly; FIFO on a VRR display shows each one when it is presented. Only where
     // that was measured (swapchain_dlssg): the renderer's own frame generation and other GPUs keep Auto as it was, also when
@@ -1141,7 +1141,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     ci.surface = dev.surface;
     ci.minImageCount = std::max(caps.minImageCount, 4u);   // (YM: mailbox with frame interpolation: an image always free)
     // doc: docs/dev/reference/architecture.md#frame-generations-presents (rule 4: two sets' spare images on the timeline)
-    // (YM) A fixed frame generation multiplier's set is presented ahead (vk_framegen.cpp present_ahead_wanted): each
+    // (longshot) A fixed frame generation multiplier's set is presented ahead (vk_framegen.cpp present_ahead_wanted): each
     // of its frames holds an image from the copy to its present, so the set needs as many spare images as it has frames. 3x
     // and 4x ask for that many over the surface's least (an NVIDIA surface: 5 and 6 images); a set the chain cannot hold is
     // shown one at a time as before. Two sets' worth while the sets are on the game's timeline, whatever the present mode:
@@ -1182,7 +1182,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     // The renderer copies into swapchain images. Readback is optional and only available on surfaces that allow it.
     if (caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
         ci.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    // (YM) the overlays Dear ImGui draws (vk_imgui.cpp) render into it. Every surface allows it (the Vulkan spec)
+    // (longshot) the overlays Dear ImGui draws (vk_imgui.cpp) render into it. Every surface allows it (the Vulkan spec)
     if (caps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
         ci.imageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     ci.preTransform = caps.currentTransform;
@@ -1215,7 +1215,7 @@ bool create_swapchain(uint32_t width, uint32_t height) {
     if (dev.props.vendorID == 0x10de) retire_swapchain();
 #endif
     ci.oldSwapchain = dev.swapchain;
-    // (YM) an sRGB swapchain (some drivers list no UNORM format) made mutable when the driver can: the overlays draw
+    // (longshot) an sRGB swapchain (some drivers list no UNORM format) made mutable when the driver can: the overlays draw
     // through UNORM views, their colours as they are, as on a UNORM swapchain. Without it, vk_imgui.cpp makes them linear
     const VkFormat view_formats[2] = {fmt.format, unorm_of(fmt.format)};
     VkImageFormatListCreateInfo format_list{VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO};
@@ -1278,7 +1278,7 @@ namespace {
 
 HWND main_window = nullptr;
 #ifdef _WIN32
-// (YM) Windows 11 24H2's advanced colour info (DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 and the names of its numbers in
+// (longshot) Windows 11 24H2's advanced colour info (DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 and the names of its numbers in
 // the Windows SDK), written out for headers that lack it or keep it behind NTDDI_VERSION. tests/test_hdr_sdr_why.py holds
 // the layout and the numbers against the SDK's own
 struct AdvancedColorInfo2 {
@@ -1290,7 +1290,7 @@ enum : UINT32 {
     kAdvancedColorModeHdr = 2      // (DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR; 0 SDR, 1 wide colour)
 };
 #endif
-// (YM) whether the system has HDR on for the window's display: 1 on, 0 off, -1 not known. Windows' own setting ("Use
+// (longshot) whether the system has HDR on for the window's display: 1 on, 0 off, -1 not known. Windows' own setting ("Use
 // HDR"), as its display settings show it: create_swapchain's word on why the swapchain is SDR. *display is given the
 // display's name (the monitor's, else Windows' "\.\DISPLAYn") once it is found, for the log. Windows 11 24H2 tells the mode
 // (activeColorMode). An older one only tells "advanced colour", which is HDR or the wide colour an SDR display is given:
@@ -1341,12 +1341,12 @@ int system_hdr_on(std::string* display) {
 #endif
     return -1;
 }
-// (YM) YM --prepare-shaders (a builder, after a build): the same work with no game, its progress as
+// (longshot) YM --prepare-shaders (a builder, after a build): the same work with no game, its progress as
 // "@@progress" lines on stdout. A skip there leaves YM_prepare_skipped beside the game: its own starts then
 // leave the work out too (what was not prepared is built when first drawn), until a --prepare-shaders run ends it
 bool prepare_only() { return env_on("YM_PREPARE_ONLY"); }
 std::string skipped_path() { return cache_path("YM_prepare_skipped"); }
-// (YM) The --prepare-shaders run's watchdog, for any GPU and any part of it.
+// (longshot) The --prepare-shaders run's watchdog, for any GPU and any part of it.
 // - What it waits on, in the log the builder shows: every 30 s that nothing has moved, the part, its count, and whether the
 //   GPU driver faulted; a driver fault as soon as it is caught. (The pipeline steps log their own progress every 10 s,
 //   vk_draw.cpp prepare_progress_log; this adds the shader programs' count when the log has been quiet for 30 s), so the
@@ -1386,7 +1386,7 @@ void prepare_moved(int part, size_t done, size_t total) {
     if (part != prepare_seen.part || done != prepare_seen.done || !prepare_seen.moved_ms)
         prepare_seen = {part, done, total, steady_ms()};
 }
-/// (YM) A driver compile that ended (vk_draw.cpp ComputeTurn): the driver answers, so the watchdog's clock starts again though
+/// (longshot) A driver compile that ended (vk_draw.cpp ComputeTurn): the driver answers, so the watchdog's clock starts again though
 /// the part's count has not moved. The compute warm's count moves when a program's variants are all done, up to 64 of them,
 /// not as each one ends: on an Iris Xe one held to 32 lanes can take minutes, and the watchdog stopped a preparation whose
 /// driver was compiling all along
@@ -1407,7 +1407,7 @@ void prepare_compiled_seen() {
     std::_Exit(code);
 }
 std::atomic<int> driver_faults_seen{0};
-/// (YM) The CPU time this process has used, in ms (-1: the system does not say): a driver compile that is working keeps a CPU
+/// (longshot) The CPU time this process has used, in ms (-1: the system does not say): a driver compile that is working keeps a CPU
 /// busy, one that is stuck on a lock uses none
 int64_t process_cpu_ms() {
 #ifdef _WIN32
@@ -1421,7 +1421,7 @@ int64_t process_cpu_ms() {
     return (int64_t)t.tv_sec * 1000 + t.tv_nsec / 1000000;
 #endif
 }
-/// (YM) The watchdog's last look at the CPU: half a CPU or more busy over its window (prepare_compiler_busy, for
+/// (longshot) The watchdog's last look at the CPU: half a CPU or more busy over its window (prepare_compiler_busy, for
 /// precompile_run's own limit)
 std::atomic<bool> prepare_cpu_busy{false};
 void prepare_watchdog() {
@@ -1522,7 +1522,7 @@ void prepare_watchdog() {
         }
     }).detach();
 }
-// (YM) The journalled run's own limit, per entry (prepare_journal.h, --prepare-entry-limit <s>): the watchdog above
+// (longshot) The journalled run's own limit, per entry (prepare_journal.h, --prepare-entry-limit <s>): the watchdog above
 // stops a run in which nothing moves and cannot say which shader the driver is stuck in, so the whole preparation was given
 // up for one shader. With a journal, an entry that has been inside the driver for longer than one gets is named in the
 // journal and the run ends at once with exit status 6 (prepare_journal::kExitEntryLimit), through prepare_end as the
@@ -1547,7 +1547,7 @@ void prepare_supervised() {
     prepare_entry_watch();
     prepare_restart_forgive();
 }
-// (YM) The first start after an update prepares every shader (prepare_run) and the pipelines the last sessions noted
+// (longshot) The first start after an update prepares every shader (prepare_run) and the pipelines the last sessions noted
 // (precompile_run): a minute and more, before the game's first frame. They run on a thread of their own while this one, the
 // renderer's start, shows the window at once with what they are doing on it, and keeps it shown and sized; on Windows it is also
 // the window's thread, and handles its messages meanwhile (it would not answer otherwise). Closing the window stops them
@@ -1864,7 +1864,7 @@ bool open_window_surface(bool log_failure) {
     return true;
 }
 
-/// (YM) What this PC reports about itself, for the Quality preset Auto (this PC) (auto_settings.h, vk_menu.cpp
+/// (longshot) What this PC reports about itself, for the Quality preset Auto (this PC) (auto_settings.h, vk_menu.cpp
 /// menu_auto_for_gpu): once, when the window is known (its screen's size and refresh), the card already chosen
 void auto_profile() {
     static bool done;
@@ -1942,7 +1942,7 @@ int start(void* hwnd) {
     RECT r{};
     GetClientRect((HWND)hwnd, &r);
     {
-        // (YM) the same guard as the SDL path below: hos_win runs the renderer on its own
+        // (longshot) the same guard as the SDL path below: hos_win runs the renderer on its own
         // thread, so the window's close (display.c, main thread) can be asked while the initial
         // chain is being made. The close takes present_image_mu through its retire; take it here
         // and check its flag — a window already closing gets no chain.
@@ -1965,7 +1965,7 @@ int start(void* hwnd) {
         return 0;
     }
     {
-        // (YM) the close (mkwvk_close_asked) can be asked while the renderer is still coming
+        // (longshot) the close (mkwvk_close_asked) can be asked while the renderer is still coming
         // up: SDL runs it on the window's thread. present_image's guard covers presents, but the
         // initial chain is made here, outside any present — so take the same lock the close takes
         // and check its flag, the same order present_image uses (present_image_mu, then present_mu
@@ -2002,7 +2002,7 @@ const char* describe() {
 MkwVkRenderer table;
 
 } // namespace
-/// (YM) The shaders are being prepared (the start-up screen): the performance summary's "map" then (perf_report.cpp)
+/// (longshot) The shaders are being prepared (the start-up screen): the performance summary's "map" then (perf_report.cpp)
 bool shaders_preparing() { return prep_running.load(std::memory_order_relaxed); }
 /// (vk_internal.h: the driver compile that ended, for the watchdog above)
 void prepare_compiled() { prepare_compiled_seen(); }
@@ -2010,7 +2010,7 @@ void prepare_compiled() { prepare_compiled_seen(); }
 bool prepare_compiler_busy() { return prepare_cpu_busy.load(std::memory_order_relaxed); }
 } // namespace mkwvk
 
-// (YM) The window is being closed (host/display.c, host/posix/display_sdl.c, before they end the process), or the game quit
+// (longshot) The window is being closed (host/display.c, host/posix/display_sdl.c, before they end the process), or the game quit
 // (the Insert menu's Quit and Restart now, host/control.c's quit, which end it the same way). First the files that count the
 // starts that crashed in a step are put back as this start found them (crash_markers.h): a quit is not a crash. Then, while the
 // shaders are prepared, their workers are stopped and what they made is kept (10 s at most: a driver can take longer on one
@@ -2042,7 +2042,7 @@ void mkwvk_close_asked(void) {
         if (WaitForSingleObject(prep_ended, 10000) != WAIT_OBJECT_0) logf("vk: the preparation did not stop within 10 s: closing anyway");
     }
     dlss_fg_close();   // (NVIDIA DLSS Frame Generation through NGX: its feature let go before the process exits, vk_dlss.cpp)
-    // (YM) let go of the window's swapchain and everything it pins while the process is still here. The compositor
+    // (longshot) let go of the window's swapchain and everything it pins while the process is still here. The compositor
     // (gamescope on the Deck, any Wayland/X server) reprograms the display right as the window goes away, and on the Deck an
     // atomic commit there failed with ENOMEM after a long run had this process holding most of the system's memory: the
     // commit's own allocation failed, the modeset failed, and the player saw the emulator's last frames as garbage over the
@@ -2052,7 +2052,7 @@ void mkwvk_close_asked(void) {
     // thread is drained first and present_image_mu is held through the retire (the same lock order present_image itself
     // uses: present_image_mu, then present_mu), so no present is mid-acquire on an image being destroyed.
     dev.closing.store(true, std::memory_order_release);
-    // (YM) a present can hold this mutex for as long as its fences run (the lost-window
+    // (longshot) a present can hold this mutex for as long as its fences run (the lost-window
     // acquire waits UINT64_MAX under it): the close must not hang behind one and stop the window
     // from closing at all. Take the mutex with a few seconds of patience; no mutex, or a presenter
     // thread that does not land its hand-offed present, leaves the chain to the process exit —
@@ -2070,7 +2070,7 @@ void mkwvk_close_asked(void) {
         logf("vk: the window is closing with a present still running: the swapchain goes with the process, as it always did");
         return;
     }
-    // (YM) and the queue's lock on the same patience: queue_flush holds dev.present_mu across
+    // (longshot) and the queue's lock on the same patience: queue_flush holds dev.present_mu across
     // vkQueueSubmit2 (vk_replay.cpp), so a submit the driver stalled leaves the image mutex free and the
     // presenter idle: both checks above pass and an unbounded wait here would hold the window thread
     // open instead of letting the window close. No lock: the chain goes with the process, as the two
@@ -2187,7 +2187,7 @@ static const MkwVkRenderer* init_body(const MkwVkHost* h) {
 namespace mkwvk {
 HWND app_window() { return main_window; }   // (YM: the Insert menu's Fullscreen row)
 
-/// (YM) The refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto). Asked
+/// (longshot) The refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto). Asked
 /// again once a second at most: the window may move to another display, and Windows' answer costs a few system calls
 int display_refresh_mhz() {
     static std::atomic<int> cached{0};

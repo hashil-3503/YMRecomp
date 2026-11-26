@@ -1,4 +1,4 @@
-/* (YM) The game's Voice Language option, kept after a restart.
+/* (longshot) The game's Voice Language option, kept after a restart.
 
    The game's voice resource (its update, f_80a9ca30) picks the voice files' language in two places only:
    - at its first update, the default of the text language (f_809d48c0): applied at once, and written to the option

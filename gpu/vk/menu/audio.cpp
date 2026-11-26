@@ -78,7 +78,7 @@ const char* hn_output_device(int, int variant) {
 #endif
 }
 
-// (YM) the Microphone row: Off, the system's default, or one of the host's microphones (host/nn_audio_in.c: the
+// (longshot) the Microphone row: Off, the system's default, or one of the host's microphones (host/nn_audio_in.c: the
 // ocarina's input streams), told to the host by its name (host->mic_select) whenever it changes. The chosen one is kept by
 // its name, mic_want, also while it is unplugged: the row then has one more entry for it, "<name> (not connected)", the
 // host lets the default stand in and opens it again once it is back, and the name stays in the ini. In the ini the name is
@@ -169,7 +169,7 @@ void output_chosen() {
     host->audio_output_select(output_want.c_str());
     refresh_outputs();
 }
-// (YM) the row's choice to the host: off, the default, or a microphone by its name (and its place in the host's list,
+// (longshot) the row's choice to the host: off, the default, or a microphone by its name (and its place in the host's list,
 // -1 while it is unplugged: of two with one name, the one chosen). Unplugged, the name is the kept one, cut: the host takes
 // a name that starts with it
 void mic_tell_host() {
@@ -181,7 +181,7 @@ void mic_tell_host() {
 void mic_row_ends() {
     menu_row_top(&opts.mic, 1 + mic_listed + (mic_missing ? 1 : 0));
 }
-// (YM) the microphones listed again (one plugged in since shows up), the row on mic_want's: the one at the row's place
+// (longshot) the microphones listed again (one plugged in since shows up), the row on mic_want's: the one at the row's place
 // when it still has that name (two microphones of one name: the second stays chosen), else the first of that name, else
 // its "(not connected)" entry while it is unplugged
 void refresh_mics() {

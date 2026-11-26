@@ -1,4 +1,4 @@
-// (YM) FSR 3 frame interpolation's pipelines, internal images and dispatches; see vk_fsr3fi.h
+// (longshot) FSR 3 frame interpolation's pipelines, internal images and dispatches; see vk_fsr3fi.h
 // for what it is for and where it slots in.
 //
 // The resource table, the per-pass binding lists, the pass order and the dispatch sizes are AMD's,
@@ -193,7 +193,7 @@ struct Constants {
     uint32_t back_buffer_transfer_function;
     float min_max_luminance[2];
     float tan_half_fov;
-    /// (YM) AMD's _pad1: the made frame's place between the frame before (0) and this one (1), which the patched
+    /// (longshot) AMD's _pad1: the made frame's place between the frame before (0) and this one (1), which the patched
     /// passes read (scripts/shaders.py FI_PATCHES; AMD's own fix it at 0.5)
     float interpolation_t;
     float jitter[2];
@@ -244,10 +244,10 @@ static_assert(sizeof(OfSpdConstants) == 32, "cbOF_SPD must match the SDK's layou
 // ---- state ----
 
 constexpr uint32_t kMaxMade = kFsr3fiMaxMade;   ///< made frames between two of the game's (vk_fsr3fi.h)
-/// (YM) cbFI's dispatchFlags bit the patched interpolation reads: the HUD kept where it is (scripts/shaders.py
+/// (longshot) cbFI's dispatchFlags bit the patched interpolation reads: the HUD kept where it is (scripts/shaders.py
 /// FI_PATCHES, KeepStaticPixels). AMD's own bits are 0 to 2, its debug views, which this backend never sets
 constexpr uint32_t kKeepStatic = 1u << 16;
-/// (YM) And the bit that says the colour's alpha marks the HUD (Inputs::hud_mask; HudMaskInAlpha in the patched
+/// (longshot) And the bit that says the colour's alpha marks the HUD (Inputs::hud_mask; HudMaskInAlpha in the patched
 /// passes): the HUD known, not guessed
 constexpr uint32_t kHudMask = 1u << 17;
 constexpr uint32_t kOfLevels = 7;       ///< advancedAlgorithmIterations in ffx_opticalflow.cpp
@@ -1142,7 +1142,7 @@ uint32_t generate(VkCommandBuffer cmd, const Inputs& in, const float* times, uin
                              tex(g.fi_dilated_motion_vectors), tex(g.fi_dilated_depth), cb_fi};
         record_pass(cmd, P_FI_RECONSTRUCT_AND_DILATE, res, 6, render_x, render_y);
     }
-    // (YM) The SDK makes one frame, the midpoint, from here on. This makes `count` of them, each at its own t
+    // (longshot) The SDK makes one frame, the midpoint, from here on. This makes `count` of them, each at its own t
     // (scripts/shaders.py FI_PATCHES: the patched passes read it from cbFI): everything above, the flow and the
     // dilated inputs, is once a game frame and shared by them; the vector fields, the made frame's depth, the disocclusion
     // mask and the frame itself depend on t, so each made frame runs them again, from the setup that zeroes them.

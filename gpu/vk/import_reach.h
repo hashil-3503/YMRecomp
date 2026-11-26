@@ -1,4 +1,4 @@
-// (YM) How far back a scan over the imported pools, by their start, has to look: the live imports' largest span.
+// (longshot) How far back a scan over the imported pools, by their start, has to look: the live imports' largest span.
 //
 // vk_memory.cpp keeps its imports in a map by start (lo). A scan for the imports over [a, b) walks down from the last one
 // starting below b and stops where none further down can reach a. It used to stop once an import ended more than 1 GiB below a,

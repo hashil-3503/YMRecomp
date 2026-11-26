@@ -1,4 +1,4 @@
-// (YM) AMD FSR 3.1's inputs (vk_fsr3_inputs.cpp): everything FSR 3.1's upscaler (vk_fsr3.h) and its frame
+// (longshot) AMD FSR 3.1's inputs (vk_fsr3_inputs.cpp): everything FSR 3.1's upscaler (vk_fsr3.h) and its frame
 // interpolation (vk_fsr3fi.h) are given besides the picture, in one place, so they can move onto the renderer's shared
 // temporal inputs by changing this file alone.
 //
@@ -65,7 +65,7 @@ bool prepare(VkCommandBuffer cmd, Texture* in, VkImageView in_view, Frame& out);
 /// (or it is older than the frame before), so a present never interpolates with another frame's depth and motion
 bool take(Frame& out);
 
-/// (YM) The temporal chain's motion for this frame (vk_temporal.cpp: an engine's, or temporal_fg_inputs' with none), the
+/// (longshot) The temporal chain's motion for this frame (vk_temporal.cpp: an engine's, or temporal_fg_inputs' with none), the
 /// skinned draws' own in it, copied over the camera's alone that prepare made: the same units (render pixels toward the frame
 /// before, the jitter taken off) from the same camera, so only the actors change. Taken only for the frame prepare made at
 /// this dispatch, at the same size, with a frame before (false otherwise, and the camera's motion stays)

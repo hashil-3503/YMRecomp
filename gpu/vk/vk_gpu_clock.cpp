@@ -1,4 +1,4 @@
-// (YM) The GPU's clock on the Steam Deck (vk_gpu_clock.h; why and when: gpu_clock.h).
+// (longshot) The GPU's clock on the Steam Deck (vk_gpu_clock.h; why and when: gpu_clock.h).
 //
 // The device's render node (VK_EXT_physical_device_drm: /dev/dri/renderD<minor>) is opened once more, beside the driver's own
 // file, and an amdgpu context is made on it with DRM_IOCTL_AMDGPU_CTX (AMDGPU_CTX_OP_ALLOC_CTX). That context asks for the

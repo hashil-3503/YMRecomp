@@ -1,4 +1,4 @@
-/* (YM) The sound manager's job at 60 Hz, the physics solver's steps rounded up, a horse's jump blend, a moving
+/* (longshot) The sound manager's job at 60 Hz, the physics solver's steps rounded up, a horse's jump blend, a moving
    floor's carry, a song playback's note flag once a note, the target of Link's driven body and a jump's takeoff, under a
    Frame rate cap above 60, the cloth's time below 60 fps and its solves above 60: the lifted f_80435300, f_83373400,
    f_838ceb80, f_838cfc10, f_82c59eb0, f_80159dc0, f_8015d490, f_838baa40, f_81b3aa48, f_81b47080, f_832b2af0, f_832b2dc0,

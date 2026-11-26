@@ -1,4 +1,4 @@
-/* (YM) OoT's job barriers wait for their masks instead of sleeping (game/oot_barrier.h has the protocol and why):
+/* (longshot) OoT's job barriers wait for their masks instead of sleeping (game/oot_barrier.h has the protocol and why):
    the hook sites barrier.* (game/oot_sites.c) make the lifted f_800998a0, f_800738e0 and f_8007e200 call hos_oot_barrier_wait
    in place of the 20 us SleepThread of each of their five barrier loops, and hos_oot_barrier_wake right after each atomic OR
    into a mask word those loops poll.
@@ -49,7 +49,7 @@ static volatile long long barrier_how[3], barrier_waited_ns, barrier_wakes;
 /* whether the hooks wait (1) or the game sleeps as before (0): HOS_OOT_BARRIER_WAIT, read once, and HOS_AB may flip it.
    The one function the lifted code asks. WaitOnAddress is looked up whatever the switch says, so a flip to on mid-run has
    it; a flip to off leaves a waiter to its timeout (no wake comes while off), at most 1 ms.
-   (YM) On by default (18 Nov): in-run A/Bs standing in Castle Town's market, 4 cores: frame time -3.2 % in both runs
+   (longshot) On by default (18 Nov): in-run A/Bs standing in Castle Town's market, 4 cores: frame time -3.2 % in both runs
    (frames of 16.7 ms or more 30 -> 19 % and 26 -> 16 %); 16 cores: no difference either way (+0.04 and +0.01 ms, both
    intervals around 0). HOS_OOT_BARRIER_WAIT=0: the game's sleeps, as before. */
 int hos_oot_barrier_on(void) {

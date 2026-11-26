@@ -1,4 +1,4 @@
-// (YM) RX_VK_MEM_CHECK=1: a check of the rules the memory sync rests on (vk_memory.cpp), off by default.
+// (longshot) RX_VK_MEM_CHECK=1: a check of the rules the memory sync rests on (vk_memory.cpp), off by default.
 //
 // Guest memory has several copies in the renderer (the submit-time captures, the VRAM mirrors, the write-back shadows) and
 // several tables that say which copy of a page is newest. The rules that keep them agreeing are spread over the code as

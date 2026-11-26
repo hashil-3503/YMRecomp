@@ -160,7 +160,7 @@ def main():
     hid = (ROOT / "host" / "nn_hid.c").read_text(encoding="utf-8")
     api = (ROOT / "gpu" / "vk" / "vk_api.h").read_text(encoding="utf-8")
     read = block(hid, "static void read_input(")
-    pads = block(read, "{   /* (YM) while the Insert menu is open the pads are its own")
+    pads = block(read, "{   /* (longshot) while the Insert menu is open the pads are its own")
     state = hid[hid.index("static volatile LONG pad_raw_now;"):hid.index("uint32_t hos_pad_raw(")]
     code = "\n".join((
         block(api, "enum { HOS_SW_A") + ";", block(api, "enum { HOS_PAD_SOUTH") + ";",

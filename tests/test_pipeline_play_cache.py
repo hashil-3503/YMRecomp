@@ -42,7 +42,7 @@ def play_block(source):
 
 def lock_block(source):
     start_marker = "std::shared_timed_mutex pcache_fetch_mu;"
-    end_marker = "// ---- (YM) What play makes goes into a cache of its own"
+    end_marker = "// ---- (longshot) What play makes goes into a cache of its own"
     if source.count(start_marker) != 1 or source.count(end_marker) != 1:
         raise SystemExit("FAIL: the pipeline cache's fetch lock in gpu/vk/vk_draw.cpp was not found")
     return source[source.index(start_marker):source.index(end_marker)]

@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
 
 START_COMPACTION = "// ---- the textures' pool compacted"
 END_COMPACTION = "\n// (mem_account.h) what every image made here takes"
-START_REAPER = "// ---- (YM) Images destroyed on a thread of their own"
+START_REAPER = "// ---- (longshot) Images destroyed on a thread of their own"
 END_REAPER = "\nuint64_t allocation_size(VmaAllocation allocation) {"
 
 

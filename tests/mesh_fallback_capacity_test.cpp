@@ -1,4 +1,4 @@
-// (YM) The compute fallback's records area against the grass's load, with emit_spirv.h's real words and vk_draw.cpp's
+// (longshot) The compute fallback's records area against the grass's load, with emit_spirv.h's real words and vk_draw.cpp's
 // real fallback_buffers_of (cut by tests/test_mesh_fallback_capacity.py into fallback_actual.inc), no game, GPU or driver.
 //
 // The floor grass draws through two mesh programs a frame, the blades in one and their partner in the other, the same

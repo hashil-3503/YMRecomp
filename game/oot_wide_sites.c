@@ -1,4 +1,4 @@
-/* (YM) Widescreen and ultrawide for Ocarina of Time 1.1.1: the engine's callbacks at the hook sites wide.* and ui.*
+/* (longshot) Widescreen and ultrawide for Ocarina of Time 1.1.1: the engine's callbacks at the hook sites wide.* and ui.*
    (game/sites/sites.toml, game/sites.def), each after one of the game's instructions.
 
    The game draws a 2560x1440 picture whatever the screen and renders its scene at 1920x1080; its cameras use a 16:9 ratio.

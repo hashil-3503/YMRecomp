@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) The scene's tone map as PsychoV35 (psychov35.h), in the game's scene mapping programs: HDR set to Native and its
+// (longshot) The scene's tone map as PsychoV35 (psychov35.h), in the game's scene mapping programs: HDR set to Native and its
 // Tone mapper row on (vk_shader.cpp). After RenoDX's zelda-oot-oz mod (github.com/clshortfuse/renodx, MIT), which replaces
 // the same programs' fit at their decompiled source; here they are found in the IR, and nothing of the game's code is kept.
 //

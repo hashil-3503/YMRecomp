@@ -1,4 +1,4 @@
-// hdr_encode.comp sha256 5a9ba6b15f8a2892e662a0ec61067bfe9380459d8de41c42e5e78c5ca43c393b (glslangValidator -V --target-env vulkan1.2 --vn HDR_ENCODE_COMP_SPV)
+// hdr_encode.comp sha256 c106bdf94ffd0dfcbd499b1b8ed2e1bd5b1b4a7f1311d0fe3cbb0492e661424b (glslangValidator -V --target-env vulkan1.2 --vn HDR_ENCODE_COMP_SPV)
 // colour_vision.glsl sha256 7389f72995dd1667b12873b9707c43a51086dbb5cb122f46e6647b8451c7c468
 	// 1116.6.0
 	 #pragma once

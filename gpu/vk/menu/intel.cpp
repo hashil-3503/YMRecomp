@@ -16,7 +16,7 @@ namespace mkwvk {
 
 namespace {
 #ifndef MENU_LAYOUT_ONLY
-/// (YM) The Intel shader compiles row: Intel graphics on Windows, the only place IntelDriverGate holds the compiler
+/// (longshot) The Intel shader compiles row: Intel graphics on Windows, the only place IntelDriverGate holds the compiler
 bool intel_compiler_row() {
 #ifdef _WIN32
     return dev.props.vendorID == 0x8086;

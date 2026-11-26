@@ -1,4 +1,4 @@
-/* (YM) The game's RomFS as the host's own code reads it: prompts, mods, the sound sources, the heart containers,
+/* (longshot) The game's RomFS as the host's own code reads it: prompts, mods, the sound sources, the heart containers,
    the damaged-file stand-ins, the zstd dictionaries, the Vulkan back end's menu font (through rx_backend.c). One API over
    either place a RomFS is:
      - the player's .nup, through the builder's index (romfs_index.h), when the game folder has one and no romfs folder;

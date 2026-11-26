@@ -1,4 +1,4 @@
-// (YM) AMD Anti-Lag 2 through VK_AMD_anti_lag, without AMD's SDK (vk_antilag.h).
+// (longshot) AMD Anti-Lag 2 through VK_AMD_anti_lag, without AMD's SDK (vk_antilag.h).
 //
 // While the Insert menu's AMD Anti-Lag 2 row is on (RX_VK_ANTILAG=0 / 1 over it), each frame tells the driver two points of
 // its life with vkAntiLagUpdateAMD, both with the frame's index: its input stage after the previous frame's present (where

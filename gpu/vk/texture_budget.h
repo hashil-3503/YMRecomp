@@ -1,4 +1,4 @@
-/* (YM) How much VRAM the texture cache may hold (vk_texture.cpp texture_frame), by the card: the one rule for every card,
+/* (longshot) How much VRAM the texture cache may hold (vk_texture.cpp texture_frame), by the card: the one rule for every card,
    with no menu row and no preset over it. No Vulkan here. tests/test_texture_budget.py */
 #pragma once
 

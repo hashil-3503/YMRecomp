@@ -1,4 +1,4 @@
-// (YM) The sparse mirrors' buffers kept for the next mirror of their size (vk_memory.cpp, RX_VK_SPARSE_SPARE_MB), apart
+// (longshot) The sparse mirrors' buffers kept for the next mirror of their size (vk_memory.cpp, RX_VK_SPARSE_SPARE_MB), apart
 // from Vulkan so that tests/test_sparse_spare.py can run it.
 //
 // A sparse mirror's buffer holds no memory of its own, only address space, yet NVIDIA's Windows driver takes about 0.06 ms a

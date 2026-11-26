@@ -1,5 +1,5 @@
 #version 450
-// (YM) NVIDIA DLSS's picture into OoT's gameplay upscale's output (vk_dlss.cpp): what the network's own output
+// (longshot) NVIDIA DLSS's picture into OoT's gameplay upscale's output (vk_dlss.cpp): what the network's own output
 // does, the square of its perceptual encoding (linear colour again). DLAA's picture is at the render size: scaled up to the
 // output's with the sampler's linear filter. kSquare (constant 0) off: the engine was given linear light already (the game's
 // native HDR, dlss_prep.comp's kSquare), and its picture is written as it is.

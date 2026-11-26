@@ -137,7 +137,7 @@ void LowerFp16ToFp32(IR::Program& program) {
             inst.ReplaceOpcode(Replace(inst.GetOpcode()));
         }
     }
-    // (YM) A half's bits and a half, now held in 32-bit floats: converted, not reinterpreted. Left as bitcasts they took a
+    // (longshot) A half's bits and a half, now held in 32-bit floats: converted, not reinterpreted. Left as bitcasts they took a
     // 32-bit float's bits for a half's, and Switch 2 shaders that move halves through integers drew noise on cards without f16
     // shaders (GTX 10xx, YM issue 98). After the loop above, so every float they meet is 32 bits already
     for (IR::Block* const block : program.blocks) {

@@ -1,4 +1,4 @@
-/* (YM) The game's channel to its builder: builder_channel.h. Plain I/O on the two ends the builder passed. */
+/* (longshot) The game's channel to its builder: builder_channel.h. Plain I/O on the two ends the builder passed. */
 #include "builder_channel.h"
 
 #include <stdio.h>

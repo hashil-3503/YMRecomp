@@ -1,4 +1,4 @@
-// (YM) How the overlays look (vk_menu.cpp draws the Insert menu, the FPS counter and the start-up screen with these): in
+// (longshot) How the overlays look (vk_menu.cpp draws the Insert menu, the FPS counter and the start-up screen with these): in
 // the style of the game's own pause and options screens, so they sit naturally over it. Our own drawing on ImGui's draw lists
 // (no texture, icon or ornament of the game's); the font is the game's own menu font from the player's files, else Libertinus
 // (vk_imgui.cpp). Sizes are points of a 720-line window times the unit (unit()). Every text sits on its own background at a
@@ -101,7 +101,7 @@ struct Ctx {
 inline ImVec2 size_of(ImFont* font, float px, const char* t, float wrap = 0) {
     return font->CalcTextSizeA(px, FLT_MAX, wrap, i18n::tr(t));
 }
-/// (YM) Shrink to fit: the size a text is drawn at to be at most room wide. px when it fits there; else the largest size
+/// (longshot) Shrink to fit: the size a text is drawn at to be at most room wide. px when it fits there; else the largest size
 /// below it, on steps of step, down to min_px at the least; 0 when it fits at none (not drawn). width(size): the text's width
 /// at a size (size_of's .x). The first guess scales px by room over the width, as a text's width grows with its size; from it
 /// a step at a time, up while the next still fits, down while it does not, as the glyphs' rounding can put the guess either

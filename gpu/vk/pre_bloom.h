@@ -1,4 +1,4 @@
-// (YM) NVIDIA DLAA before the game's bloom and tone map (vk_temporal.cpp temporal_pre_bloom): the pass of a frame it runs
+// (longshot) NVIDIA DLAA before the game's bloom and tone map (vk_temporal.cpp temporal_pre_bloom): the pass of a frame it runs
 // at. Plain code with no Vulkan calls: tests/test_dlss_pre_bloom.py compiles it alone.
 //
 // OoT's gameplay frame, as a frame dump shows it (RX_VK_DUMP; DLAA at 5120x2160 in the Market): the scene's colour target

@@ -217,7 +217,7 @@ const char* hn_fsr4_model(int v, int variant) {
     if (variant == 2) return env;
     return variant == 0 ? t[std::clamp(v, 0, ur::kFsr4Models - 1)] : nullptr;
 }
-/// (YM) The DLAA before the bloom row (opts.dlss_pre_bloom; vk_temporal.cpp pre_bloom_wanted): RX_VK_DLSS_PRE_BLOOM set
+/// (longshot) The DLAA before the bloom row (opts.dlss_pre_bloom; vk_temporal.cpp pre_bloom_wanted): RX_VK_DLSS_PRE_BLOOM set
 /// for this run wins over it
 bool pre_bloom_env() {
     static const char* const e = getenv("RX_VK_DLSS_PRE_BLOOM");

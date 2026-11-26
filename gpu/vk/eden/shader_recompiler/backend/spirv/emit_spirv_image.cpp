@@ -448,7 +448,7 @@ Id ImageGatherSubpixelOffset(EmitContext& ctx, const IR::TextureInstInfo& info, 
     case TextureType::ColorArray2D:
         return calculate_coords(3);
     default:
-        // (YM) a cube's coordinates are a direction: no texel to nudge by, and its size query has two components, not
+        // (longshot) a cube's coordinates are a direction: no texel to nudge by, and its size query has two components, not
         // three (the cube case here made invalid SPIR-V: OpImageQuerySizeLod's result of three components on a cube)
         return coords;
     }

@@ -1,4 +1,4 @@
-/* (YM) What plays each controller's vibration, and what the Controls page says about it. Pure: no SDL, no state;
+/* (longshot) What plays each controller's vibration, and what the Controls page says about it. Pure: no SDL, no state;
    host/pad_sdl.c decides with it and tests/test_vibration_pick.py compiles it.
 
    The game sends a value per side: a low and a high band, an amplitude and a frequency each. Each pad plays it one way:

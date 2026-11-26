@@ -22,7 +22,7 @@ static volatile LONG nvsync;
 static HANDLE vsync_thread;
 
 static int fps_max(void);   /* (below: HOS_FPS_MAX) */
-/* (YM) The ticker's wait. hos_sleep_ns under a millisecond yields in a loop until the time (hos_thread.c), so an
+/* (longshot) The ticker's wait. hos_sleep_ns under a millisecond yields in a loop until the time (hos_thread.c), so an
    uncapped ticker (1 ms period) spun a core. This waits on a thread-local high-resolution waitable timer instead, as
    sleep_ns does for the game's own sleeps; the timer cannot be made: hos_sleep_ns. HOS_VSYNC_YIELD=1: hos_sleep_ns
    always, as before */
@@ -84,7 +84,7 @@ HLE(_ZN2nn2vi11CreateLayerEPPNS0_5LayerEPNS0_7DisplayE) {
 /* nn::vi::GetDisplayVsyncEvent(nn::os::SystemEventType*, nn::vi::Display*) -> Result */
 HLE(_ZN2nn2vi20GetDisplayVsyncEventEPNS_2os15SystemEventTypeEPNS0_7DisplayE) {
     hos_system_event_init(ARG(0), 1);
-    {   /* (YM) under a lock: two threads checked the count at once and wrote past the table */
+    {   /* (longshot) under a lock: two threads checked the count at once and wrote past the table */
         static SRWLOCK vsync_lock = SRWLOCK_INIT;
         AcquireSRWLockExclusive(&vsync_lock);
         if (nvsync < (LONG)(sizeof vsync_events / sizeof vsync_events[0])) {
@@ -98,7 +98,7 @@ HLE(_ZN2nn2vi20GetDisplayVsyncEventEPNS_2os15SystemEventTypeEPNS0_7DisplayE) {
 }
 
 /* nn::vi::QueryDisplayHdrStatus(bool* on, HdrOutputFormat*, unsigned short* max nits, Display const*) -> Result */
-/* (YM) the Insert menu's HDR set to Native on an HDR10 swapchain: an HDR10 display (format 1, which makes the game present PQ
+/* (longshot) the Insert menu's HDR set to Native on an HDR10 swapchain: an HDR10 display (format 1, which makes the game present PQ
    codes in 10 bits) of the menu's peak; otherwise SDR, as a desktop window is */
 HLE(_ZN2nn2vi21QueryDisplayHdrStatusEPbPNS0_15HdrOutputFormatEPtPKNS0_7DisplayE) {
     const int native = rx_option(HOS_OPT_HDR_NATIVE, 0);
@@ -139,7 +139,7 @@ HLE(_ZN2nn2vi15GetNativeWindowEPPvPNS0_5LayerE) {
    interval's vsyncs (1: 60 fps, 2: 30) after the last present, so the game runs at the display's rate.
    HOS_NO_PACING=1: as fast as it can. */
 static volatile int present_interval = 1;
-/* (YM) The frame rate cap past the console's 60, the Insert menu's Game frame rate cap (frame_rate_cap=): the display pacing's
+/* (longshot) The frame rate cap past the console's 60, the Insert menu's Game frame rate cap (frame_rate_cap=): the display pacing's
    interval, the game's own limiter (+0xfc) and the vsync event go up to it, and the game's time step is the frames' own time
    (realtime_step), so the game is not sped up. Uncapped is a cap of 1000 (FPS_UNCAPPED), the pacing's 1 ms: the frames
    come as fast as the PC makes them (a display that waits for its refresh, V-Sync On, still holds them to its rate).
@@ -212,7 +212,7 @@ static int64_t next_frame_at, window_start, frames_in_window;
 static volatile LONG64 presents;
 int hos_vi_native_interval(Ctx *c, int requested) {
     (void)c;
-    /* (YM) OoT's frame-rate controller asks for 2, 3 or 4 vsyncs a frame whenever one runs long (480 changes a minute
+    /* (longshot) OoT's frame-rate controller asks for 2, 3 or 4 vsyncs a frame whenever one runs long (480 changes a minute
        in Kokiri): paced to them, frames snapped to 33, 50 and 67 ms, the stutter, and the frame rate sat far under what the
        PC managed. With game time following the clock (the Insert menu's Real time, realtime_step), a frame is shown as soon
        as it is ready, 60 at most; the game still reads back its own interval. HOS_GAME_INTERVAL=1, or Game speed Per frame:
@@ -221,13 +221,13 @@ int hos_vi_native_interval(Ctx *c, int requested) {
     if (game_interval < 0) game_interval = env_on("HOS_GAME_INTERVAL");
     int rx_option(int id, int otherwise);
     const int clamped = requested < 1 ? 1 : requested > 4 ? 4 : requested;
-    /* (YM) 30 has its own display period; interval 2 would pace it to 15.
+    /* (longshot) 30 has its own display period; interval 2 would pace it to 15.
        It also keeps real time even when the saved Game speed is Per frame. */
     fps_refresh();
     present_interval = fps_max() == 30 ? 1 : game_interval || !rx_option(0, 1) ? clamped : 1;
     return requested;
 }
-/* (YM) The window's textures as the console's display queue has them: each present is shown at its display
+/* (longshot) The window's textures as the console's display queue has them: each present is shown at its display
    time, the later of its present and one interval after the frame shown before it, and a texture is free again once
    the frame presented after it is shown. The acquire of a frame waits for its texture: with `active` textures, the
    texture of the frame `active` back, freed when the frame after that one is shown. With three (OoT) a frame slower
@@ -237,7 +237,7 @@ int hos_vi_native_interval(Ctx *c, int requested) {
    that behaviour */
 static int64_t shown_at[16];
 static volatile LONG64 shown_count;
-/* (YM) The frame phase GAME_PHASE_ACQUIRE (game/phases.h) runs first, on the game's main thread, once a game frame
+/* (longshot) The frame phase GAME_PHASE_ACQUIRE (game/phases.h) runs first, on the game's main thread, once a game frame
    in every state, with the frame's number (the acquisitions before it). Here because:
    - the main thread acquires a window texture once a frame in play, menus, pause, loading and movies alike, and
      this host code is the first the acquire runs;
@@ -312,7 +312,7 @@ static void scan_dt(long long presents) {
     fclose(f);
     hos_log("vi: scan %s: %zu floats", name, hits);
 }
-/* (YM) Game time follows the clock. The engine steps every frame by ratio = 60 / <the graphics module's nominal fps,
+/* (longshot) Game time follows the clock. The engine steps every frame by ratio = 60 / <the graphics module's nominal fps,
    an int at +0x2c8> (main+0x6e6cc4, f_83b6e300 makes seconds = ratio / 60 and the rest), so at 50 fps the game ran at 83%
    speed: walking the same 8 s at 52 and 33 fps went as far as those rates. Each present writes the rate of the last 5
    display intervals there, the rounding error carried to the next frame so that no time is lost; a step is at most
@@ -394,7 +394,7 @@ uint32_t hos_movie_frames(uint64_t player) {
     ReleaseSRWLockExclusive(&lock);
     return n;
 }
-/* (YM) Whether the carries below keep the fractions of the game's step per counter: while the frames' own time is the step
+/* (longshot) Whether the carries below keep the fractions of the game's step per counter: while the frames' own time is the step
    (a cap other than 60), and at a cap of 60 while the rate the game was given (+0x2c8, realtime_step's) makes a step 60 / rate
    that is not a whole frame (HOS_FRAME_CARRY, on). 46 fps steps 1.30, and the game's cuts counted 46 whole frames a second, not
    60: the time of day, the water's ripples, the floor web and the Scarecrow's Song ran at 77 %. A rate of 60, 30, 20 or 15 (steps
@@ -542,7 +542,7 @@ static void realtime_step(int64_t now) {
             mode_seen = mode;
         }
     }
-    {   /* (YM) The frame limiter (f_8042cd20 sleeps to 1 / +0xfc). The engine's adaptive controller writes +0xfc when
+    {   /* (longshot) The frame limiter (f_8042cd20 sleeps to 1 / +0xfc). The engine's adaptive controller writes +0xfc when
            variable refresh is on (+0x231, f_804fc0f0), any rate from 40 up. HOS_FPS_TARGET=<fps>: that rate kept, 0: left alone;
            HOS_FPS_LOG=1: what the game asks for, every 300 presents */
         static int target = -1, log_on = -1;
@@ -567,7 +567,7 @@ static void realtime_step(int64_t now) {
             clock_before = game_clock, at_before = now;
         }
         if (target && *limit > 0 && *limit < target) *limit = target;
-        /* (YM) 30 lowers the limiter; higher caps raise it. On return to 60, restore the game's value
+        /* (longshot) 30 lowers the limiter; higher caps raise it. On return to 60, restore the game's value
            from before the override, unless the game has written a new one since. */
         static int raised, game_limit;
         if (fps_max() != 60 && *limit > 0 && (fps_max() == 30 || *limit < fps_max())) {
@@ -578,7 +578,7 @@ static void realtime_step(int64_t now) {
             raised = fps_max() != 60 ? fps_max() : 0;
         }
     }
-    /* (YM) Per frame advances a 60th of game time per frame. 30 always uses wall time to avoid half speed;
+    /* (longshot) Per frame advances a 60th of game time per frame. 30 always uses wall time to avoid half speed;
        caps above 60 do too, to avoid running fast. Keep the saved preference for when the cap returns to 60. */
     static int slot_set;   /* (the rate this function last wrote: one over the cap is ours from before it came down) */
     if (!rx_option(0, 1) && fps_max() == 60) {
@@ -604,7 +604,7 @@ static void realtime_step(int64_t now) {
     if (count < (unsigned)window) count++;
     double sum = 0;
     for (unsigned i = 0; i < count; i++) sum += samples[i];
-    /* (YM) A cap above 60: the engine's own rate is 60 / <whole display intervals>, and its controller puts 60 back over a
+    /* (longshot) A cap above 60: the engine's own rate is 60 / <whole display intervals>, and its controller puts 60 back over a
        higher +0x2c8 before the step is made from it, so every frame still stepped 1/60 s and the game ran fps / 60 times too fast.
        The step is then the frames' own time at the two places the engine makes it (the hook sites frame.stepDivide and frame.globalStepDivide, hos_frame_seconds_bits):
        this same average, at most 1/15 s as below and at least 1/240 s (a 1000th uncapped: a shorter frame stepped a 240th ran the

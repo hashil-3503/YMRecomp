@@ -73,7 +73,7 @@ def main():
     fixtures = [('metadata', PREFIX + devices + METADATA)]
     if not args.metadata_only:
         sdl = (args.source/'host/hos_sdl.c').read_text(encoding='utf-8')
-        sound = between(sdl, '/* ---- sound ---- */', '/* ---- (YM) microphones:')
+        sound = between(sdl, '/* ---- sound ---- */', '/* ---- (longshot) microphones:')
         posix = (args.source/'host/posix/win32_posix.c').read_text(encoding='utf-8')
         wave = posix[posix.index('/* ---- waveOut on SDL\'s audio'):]
         # The real files are separate translation units. Keep weak declarations before definitions in this combined fixture.

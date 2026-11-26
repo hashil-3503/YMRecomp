@@ -1,4 +1,4 @@
-/* (YM) Ocarina of Time: the textures an incomplete dump damages, read as a whole texture of their kind.
+/* (longshot) Ocarina of Time: the textures an incomplete dump damages, read as a whole texture of their kind.
    The 23.3 GB dumps (a complete one is about 23.8 GB) hold three .zs textures whose start is zeros, not a zstd frame.
    The game fails each model that uses one and asks for it again: the Great Fairy Fountain's floor is in the Hyrule
    Field preload, which then never finishes, and its 10.8 MiB model is decoded about 15 times a second while Link is

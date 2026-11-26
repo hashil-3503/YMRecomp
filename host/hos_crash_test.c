@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
-/* (YM) HOS_CRASH_TEST: a crash on purpose, to see what a crash leaves (the crash record, host/hos_crash_record.c) and
+/* (longshot) HOS_CRASH_TEST: a crash on purpose, to see what a crash leaves (the crash record, host/hos_crash_record.c) and
    the crash window the builder shows after it (`YM-builder play`, builder/crates/crash). =start crashes just after the
    crash handlers are set up, =<seconds> that long after. From the environment only (not YM_env.txt: hos_main.c's
    env_line_allowed). */

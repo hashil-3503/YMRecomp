@@ -1,4 +1,4 @@
-/* (YM) Native mouse look (the Insert menu's "Mouse camera", off by default; HOS_MOUSE_NATIVE=1 or 0 overrides it):
+/* (longshot) Native mouse look (the Insert menu's "Mouse camera", off by default; HOS_MOUSE_NATIVE=1 or 0 overrides it):
    the captured mouse turns the player camera's own yaw and pitch, in degrees, with no dead zone, no response curve, no
    smoothing and no top speed, in place of the mouse as the right stick (nn_hid.c's mouse_stick).
 

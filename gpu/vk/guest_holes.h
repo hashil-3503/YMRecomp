@@ -1,4 +1,4 @@
-// (YM) The parts of the guest window's memfd (host/hos_main.c) that hold pages, by lseek's SEEK_DATA and SEEK_HOLE. A hole
+// (longshot) The parts of the guest window's memfd (host/hos_main.c) that hold pages, by lseek's SEEK_DATA and SEEK_HOLE. A hole
 // reads as zero, but a read of it through the window's shared mapping makes the kernel give it a page, zeroed: what checks a
 // storage for zeros (vk_texture.cpp upload_all_zero) would make guest memory of every page it looks at. A page in swap counts as
 // data. tests/test_guest_holes.py

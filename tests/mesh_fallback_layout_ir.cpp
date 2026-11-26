@@ -1,4 +1,4 @@
-// (YM) The compute fallback's mesh epilogue and its generated vertex stage through the real SPIR-V back end, in each record
+// (longshot) The compute fallback's mesh epilogue and its generated vertex stage through the real SPIR-V back end, in each record
 // layout (RX_VK_MESH_FB_LAYOUT: aos, soa) for the shapes its programs take: the position first or not, per-primitive lines
 // or none, triangles, lines and points, a wide record, with a task stage before it or none. Each mesh program writes its stage
 // buffer as a game's does: its primitive count, its index bytes and its vertex and primitive lines, all from its workgroup and

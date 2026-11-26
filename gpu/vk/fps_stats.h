@@ -1,4 +1,4 @@
-/* (YM) The FPS counter's levels and its numbers (vk_fps.cpp measures, vk_menu.cpp draws): the row's values, the frames
+/* (longshot) The FPS counter's levels and its numbers (vk_fps.cpp measures, vk_menu.cpp draws): the row's values, the frames
    of the last seconds in a ring, their averages, the 1% low, the graph's columns and its scale. Plain functions:
    tests/test_fps_stats.cpp checks them. */
 #pragma once
@@ -22,7 +22,7 @@ inline const char* level_name(int v) {
 
 /// The Dev level's lines, under the Breakdown's: their names, and their values from the renderer's counters (vk_menu.cpp
 /// fps_texts, every half second: the counts a frame over that half second, the uploads a second)
-/// (YM) and the renderer's pressure: its waits for a recording slot (the GPU behind), its queue submits (the driver's
+/// (longshot) and the renderer's pressure: its waits for a recording slot (the GPU behind), its queue submits (the driver's
 /// and the kernel's time) and the GPU's results written back to the game's memory, a frame each
 enum DevLine { kVram, kTextures, kDraws, kDispatches, kPasses, kSkipped, kUploads, kPipelines, kSlotWait, kQueueSubmit,
                kWriteBack, kDevLines };
@@ -32,7 +32,7 @@ inline const char* dev_name(int i) {
                                     "Queue submits / frame", "Write-backs / frame"};
     return i >= 0 && i < kDevLines ? t[i] : "";
 }
-/// (YM) the names in the Dev level's grid, two to a row: short, the details page's rows have the full ones
+/// (longshot) the names in the Dev level's grid, two to a row: short, the details page's rows have the full ones
 inline const char* dev_short(int i) {
     static const char* const t[] = {"VRAM", "Textures", "Draws", "Dispatches", "Passes", "Skipped", "Uploads", "Pipelines",
                                     "Slot waits", "Submits", "Write-backs"};
@@ -70,14 +70,14 @@ inline const char* corner_name(int v) {
 
 /// Where a frame's time went, on the thread that presents (the parts add up to the frame's time): the game's code (what
 /// is left), the renderer's recording and submitting, waits for the GPU (a recording slot, OoT's own poll for its frame's
-/// GPU work), and the wait for the frame's turn (the frame pacing, the game's own sleeps, vsync). (YM) And the game's
+/// GPU work), and the wait for the frame's turn (the frame pacing, the game's own sleeps, vsync). (longshot) And the game's
 /// waits for its fences, on any of its threads (OoT's main thread makes most): for work the renderer had not recorded yet
 /// (kWaitRender), or had and the GPU had not run yet (kWaitGpu). On another thread they are carved out of the game's part:
 /// the presenting thread waited for that thread meanwhile. kWaitRender also takes the present's wait for room (the render
 /// thread a frame behind). kWaitMain: with the render thread, the present's wait for the main thread's signal that the frame
 /// is written (the game's own time, until then in the renderer's part)
 enum Part { kGame, kRender, kGpuWait, kPace, kWaitRender, kWaitGpu, kWaitMain, kParts };
-/// (YM) The render thread's frame (threaded rendering): its recording and submitting (what is left), its waits for the
+/// (longshot) The render thread's frame (threaded rendering): its recording and submitting (what is left), its waits for the
 /// GPU (a recording slot) and for work (idle). Over the same present-to-present span
 enum RenderPart { kRtWork, kRtGpu, kRtIdle, kRtParts };
 
@@ -179,7 +179,7 @@ Summary summarize(const Ring<N>& r, int64_t now, int64_t window, int64_t low_win
 
 /// The graph's columns, oldest left: column c holds the frames presented in its share of (now - window, now]; out[c] is
 /// the back() index of its slowest frame, -1 for none; marks[c] whether one of its frames built pipelines or left draws out
-/// (YM) A column is a fixed slot of time (window / count), not a share of the window back from now: a frame stays in its
+/// (longshot) A column is a fixed slot of time (window / count), not a share of the window back from now: a frame stays in its
 /// column while the graph scrolls, and the columns do not change between two draws (the line jumped as the shares slid over
 /// the frames). The newest column is the one now is in; *scroll, if asked, how far into its slot now is (0 to 1), for a
 /// smooth scroll
@@ -246,7 +246,7 @@ inline int rate_grade(double fps, double target_ms) {
 
 /// The frame time's text: "16.7 ms"
 inline int frame_time_text(char* b, size_t n, double ms) { return snprintf(b, n, ms >= 100 ? "%.0f ms" : "%.1f ms", ms); }
-/// (YM) the 1% low as a frame time, beside the frame time: the slowest 1% of frames' mean time ("1% low 40.0 ms"), from
+/// (longshot) the 1% low as a frame time, beside the frame time: the slowest 1% of frames' mean time ("1% low 40.0 ms"), from
 /// its rate; "1% low -" with none
 inline int low_text(char* b, size_t n, double fps) {
     if (fps <= 0) return snprintf(b, n, "1%% low -");

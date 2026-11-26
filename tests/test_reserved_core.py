@@ -53,7 +53,7 @@ def main():
     linux = block(source, 'static uint64_t last_fastest_core(int *cores) {\n    *cores = 0;')
     assert '#elif !defined(__EMSCRIPTEN__)' in reserved and reserved.index('last_fastest_core(&cores)', reserved.index('#elif')) > 0, \
         'hos_reserved_cpus no longer asks last_fastest_core on Linux'
-    # (YM) the fallback keeps a core the process may run on: one outside its affinity is where a pinned replay would leave it
+    # (longshot) the fallback keeps a core the process may run on: one outside its affinity is where a pinned replay would leave it
     assert 'const uint64_t proc = process_cpus();' in reserved and \
         '!((uint64_t)info[i].ProcessorMask & ~proc)' in reserved, \
         "hos_reserved_cpus' fallback no longer keeps to the cores the process may run on"
@@ -67,7 +67,7 @@ def main():
     assert 'apply_process_affinity(t->th)' in block(posix, 'static HThread *thread_self(void)') and \
         'apply_process_affinity(t->th)' in block(posix, 'static void *thread_entry(void *p)'), \
         'win32_posix.c must reset new threads to process_affinity so helper threads do not inherit ReplayPin on Linux'
-    # (YM) a thread its maker pinned by its handle before it started keeps that pin: the reset and the pin under one lock
+    # (longshot) a thread its maker pinned by its handle before it started keeps that pin: the reset and the pin under one lock
     assert 'if (!t->pinned) apply_process_affinity(t->th)' in block(posix, 'static void *thread_entry(void *p)') and \
         't->pinned = 1' in block(posix, 'DWORD_PTR SetThreadAffinityMask(HANDLE h, DWORD_PTR mask)'), \
         "thread_entry's reset must leave a thread SetThreadAffinityMask pinned already"

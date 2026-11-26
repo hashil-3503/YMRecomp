@@ -1,4 +1,4 @@
-/* (YM) A settings file written whole or not at all: the one helper every write of a setting goes through.
+/* (longshot) A settings file written whole or not at all: the one helper every write of a setting goes through.
 
    The settings (language.txt, mouse_sens.txt, saves-moved.txt) were written with fopen "w", which empties the file
    before it writes it, and a settings file was put in place by a copy made at its final name (the options' one-time copy into

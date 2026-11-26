@@ -1,4 +1,4 @@
-// (YM) The Insert menu's languages (vk_menu_i18n.h).
+// (longshot) The Insert menu's languages (vk_menu_i18n.h).
 //
 // menu_i18n.h holds one table a language: each English text of vk_menu.cpp and its translation. A text is looked up whole;
 // a text the menu made with snprintf is matched against the table's texts that hold printf conversions ("%d of %d") and

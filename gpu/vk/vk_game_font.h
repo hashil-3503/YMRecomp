@@ -1,4 +1,4 @@
-// (YM) The game's own menu font, read from the player's game files, in memory only (vk_imgui.cpp; never written anywhere).
+// (longshot) The game's own menu font, read from the player's game files, in memory only (vk_imgui.cpp; never written anywhere).
 // romfs/Font2/Scalable/<name>.Nin_Ounce_NVN2.bfotf.zs is zstd with the dictionary zs.zsdic, kept in the SARC archive
 // romfs/Pack/ZsDic.pack.zs (zstd, no dictionary). The .bfotf in it is an OpenType font behind an 8-byte header, XOR-ed with a
 // 4-byte key: the first little-endian word is 0x18029a7f XOR the key, the second the font's size (big-endian) XOR the key.

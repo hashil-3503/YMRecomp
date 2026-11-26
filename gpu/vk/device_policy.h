@@ -1,4 +1,4 @@
-// (YM) What the renderer decides by the PC it runs on, in one place: the GPU's vendor and driver, its memory, the
+// (longshot) What the renderer decides by the PC it runs on, in one place: the GPU's vendor and driver, its memory, the
 // PC's RAM and CPU count, the OS. DeviceFacts is what create_device (vk_main.cpp) learns of the PC, once, before the device
 // is made. device_policy() turns the facts into the defaults, with no switch read: what each rule gives this PC unset.
 // device_policy_log() prints both at the start ("vk: policy:" lines), so one log shows everything a PC got for being what

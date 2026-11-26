@@ -297,7 +297,7 @@ inline bool vertex_set_same(uint64_t stamp, const uint64_t* addr, const uint64_t
     }
     return true;
 }
-/// (YM) The vertex bindings that differ from the ones last bound on this command buffer: first..first+count, count 0
+/// (longshot) The vertex bindings that differ from the ones last bound on this command buffer: first..first+count, count 0
 /// when none does. Only those are bound again: the driver takes every binding it is handed, and all 16 were handed to it
 /// whenever one stream changed, the unused ones with the zero buffer again (1.1 % of the replay thread on a Steam Deck,
 /// in the driver). Nothing bound on this command buffer yet (valid false): all 16

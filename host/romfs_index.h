@@ -1,4 +1,4 @@
-/* (YM) The game's RomFS read in place from the player's .nup, through the index the builder wrote into the game
+/* (longshot) The game's RomFS read in place from the player's .nup, through the index the builder wrote into the game
    folder (YM_romfs.idx: builder/crates/game-files/src/romfs.rs has the format). The builder no longer unpacks the
    26 GB: each file is read from the .nup at its offset, as it is, or (a file the .nup keeps as a zstd frame) its frame
    read whole and decoded by the caller (romfs.c, when the file is opened).

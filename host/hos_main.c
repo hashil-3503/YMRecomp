@@ -97,7 +97,7 @@ static void no_power_throttling(void) {
 #endif
 
 #ifdef _WIN32
-/* (YM) The game's memory kept in RAM under memory pressure: a soft working-set minimum (host/ws_floor.h, HOS_WS_FLOOR_MB) */
+/* (longshot) The game's memory kept in RAM under memory pressure: a soft working-set minimum (host/ws_floor.h, HOS_WS_FLOOR_MB) */
 static void ws_floor(void) {
     uint64_t mb, ram_mb;
     unsigned long err;
@@ -288,7 +288,7 @@ static void call_guest(Ctx *c, uint64_t addr, uint64_t sp, const char *what) {
     call_guest_args(c, addr, sp, what);
 }
 
-/* (YM) Saves live outside the game folder, so a rebuilt or updated game folder still finds them: on Linux in
+/* (longshot) Saves live outside the game folder, so a rebuilt or updated game folder still finds them: on Linux in
    $XDG_DATA_HOME/YM (~/.local/share/YM); on Windows in %APPDATA%\YM, the folder the YM Launcher gives
    every build as --user (YMLauncher Core/Saves.cs YMRoot), so a game started by itself (RecompLauncher, a shortcut)
    keeps the same saves. The settings stay where options_path.c puts them (the game folder's YM_options.ini, which
@@ -417,7 +417,7 @@ static int save_work_pending(const char *beside) {
     const DWORD e = GetLastError();
     return e != ERROR_FILE_NOT_FOUND && e != ERROR_PATH_NOT_FOUND;
 }
-/* (YM) The move's own names in the new place: an entry copied under ".moving-<name>" until it is whole, then renamed to
+/* (longshot) The move's own names in the new place: an entry copied under ".moving-<name>" until it is whole, then renamed to
    its name; the names of one move (".moving-names") while it renames them in, renamed ".moved-names" once all are in: the
    move's commit, after which the old place's entries of those names are deleted. A start that finds ".moved-names" finishes
    that deletion and uses the new place; one that finds ".moving-names" takes the copies it names out of the new place (the
@@ -612,7 +612,7 @@ static const char *saves_dir(const char *beside) {
     return dir;
 }
 
-/* (YM) What a write of a setting that a kill cut left (host/hos_atomic_file.h), at the start, before the game reads any
+/* (longshot) What a write of a setting that a kill cut left (host/hos_atomic_file.h), at the start, before the game reads any
    setting: a "<name>.hosnew" beside the setting. language.txt is the game folder's; mouse_sens.txt is the user folder's; the
    settings file is where options_path.c chose it (the profile's settings.ini, else the game folder's): the options'
    one-time copy into the profile leaves its stand-in there. */
@@ -634,7 +634,7 @@ static void recover_writes(void) {
    before the window, so HOS_HEADLESS and HOS_WINDOW_SIZE are already set when the window is made.
    HOS_ENV_FILE=<path> reads that file instead: a scripted or A/B test run brings its own switches and leaves the
    player's YM_env.txt as it is.
-   (YM) YM_env.txt is a file players pass around, so it sets only the game's own switches (RX_, HOS_,
+   (longshot) YM_env.txt is a file players pass around, so it sets only the game's own switches (RX_, HOS_,
    YM_, EDEN_, NVN_ and SDL_ names), never HOS_ENV_FILE, HOS_CONTROL_PEER_SID or SDL's library override, and no
    value that is a path but RX_VK_DLSS_DIR's: the system's variables (the Vulkan loader's layers, PATH and the like) can
    load code, and the dump switches write files where they name. The file HOS_ENV_FILE names sets anything. */
@@ -643,20 +643,20 @@ static int env_line_allowed(const char *name, const char *value) {
     int ok = 0;
     for (size_t i = 0; i < sizeof prefixes / sizeof *prefixes; i++) ok |= !strncmp(name, prefixes[i], strlen(prefixes[i]));
     if (!ok || !strcmp(name, "HOS_ENV_FILE") || !strcmp(name, "SDL_DYNAMIC_API")) return 0;
-    /* (YM) nor HOS_CONTROL_PEER_SID: it lets one more account into the control bridge's pipe (host/control.c), so a
+    /* (longshot) nor HOS_CONTROL_PEER_SID: it lets one more account into the control bridge's pipe (host/control.c), so a
        shared file would let another user of this PC steer the game and read its memory. The environment still sets it */
     if (!strcmp(name, "HOS_CONTROL_PEER_SID")) return 0;
-    /* (YM) nor the libraries SDL loads by name (SDL_VULKAN_LIBRARY, SDL_OPENGL_LIBRARY, SDL_VIDEO_GL_DRIVER,
+    /* (longshot) nor the libraries SDL loads by name (SDL_VULKAN_LIBRARY, SDL_OPENGL_LIBRARY, SDL_VIDEO_GL_DRIVER,
        SDL_VIDEO_EGL_DRIVER...): a bare file name is looked for beside the game and in the current folder on Windows */
     if (!strncmp(name, "SDL_", 4) && (strstr(name, "_LIB") || strstr(name, "GL_DRIVER"))) return 0;
     for (const char *p = name; *p; p++)
         if (!((*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')) return 0;
-    /* (YM) the switches that name a file to write or a folder take no value here, not even a bare name: one
+    /* (longshot) the switches that name a file to write or a folder take no value here, not even a bare name: one
        resolves in the game's folder (HOS_SAMPLE_FILE=YM_vk.dll emptied the renderer) */
     const size_t nl = strlen(name);
     int names_file = (nl > 5 && (!strcmp(name + nl - 5, "_FILE") || !strcmp(name + nl - 4, "_DIR"))) ||
                      !strcmp(name, "RX_VK_FRAME_LOG") || !strcmp(name, "HOS_PRESENT_TRACE");
-    /* (YM) and the test switches whose value is a file or folder under another name (HOS_AUDIO_DUMP=image.bin
+    /* (longshot) and the test switches whose value is a file or folder under another name (HOS_AUDIO_DUMP=image.bin
        overwrote the game's image), or that press buttons and menu keys on a timer (a shared file erased a save from
        the file select) */
     static const char *const by_name[] = {
@@ -826,7 +826,7 @@ static char driver_env_said[1024];
 static void driver_env_log(void) {
     if (driver_env_said[0]) hos_log("%s", driver_env_said);
 }
-/* (YM) The profile's start slot (host/YM_profile.h): with YM_PROFILE, its profile.json's start_slot
+/* (longshot) The profile's start slot (host/YM_profile.h): with YM_PROFILE, its profile.json's start_slot
    handed on to the game's side as HOS_START_SLOT (0-99), the slot the run starts on. The profile is its one source: a
    HOS_START_SLOT the environment or YM_env.txt brought is taken away first, so the run starts on the profile's slot
    or on none. Set before anything reads it (after YM_env.txt); the log says what it did once it is open
@@ -876,12 +876,12 @@ static void profile_note_log(void) {
     if (profile_note[0]) hos_log("%s", profile_note);
 }
 #ifdef _WIN32
-/* (YM) On laptops with two GPUs, the drivers run a program on the dedicated one when it exports these (NVIDIA Optimus, AMD
+/* (longshot) On laptops with two GPUs, the drivers run a program on the dedicated one when it exports these (NVIDIA Optimus, AMD
    PowerXpress): without them a laptop could put the game on its integrated GPU, 5 fps */
 __declspec(dllexport) unsigned long NvOptimusEnablement = 1;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
-/* (YM) The game's paths are UTF-8 char strings through Windows' A functions and fopen: its manifest (builder/crates/build-compile/src/generated/res.rs)
+/* (longshot) The game's paths are UTF-8 char strings through Windows' A functions and fopen: its manifest (builder/crates/build-compile/src/generated/res.rs)
    makes the process's code page UTF-8, from Windows 10 1903 on. Before that, or with the manifest missing, those take the system's
    ANSI code page, and a folder name it cannot spell (Japanese on a Western Windows, an emoji) comes back as "?": nothing opens and
    the game closed with no window and no log. The exe's own path through GetModuleFileNameA must name the exe (a name past HOS_PATH_CAP
@@ -917,7 +917,7 @@ static int narrow_paths_ok(int argc, char **argv) {
 
 #endif
 
-/* (YM) The game started by itself in a version folder's game folder (<version>/builds/<build>/, the builder two
+/* (longshot) The game started by itself in a version folder's game folder (<version>/builds/<build>/, the builder two
    folders up) hands over to the builder, which checks the folder, updates it when it must and starts the game with the
    default profile (host/YM_exit.h, docs/dev/reference/build.md "The game started by itself"): Linux, the
    process becomes the builder; Windows, the builder is started and this process ends. Returns when there is nothing to
@@ -1057,7 +1057,7 @@ static int game_main(int argc, char **argv) {
                 memcpy(to, path, n), snprintf(to + n, 32, "YM_log.%d.txt", k);
                 MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING);
             }
-            /* (YM) the run before's log without the player's user name: its own lines were written so, and what wrote to
+            /* (longshot) the run before's log without the player's user name: its own lines were written so, and what wrote to
                stderr itself (the Vulkan loader, SDL) is redacted here (host/log_redact.h) */
             hos_log_redact_file(to, NULL);
 #if !defined(_WIN32) && !defined(A64_MEM_ZERO)
@@ -1090,7 +1090,7 @@ static int game_main(int argc, char **argv) {
     void hos_control_start(const char *version);
     hos_control_start(YM_VERSION);   /* (HOS_CONTROL=<socket>: the control bridge, host/control.c) */
     const char *image = NULL;
-    /* (YM) --compile-shaders all or most: what a preparation of this run builds (gpu/vk/vk_draw.cpp compile_all), over
+    /* (longshot) --compile-shaders all or most: what a preparation of this run builds (gpu/vk/vk_draw.cpp compile_all), over
        compile_shaders= in YM_options.ini; as RX_VK_COMPILE_SHADERS, set before --prepare-shaders runs, wherever it stands */
     for (int i = 1; i + 1 < argc; i++)
         if (!strcmp(argv[i], "--compile-shaders")) {
@@ -1102,14 +1102,14 @@ static int game_main(int argc, char **argv) {
             setenv("RX_VK_COMPILE_SHADERS", argv[i + 1], 1);
 #endif
         }
-    hos_prepare_args_env(argc, argv);   /* (YM) a supervised preparation's journal, skips and limit: prepare_args.h */
+    hos_prepare_args_env(argc, argv);   /* (longshot) a supervised preparation's journal, skips and limit: prepare_args.h */
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--romfs") && i + 1 < argc) hos_romfs_dir = argv[++i];
         else if (!strcmp(argv[i], "--compile-shaders") && i + 1 < argc) i++;   /* (taken above) */
         else if (hos_prepare_arg_switch(argv[i]) && i + 1 < argc) i++;         /* (taken above) */
         else if (!strcmp(argv[i], "--user") && i + 1 < argc) hos_user_dir = argv[++i];
         else if (!strcmp(argv[i], "--trace")) hos_trace = 1;
-        else if (!strcmp(argv[i], "--prepare-shaders")) {   /* (YM) a build's last step: no game */
+        else if (!strcmp(argv[i], "--prepare-shaders")) {   /* (longshot) a build's last step: no game */
 #ifdef _WIN32
             _putenv("YM_PREPARE_ONLY=1");
 #else
@@ -1126,13 +1126,13 @@ static int game_main(int argc, char **argv) {
         else if (!image) image = argv[i];
     }
 #ifdef _WIN32
-    {   /* (YM) the Discord status (discord_rpc.c), a game run only (a --prepare-shaders run returned above). Linux starts
+    {   /* (longshot) the Discord status (discord_rpc.c), a game run only (a --prepare-shaders run returned above). Linux starts
            it in its own main, below; on Windows it was never started: no status and no "discord:" line in any log */
         hos_discord_start();
     }
 #endif
     static char beside_image[HOS_PATH_CAP], beside_romfs[HOS_PATH_CAP], beside_user[HOS_PATH_CAP];
-    if (!image) {   /* (YM) started with nothing, as a game is: everything beside the executable (the builder's folder) */
+    if (!image) {   /* (longshot) started with nothing, as a game is: everything beside the executable (the builder's folder) */
         char dir[HOS_PATH_CAP];
         const DWORD len = hos_game_path_a(dir, HOS_PATH_CAP);
         char *slash = len ? strrchr(dir, SEP) : NULL;
@@ -1154,7 +1154,7 @@ static int game_main(int argc, char **argv) {
                 argv[0]);
         return 2;
     }
-    {   /* (YM) The RomFS read in place from the player's .nup (romfs_index.h): the game folder has the index the
+    {   /* (longshot) The RomFS read in place from the player's .nup (romfs_index.h): the game folder has the index the
            builder wrote beside image.bin, and no romfs folder. A .nup moved or replaced is said here, before the game starts */
         static char index_path[2048], romfs_beside[2048];
         if (!hos_romfs_index_beside(image, index_path, sizeof index_path))
@@ -1177,7 +1177,7 @@ static int game_main(int argc, char **argv) {
         hos_hle_stats_start();
     }
     if (!hos_user_dir) hos_user_dir = "user";
-    /* (YM) The run's save folder (host/save_dir.h): the profile's saves/ (YM_PROFILE). An unusable folder is a
+    /* (longshot) The run's save folder (host/save_dir.h): the profile's saves/ (YM_PROFILE). An unusable folder is a
        plain fatal error (the builder makes and tries the profile's folders before it starts the game, and says so itself),
        and never falls back to the user folder's saves, which may be another profile's */
     if (!hos_save_dir_choose()) {
@@ -1228,7 +1228,7 @@ static int game_main(int argc, char **argv) {
         return 1;
     }
     hos_mem_init(hos_image_end);
-    {   /* (YM) Widescreen and ultrawide (game/oot_wide_sites.c): HOS_ASPECT=<ratio> (2.3889 for 3440x1440), else the Insert menu's
+    {   /* (longshot) Widescreen and ultrawide (game/oot_wide_sites.c): HOS_ASPECT=<ratio> (2.3889 for 3440x1440), else the Insert menu's
            Aspect ratio (on unless it says 0) takes the main monitor's shape. The game's picture takes that shape at its own height (the
            world wider at the sides on an ultrawide screen, narrower on a 16:10 or 4:3 one), its 16:9 cameras the picture's ratio.
            An output that is not 16:9 takes precedence over both HOS_ASPECT and the Aspect ratio, matching the menu's picture. Wider
@@ -1303,7 +1303,7 @@ static int game_main(int argc, char **argv) {
     hos_prof_start();   /* HOS_PROFILE_EVERY=<seconds>, the samplers, HOS_PROFILE=1 */
     void hos_chain_start(void);
     hos_chain_start();  /* HOS_CHAIN=<path> */
-    hos_ab_start();     /* (YM) HOS_AB=<switch>=<value>: an A/B within the run (host/hos_ab.c), before the game's threads */
+    hos_ab_start();     /* (longshot) HOS_AB=<switch>=<value>: an A/B within the run (host/hos_ab.c), before the game's threads */
 #ifdef _WIN32
     timeBeginPeriod(1);   /* 1 ms timer resolution: the 60 Hz vsync and the game's frame pacing sleep in short steps */
     no_power_throttling();
@@ -1330,11 +1330,11 @@ static int game_main(int argc, char **argv) {
         call_guest(c, hos_module_init[i], sp, what);
     }
     call_guest(c, hos_entry_nnMain, sp, "nnMain");
-    /* (YM) the game is over: RenHDrum's backends stop and let go of the pads (host/rumble_renhdrum.c) */
+    /* (longshot) the game is over: RenHDrum's backends stop and let go of the pads (host/rumble_renhdrum.c) */
     void hos_sdl_vibration_shutdown(void);
     hos_sdl_vibration_shutdown();
     hos_log("nnMain returned");
-    void hos_pad_speaker_shutdown(void);   /* (YM) host/pad_speaker.c */
+    void hos_pad_speaker_shutdown(void);   /* (longshot) host/pad_speaker.c */
     hos_pad_speaker_shutdown();
     void hos_crash_clean_end(void);
     hos_crash_clean_end();
@@ -1460,7 +1460,7 @@ int main(int argc, char **argv) {
         hos_log_flush();
         return 1;
     }
-    if (!prepare_shaders) {   /* (YM) the Discord status (discord_rpc.c): only a game run */
+    if (!prepare_shaders) {   /* (longshot) the Discord status (discord_rpc.c): only a game run */
         hos_discord_start();
     }
     HANDLE t = CreateThread(NULL, 64u << 20, game_thread, NULL, 0, NULL);

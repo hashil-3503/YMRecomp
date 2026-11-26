@@ -57,7 +57,7 @@ static inline double hos_wide_max_px(void) {
     return v >= 640.0 * 360.0 ? v : 5120.0 * 2160.0;
 }
 
-/* (YM) The Aspect ratio row (ultrawide=) as the game starts with it: 1 the monitor's shape, 0 the game's 16:9. saved: the
+/* (longshot) The Aspect ratio row (ultrawide=) as the game starts with it: 1 the monitor's shape, 0 the game's 16:9. saved: the
    options file's value, -1 without the line (the default: the monitor's shape); version: its options_version, 0 without one.
    A file from before version 6 wrote ultrawide=0, the 16:9 that was the default then, whether chosen or not: on a screen
    narrower than 16:9 (16:10, the Steam Deck's 1280x800, 4:3), where 16:9 only adds bars above and below the picture, that

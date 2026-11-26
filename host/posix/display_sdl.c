@@ -122,7 +122,7 @@ static void keys_update(void) {
     for (int i = 0; i < 256; i++) hos_posix_keys[i] = v[i];
 }
 
-/* ---- (YM) typed text, for the Insert menu's text field that has the keyboard (MkwVkHost.take_text): SDL's text input on
+/* ---- (longshot) typed text, for the Insert menu's text field that has the keyboard (MkwVkHost.take_text): SDL's text input on
    only while one has it (hos_text_focus), so no input method opens over the game; its editing keys, repeats too; paste ---- */
 static volatile int paste_asked;
 void hos_display_paste(void) { __atomic_store_n(&paste_asked, 1, __ATOMIC_RELEASE); }   /* (the menu's Paste: on this thread) */
@@ -206,7 +206,7 @@ static void set_fullscreen(int on) {
 static DWORD WINAPI renderer_main(void *p) {
     (void)p;
     const int ok = rx_start(&vk_window);
-    if (!ok) {   /* (YM) the game ends at once: behind a black window it played on with its sound until the player closed
+    if (!ok) {   /* (longshot) the game ends at once: behind a black window it played on with its sound until the player closed
                     it, and only then did the window after it say why. That window (the builder's: builder/crates/crash/src/facts.rs)
                     reads this line */
         if (!rx_start_failure_claim()) return 0;
@@ -226,7 +226,7 @@ static DWORD WINAPI renderer_main(void *p) {
     return 0;
 }
 
-/* (YM) host/display.c's: the game's first work for the GPU waits for the renderer (nvn_native.c), so nothing it submits while
+/* (longshot) host/display.c's: the game's first work for the GPU waits for the renderer (nvn_native.c), so nothing it submits while
    the shaders are prepared is lost. Without a window the renderer starts on the game's own thread, before this is asked */
 void hos_renderer_wait(void) {
     if (env_on("HOS_NO_RENDERER_WAIT")) return;

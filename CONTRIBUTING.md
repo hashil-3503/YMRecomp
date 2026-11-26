@@ -1,12 +1,12 @@
 # Contributing to YM
 
-YM is a static recompilation of a supported console game: the game's AArch64 code is lifted to LLVM IR and compiled, the Horizon OS
-and NVN2 are implemented natively, and the GPU work is replayed on Vulkan. No emulator is involved, and the game is
-built on your PC from your own copy.
+YM is a personal fork of [Longshot](https://git.magicbean.dev/MagicBeanDev/Longshot), retargeted to Yoshi and the
+Mysterious Book. It is not run by the Longshot team, and the Longshot team's channels, forge and review rules do not
+apply here: please don't take questions or reports about YM to them. Issues and pull requests for YM go to this
+repository on GitHub.
 
-It lives on the team's Forgejo, [git.magicbean.dev/MagicBeanDev/YM](https://git.magicbean.dev/MagicBeanDev/YM).
-This page has the rules that keep the project out of trouble and where to go next. The
-[developer docs](docs/dev/README.md) have the rest.
+Much of [the developer docs](docs/dev/README.md) still describes Longshot's team and its process (its forge, chat,
+CI and review rules); read them for how the code works, not for how to contribute here.
 
 ## The rule with no exceptions
 
@@ -14,112 +14,41 @@ This page has the rules that keep the project out of trouble and where to go nex
 will. That includes:
 
 - the `.nup`, `romfs`, `exefs`, `.nso`, `.nca`, `.nsp`, `.xci` or `.nsz`/`.xcz` files, and any title keys;
-- the builder's work folders and stores (`~/.cache/YM-builder`, `%LOCALAPPDATA%\YM\Builder`, or the
-  folder `--cache` names: the game's code modules, `image.bin`, the lifted IR in `gen/`, the objects), `YM_romfs.idx`,
-  `work/` and everything in it, and the development folder (`python -I scripts/dev.py paths`: bases, stores, runs and
-  screenshots);
-- `YM.exe`, `YM_vk.dll` and other build output, development bases, packs and runtimes, run profiles
-  (perf or Tracy captures), frame dumps, and the game folder's `cache/` (`YM_programs.bin` and its `.idx`,
-  `YM_pipelines.bin`, `YM_vk_pipelines.bin`). The play profiles in `assets/profiles/` (the guest profile and
-  the renderer's profile) are not on this list: they hold no game code or data and are committed
-  ([their README](assets/profiles/README.md)). Nor are the routes in `assets/routes/`: input recordings made with
-  `HOS_INPUT_ROUTE=1` that hold the input, Link's positions and the camera's angles as numbers, no guest words and no
-  addresses, checked by `dev.py route check` ([their README](assets/routes/README.md)). Any other input recording
-  (`HOS_INPUT_RECORD`, the Insert menu's Record input) holds the game's memory words and stays on your PC;
-- saves (`user/`), `YM_options.ini`, `YM_env.txt` and `language.txt`. The one exception: scrubbed saves
-  under `assets/saves/` ([the rules](assets/saves/README.md)): one slot each (`progress.sav` and `caption.sav` only),
-  its picture made grey and its date reset by `scripts/YM_saves.py scrub`, passing `check-repo-saves`, made fresh
-  for the farm (never someone's own adventure), and added through a pull request two maintainers approve.
-  `account.sav`, `option.sav`, `YM_options.ini`, `YM_env.txt` and the rest of `user/` stay banned.
+- the builder's work folders and stores (`~/.cache/YM-builder`, `%LOCALAPPDATA%\YM\Builder`, or the folder `--cache`
+  names: the game's code modules, `image.bin`, the lifted IR in `gen/`, the objects), `YM_romfs.idx` and `work/`;
+- `YM.exe`, `YM_vk.dll` and other build output, run profiles (perf or Tracy captures), frame dumps, shader or pipeline
+  dumps, and the game folder's `cache/`;
+- logs and crash dumps from a game run, screenshots of debugging output, and input recordings (they hold the game's
+  memory);
+- saves, `YM_options.ini`, `YM_env.txt` and `language.txt`.
 
-Don't ask in an issue, a pull request or the chat where to get the game, how to decrypt it, or for someone else's
-files. A screenshot, a video and `YM_log.txt` are fine and often necessary: the log holds no game data.
-`.gitignore` covers most of this, but check `git status` (or `jj status`) before you commit. If you aren't sure whether
-a file is game data, leave it out.
-
-## The other non-negotiables
-
-- **`main` takes reviewed pull requests only**, from a branch on your fork, one topic each.
-- **A change the game runs is tested in the game on your PC before its pull request opens**, and a fix comes with a
-  game-free test that fails on `main`.
-- **A performance change shows its measured gain against `main`.** No measured gain, no merge.
-- **Vendor SDKs are never committed, bundled or uploaded**: NVIDIA's DLSS SDK, AMD's FSR runtime, Intel's `libxess.dll`.
-- **Only code you can license under the GPL** ([Licensing](#licensing)).
-
-The full list, and how each is checked, is in [standards](docs/dev/standards.md).
-
-## Get started
-
-1. **Set up** a PC, the team's Tooling repository and sign-in, and a first build from your own dump:
-   [setup](docs/dev/setup.md).
-2. **Work** on a change: quick builds against a base, the checks, running and measuring it in the game, profiling,
-   and the steps from claim to merge: [developing](docs/dev/developing.md).
-3. **Meet the standards** before you ask for review: [standards](docs/dev/standards.md).
-
-Then claim something in the team room before you start on it ([claiming](docs/dev/developing.md#from-claim-to-merge)).
-
-## Ways to help
-
-| | What |
-|---|---|
-| **Test on other hardware** | NVIDIA cards are the most tested. Reports from AMD and Intel cards, other drivers, other distributions and SteamOS help even when everything works. Lend your PC to the [Test Farm](https://beanstalk.magicbean.dev/how): it tests approved pull requests on your hardware by itself. |
-| **Play further** | The tested area is the start of the game. Reaching new areas, cutscenes, menus and items finds problems nobody has seen. |
-| **Report what is broken** | Use the [issue forms](https://git.magicbean.dev/MagicBeanDev/YM/issues/new/choose): game problem, install or build problem, save problem or idea. Include the version, your hardware, where you were and `YM_log.txt`. |
-| **Send a fix** | Branch, fix, test, open a pull request from your fork ([from claim to merge](docs/dev/developing.md#from-claim-to-merge)). Small, focused changes are the easiest to review. |
-| **Improve the docs** | The README, the player docs and the developer docs are part of the project. |
-
-## Before you open an issue or a pull request
-
-- Try current `main` first: it has every fix so far.
-- Search the [open issues](https://git.magicbean.dev/MagicBeanDev/YM/issues). If yours is there, add your
-  details instead of opening another.
-- English, please. One topic per issue or pull request.
-- Report the version you actually ran: the first line of `YM_log.txt`.
-- For a graphics or performance problem, test without ReShade, shader-cache tools, overlays and frame-generation
-  injectors: they change what YM does.
-
-## CI
-
-CI is moving from Forgejo Actions to CircleCI, and both run until the cutover: [CI](docs/dev/reference/ci.md) says what
-runs when, on which runners. Run `mise run lint` and `mise run test` before you push, and put the results in the pull
-request.
-
-- **CircleCI:** sign up at https://circleci.com/signup and ask in Discord to be added to the MagicBeanDev org, so you can see runs, read logs and rerun jobs.
-- **CircleCI CLI:** `mise install` installs the pinned version, or see the [official install docs](https://circleci.com/docs/guides/toolkit/circleci-cli/). Run `circleci auth login` once.
-- **CircleCI MCP server**, so an AI agent can read failures and logs and rerun jobs. Claude Code: `claude mcp add --transport http circleci-mcp-server https://mcp.circleci.com/v1/mcp`, then `/mcp` and Authenticate. Cursor: search "circleci" in the MCP marketplace.
-- **CircleCI docs MCP**, so an agent can look things up in CircleCI's docs (no account needed): `claude mcp add --transport http circleci-docs https://circleci.mcp.kapa.ai`.
-- **Chunk CLI** (optional) runs this repo's checks on a remote CircleCI sidecar, handy for an agent or a machine without the toolchain. Install with `brew install CircleCI-Public/circleci/chunk` (Windows: see its [README](https://github.com/CircleCI-Public/chunk-cli)), run `chunk auth login`, then `chunk sidecar create`, `chunk sidecar sync` and `chunk validate`. The commands it runs are in `.chunk/config.json`.
-
-The software-Vulkan fixtures run only by hand: on Forgejo, *Actions* > *Authored Vulkan fixtures* > *Run workflow*, or
-locally ([run the checks](docs/dev/developing.md#run-the-checks)).
+Don't ask in an issue or a pull request where to get the game, how to decrypt it, or for someone else's files.
+`.gitignore` covers most of this, but check `git status` before you commit, and never `git add -f` around it. If you
+aren't sure whether a file is game data, leave it out.
 
 ## Licensing
 
-YM is free software under the [GNU General Public License, version 3 or later](LICENSE). By submitting a change
-you license it under those terms, so only send code you can license that way: nothing from a project with an
-incompatible license, and no decompiled game code or anything generated from the dump.
+YM is free software under the [GNU General Public License, version 3 or later](LICENSE). By submitting a change you
+license it under those terms, so only send code you can license that way: nothing from a project with an incompatible
+license, and no decompiled game code or anything generated from the game.
 
-The checklist's license box is the author's own check of the diff against that paragraph: where each new file and
-copied passage comes from, and that none of it is the game's code or made from the dump. How the game or the console
-behaves (a function's name and arguments, a result code, the order of calls) is a fact and not code, and the host's
-replacements for the console's functions are written from such facts; describe them in your own words and cite a
-public source when there is one.
+How the game or the console behaves (a function's name and arguments, a result code, the order of calls) is a fact and
+not code, and the host's replacements for the console's functions are written from such facts; describe them in your
+own words and cite a public source when there is one.
 
 The third-party parts (Eden, suyu, Sirit, the Vulkan Memory Allocator, SDL, Opus, Dear ImGui, zstd, the Libertinus
-fonts, zbic, AMD's FidelityFX headers and SDK, the CRT shaders, Kenney's input prompts and Tracy, among
-others; and a64-kit, whose notice for host/ and builder/rt is host/NOTICE.TOTKPort.md) keep their own notices: preserve
-them, and don't relicense their code. NVIDIA's DLSS
-SDK is not one of them: it is never in the repository ([upscaler SDKs](docs/dev/setup.md#upscaler-sdks-optional)). Nor
-is Intel's `libxess.dll` (Intel's license): only XeSS's MIT API headers are (`third_party/xess`), and the player puts the
-DLL beside the game ([optional upscalers](docs/user/advanced.md#optional-upscalers)).
+fonts, zbic, AMD's FidelityFX headers and SDK, the CRT shaders, Kenney's input prompts and Tracy, among others; and
+a64-kit, whose notice for host/ and builder/rt is host/NOTICE.TOTKPort.md) keep their own notices: preserve them, and
+don't relicense their code. `third_party/` holds unmodified upstream copies (`scripts/check_third_party.py`).
 
-## Where to talk
+Comments marked `(longshot)` are Longshot's changes and additions, `(YM)` this fork's. Keep the existing marks as they
+are when you edit nearby.
 
-- **The team room**, `#agent-updates:magicbean.dev` on Matrix: claims, progress, pull requests and blockers, from people
-  and agents alike. Post and read it with the [team-updates skill](https://git.magicbean.dev/MagicBeanDev/Tooling/src/branch/main/skills/team-updates/SKILL.md) or Tooling's `team_chat.py`.
-- **Discord:** https://discord.gg/magicbean, for questions.
-- **Agents** read [AGENTS.md](AGENTS.md) on top of this page.
-- **Issues:** [the forms on git.magicbean.dev](https://git.magicbean.dev/MagicBeanDev/YM/issues/new/choose).
+NVIDIA's DLSS SDK, AMD's FSR runtime and Intel's `libxess.dll` are never committed, bundled or uploaded: only XeSS's
+MIT API headers are in the repository (`third_party/xess`).
 
-Thanks for testing, reporting and sending fixes. Every report from a different GPU and every area played further than
-before moves the port forward.
+## Building and testing
+
+The game-free checks run with `python -I -B tests/run_all.py`. On Windows, put the bundled compiler on `PATH` first
+(`tools/llvm-mingw/bin`, installed from `tools.lock` by `mise run tools`). Build and run the game only from your own
+copy, and keep everything it makes on your PC.

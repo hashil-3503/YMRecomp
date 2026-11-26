@@ -1,4 +1,4 @@
-/* (YM) Which of the game's sounds a voice plays: the classes the controller speaker's menu routes.
+/* (longshot) Which of the game's sounds a voice plays: the classes the controller speaker's menu routes.
 
    The game keeps its sounds in BARS archives, one per actor (romfs/Sound/Resource/<archive>.bars.zs): a table of
    {asset metadata (AMTA, with the asset's name), wave (BWAV)} pairs. A BWAV is a header (a checksum of its own at +8,

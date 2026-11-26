@@ -1,4 +1,4 @@
-/* (YM) The texture data heap's compaction, asked for once in a while and not at every frame. The hook site
+/* (longshot) The texture data heap's compaction, asked for once in a while and not at every frame. The hook site
    texture.compactAsk (game/sites/sites.toml) hooks the place; game/oot_tex_compact.c holds the state and reads the switch.
 
    The game keeps its textures' storage in one heap (2,400 MB; in Castle Town's market it stays at its line of 5 % free). Its

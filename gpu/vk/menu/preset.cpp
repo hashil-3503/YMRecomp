@@ -22,7 +22,7 @@ namespace ur = upscaler_rows;
 // (Sharpness: tuned for the window pass's neighbours one picture pixel apart, each about the old setting's sharpening on a
 // 3840 x 2160 window at that preset's picture, 2048 x 1152 or the handheld profile's 1536 x 864: same frame, mean |Laplacian|
 // of the window and of the picture, on the slider's steps)
-// (YM) the Quality preset "Auto (this PC)", kAutoPreset: the profile menu_auto_for_gpu chose for this PC (auto_settings.h)
+// (longshot) the Quality preset "Auto (this PC)", kAutoPreset: the profile menu_auto_for_gpu chose for this PC (auto_settings.h)
 ::auto_settings::Choice auto_choice;   // (tier 0: no profile yet, before the card is known)
 uint64_t auto_for = 0;               // (the fingerprint of the hardware the options' Auto settings were chosen for: auto_for=)
 uint64_t auto_fp = 0;                // (this PC's, menu_auto_for_gpu)

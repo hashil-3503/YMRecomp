@@ -1,4 +1,4 @@
-// (YM) A model of what the compute fallback's mesh workgroups write in each record layout (RX_VK_MESH_FB_LAYOUT;
+// (longshot) A model of what the compute fallback's mesh workgroups write in each record layout (RX_VK_MESH_FB_LAYOUT;
 // emit_spirv_mesh.cpp MeshFallbackEpilogue, its layouts and the generated vertex stage's reads) and of what the draw then reads,
 // with the layout's words from emit_spirv.h. For random meshlets (up to 256 vertices and 256 primitives, counts past the most,
 // index bytes past the vertices, repeated corners, workgroups with nothing) the triangles, lines or points each layout's draw

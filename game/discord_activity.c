@@ -1,4 +1,4 @@
-/* (YM) What the Discord status says (discord_activity.h).
+/* (longshot) What the Discord status says (discord_activity.h).
 
    Discord shows the application's name in bold ("Playing YM": the Discord application of discord_app_id=, its
    name and its art; game/discord_rpc.c), and under it the status's two lines. Those are the player's to write in

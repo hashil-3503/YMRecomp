@@ -95,7 +95,7 @@ bool quick_debug = false;
     source += re.search(r"std::atomic<bool> transition_autosave_enabled\{[^}]+\};", menu).group() + '\n'
     for name in ("void sync_transition_autosave(", "int menu_transition_autosave("):
         source += block(menu, name) + '\n'
-    source += menu[menu.index("struct DebugGroup {"):menu.index("/// (YM) The Debug tab's rows from top down")]
+    source += menu[menu.index("struct DebugGroup {"):menu.index("/// (longshot) The Debug tab's rows from top down")]
     warning = block(menu, "if (open_now.load() && debug_warning) {")
     source += '''
 std::atomic<bool> open_now{true};

@@ -565,7 +565,7 @@ Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
 
     SetInBoundsFlag(inst, in_range);
-    // (YM) through the broadcasts where shuffles are broken (UseShuffleFallback: AMD's fragment stages, Lichii #273),
+    // (longshot) through the broadcasts where shuffles are broken (UseShuffleFallback: AMD's fragment stages, Lichii #273),
     // as the absolute and relative shuffles are; #273 left SHFL.BFLY native, and some of Kokiri Forest's plants use it
     const auto subgroup = [&] {
         return UseShuffleFallback(ctx)
@@ -600,7 +600,7 @@ Id EmitQuadSwap(EmitContext& ctx, Id value, Id direction) {
         return result;
     }
     const Id xor_mask{ctx.OpIAdd(ctx.U32[1], direction, ctx.Const(1u))};
-    // (YM) not through UseShuffleFallback's broadcasts: a program with quad shuffles alone (uses_quad_shuffles) has
+    // (longshot) not through UseShuffleFallback's broadcasts: a program with quad shuffles alone (uses_quad_shuffles) has
     // neither the lane id input nor the ballot capability they need, and the SPIR-V made with them crashed the start
     return ctx.OpGroupNonUniformShuffleXor(ctx.U32[1], SubgroupScope(ctx), value, xor_mask);
 }
@@ -637,7 +637,7 @@ Id EmitDPdyCoarse(EmitContext& ctx, Id op_a) {
     return ctx.OpDPdyCoarse(ctx.F32[1], op_a);
 }
 
-// (YM) HMMA in software (mma_software.h): the 32 lanes' fragments through subgroup operations in one helper function,
+// (longshot) HMMA in software (mma_software.h): the 32 lanes' fragments through subgroup operations in one helper function,
 // accumulated with FMA in f32 and rounded to f16 after every 8 columns of K, as HMMA.F16 does. It needs no cooperative matrices
 // (RX_VK_MMA_SOFTWARE=1, vk_coopmat.cpp); the form is the one vk_coopmat.cpp's self-test chose for this device (mma_software_form).
 void DefineSoftwareMatrixFunction(EmitContext& ctx) {
@@ -1381,7 +1381,7 @@ void EmitMatrixMulAddF16Fused(EmitContext& ctx, IR::Inst* inst) {
 }
 
 
-// (YM) HMMA_nx2: D(16x8) = A(16x16) * B(16x8) + C on the subgroup's cooperative matrices. Each
+// (longshot) HMMA_nx2: D(16x8) = A(16x16) * B(16x8) + C on the subgroup's cooperative matrices. Each
 // lane's fragment registers hold its elements in the console's order (two f16 a word); they go to and come
 // from the device's elements in its own order (mma_layout.h, measured by vk_coopmat.cpp).
 Id EmitMatrixMulAddF16(EmitContext& ctx, Id a, Id b, Id c) {

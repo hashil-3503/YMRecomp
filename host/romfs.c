@@ -1,4 +1,4 @@
-/* (YM) The game's RomFS as the host's own code reads it: romfs.h says what and why. */
+/* (longshot) The game's RomFS as the host's own code reads it: romfs.h says what and why. */
 #include "romfs.h"
 #include "romfs_index.h"
 #include <stdio.h>

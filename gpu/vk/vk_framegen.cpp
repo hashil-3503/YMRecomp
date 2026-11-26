@@ -143,7 +143,7 @@ struct ScaleState {
     VkImageView output_view = VK_NULL_HANDLE;   // the final scale/CRT image, also read by HDR expansion
 } scale;
 
-struct HdrState {   // (YM) the HDR10 pass (framegen_hdr)
+struct HdrState {   // (longshot) the HDR10 pass (framegen_hdr)
     bool init = false, failed = false;
     Pipe pipe;
     Img out;
@@ -154,7 +154,7 @@ int64_t now_ns() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-// (YM) Frame generation's Auto (the menu's 1): a frame for each refresh of the display, no more. Each game frame
+// (longshot) Frame generation's Auto (the menu's 1): a frame for each refresh of the display, no more. Each game frame
 // is given the display's refreshes that fall between it and the game's frame before (on the game's own timeline, a
 // refresh period apart), and each of them a frame made at its place between the two: 45 fps on a 60 Hz display makes one
 // frame for every three of the game's (3 of 4 shown are made, at 3/4, 1/2, 1/4), on 120 Hz two or three a frame; at
@@ -193,7 +193,7 @@ int auto_slots(int64_t last, int64_t now, int64_t period, int64_t& next, float* 
     return n;
 }
 
-/// (YM) A fixed multiplier's set on the game's own timeline: of its made + 1 frames, frame k is shown at its place
+/// (longshot) A fixed multiplier's set on the game's own timeline: of its made + 1 frames, frame k is shown at its place
 /// between the game's frame before (last) and this one (now), (k + 1) / (made + 1) of the way, delay later (pace_lead and
 /// pace_delay's). Shown evenly apart, the smoothed frame time over made + 1, the motion sped up and slowed down by as much
 /// as the game's frame times vary: 15.5 to 22 ms at ~55 fps (RTX 5090, 5120x2160, DLSS Frame Gen 3x, V-Sync Off) gave
@@ -203,14 +203,14 @@ void fixed_dues(int64_t last, int64_t now, int made, int64_t delay, int64_t* due
     for (int k = 0; k <= made; k++) due[k] = last + (now - last) * (k + 1) / (made + 1) + delay;
 }
 
-/// (YM) A fixed multiplier's set's delay before the GPU's (pace_delay): its made frames come from the game frame that
+/// (longshot) A fixed multiplier's set's delay before the GPU's (pace_delay): its made frames come from the game frame that
 /// came at now, so none of them can be shown before it. Delayed by made / (made + 1) of the game's frame time (frame), the
 /// set's first frame is due at now when the game frame came a frame time after the one before (earlier after a longer
 /// one), and its game frame that much later, where the next set's first one follows
 int64_t pace_lead(int64_t frame, int made) { return made > 0 ? frame * made / (made + 1) : 0; }
 
 // doc: docs/dev/reference/architecture.md#frame-generations-presents (rule 3: the GPU's delay from sets taken as they came)
-/// (YM) The GPU's delay that a fixed multiplier's sets are shown at past their lead (fg.late_ns), from what the last
+/// (longshot) The GPU's delay that a fixed multiplier's sets are shown at past their lead (fg.late_ns), from what the last
 /// set needed: its own delay (extra_ns) and how late (negative: early) its first frame could be shown against its time,
 /// and a millisecond to spare. The set's frames are done with the game frame's GPU work, so shown at times that did not
 /// wait for it, they came past them and went out at once. Up by half of what is missing, down by a sixteenth of what is
@@ -223,7 +223,7 @@ int64_t pace_delay(int64_t extra, int64_t need, int64_t frame) {
 }
 
 // doc: docs/dev/reference/architecture.md#frame-generations-presents (rule 2: sets on the game's timeline, any mode)
-/// (YM) Whether display_main shows a fixed multiplier's set at its times on the game's timeline (by_time): whatever
+/// (longshot) Whether display_main shows a fixed multiplier's set at its times on the game's timeline (by_time): whatever
 /// Frame pacing says and whatever the swapchain's mode. Where it does not wait for a refresh (immediate: V-Sync Off;
 /// mailbox), shown as they came, a set's frames went out within a millisecond, the made frames hardly on the screen, and
 /// DLSS Frame Gen 3x at V-Sync Off looked like the game's own frame rate (RTX 5090, 165 Hz with G-Sync). Under FIFO (V-Sync
@@ -233,7 +233,7 @@ int64_t pace_delay(int64_t extra, int64_t need, int64_t frame) {
 /// after it a step apart from there (RTX 5070 Ti: 3x uneven, Auto even). RX_VK_FG_TIMELINE=0 (env_off): never, as before
 bool fixed_on_timeline(bool by_time, bool env_off) { return by_time && !env_off; }
 
-/// (YM) Under FIFO, when a frame of a set on the game's timeline is presented: at its due time, but not sooner than a
+/// (longshot) Under FIFO, when a frame of a set on the game's timeline is presented: at its due time, but not sooner than a
 /// refresh (refresh; 0: not known) after the time the frame before was given (slot; 0: none yet). The screen shows one a
 /// refresh at most, and frames presented sooner (the game's rate times the multiplier at or past the display's; a set's
 /// frames due together after it came late) waited in the swapchain, the next set's copies waiting for its images. The
@@ -247,7 +247,7 @@ int64_t fifo_slot(int64_t due, int64_t slot, int64_t refresh, int64_t now) {
     return std::max(due, next < now - refresh / 2 ? now : next);
 }
 
-/// (YM) The set's frame shown k-th (0-based) when `shown` of its `frames` are shown: the frames at the even steps
+/// (longshot) The set's frame shown k-th (0-based) when `shown` of its `frames` are shown: the frames at the even steps
 /// k + 1 of shown across the set, rounded, so the frames left out are spread over it and the picture moves in even steps
 /// (6x with 3 shown: the 2nd, 4th and 6th; left out at the front the picture moved 4/6, 1/6 and 1/6 of a game frame). The
 /// last is always the set's last frame, the game's; all shown: frame k
@@ -256,7 +256,7 @@ int fifo_pick(int frames, int shown, int k) {
 }
 
 // doc: docs/dev/reference/architecture.md#frame-generations-presents (rule 6: under FIFO the made frames do not queue)
-/// (YM) FIFO's catch-up (display_main's take): how many made frames a fixed multiplier's set on the game's timeline
+/// (longshot) FIFO's catch-up (display_main's take): how many made frames a fixed multiplier's set on the game's timeline
 /// leaves out, spread over it (fifo_pick). The frames shown go a refresh apart at the least (fifo_slot), the first a
 /// refresh after each of the set before's frames still to show (left, the first of them at slot; 0: all shown, slot the
 /// last one's): the most kept so that the set's game frame, its last (due[made]), is shown no more than a refresh after
@@ -616,7 +616,7 @@ VkImage record_crt(VkCommandBuffer cmd, VkImageView src, uint32_t sw, uint32_t s
     return crt.output.image;
 }
 
-// (YM) The display thread's wait for a frame's time, on a high-resolution timer. sleep_for rests on the system timer,
+// (longshot) The display thread's wait for a frame's time, on a high-resolution timer. sleep_for rests on the system timer,
 // whose 1 ms (timeBeginPeriod) Windows 11 does not keep for a process whose window it takes as unseen: with the presents
 // no longer blocking (a present queue of their own) the thread slept before most frames and woke up to 20 ms after their time.
 void wait_until_near(int64_t ns) {
@@ -630,7 +630,7 @@ void wait_until_near(int64_t ns) {
     std::this_thread::sleep_for(std::chrono::nanoseconds(ns));
 }
 
-// (YM) RX_VK_FG_LATENCY_LOG=<file>: one CSV line for each present of the display thread, its times on the PC's
+// (longshot) RX_VK_FG_LATENCY_LOG=<file>: one CSV line for each present of the display thread, its times on the PC's
 // performance counter (QueryPerformanceCounter, the clock of PresentMon's --qpc_time): its set's game frame handed over
 // (framegen_record, the set's `at`), the present called and returned, and whether it shows the game's frame. A present's
 // call and return hold PresentMon's start of that present, so its row gives the game frame's time from its hand-over to the
@@ -827,14 +827,14 @@ void display_main() {
             memset(hist, 0, sizeof hist);
             stat = {0, 0, 0, j.at, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         }
-        // (YM) The pacer. The game hands over frames 12 to 28 ms apart around a mean of 19, and shown as they came that
+        // (longshot) The pacer. The game hands over frames 12 to 28 ms apart around a mean of 19, and shown as they came that
         // was the stutter, whatever the frame rate. Every frame now has its place on an even line, the recent frame time
         // apart, a frame early waiting for it: never more than one game frame behind what the game handed over, and a line
         // that has fallen behind what came starts again from now. RX_VK_PACE=0: as they come.
         const bool pace = opts.pace != 0;
         s.auto_timed = j.set->shown >= 0;   // (Auto: each frame at its own refresh's time)
         s.shown = s.auto_timed ? j.set->shown : j.set->made + 1;
-        // (YM) FIFO's catch-up: a set whose game frame would come over a refresh late leaves made frames out, spread
+        // (longshot) FIFO's catch-up: a set whose game frame would come over a refresh late leaves made frames out, spread
         // over it, and their copies (fifo_catch_up, fifo_pick). Without it, 3x at 165 Hz and 60 a second puts the game frame
         // ~80 ms from its hand-over to the screen (~50 with it); 6x: 138 ms. left: the set before's frames still to show.
         // Only a set on the timeline, which the swapchain holds whole (present_ahead_wanted): one shown a frame at a time
@@ -846,7 +846,7 @@ void display_main() {
             s.shown -= s.first, stat.caught += s.first;
         s.step = interval / std::max(s.shown, 1);
         if (s.auto_timed) menu_note_frame(true, 0);   // (the overlay's game rate: Auto counts each game frame, given a refresh or not)
-        // (YM) Present ahead. A frame's copy into the window submitted at its time sits behind the game's next frame on
+        // (longshot) Present ahead. A frame's copy into the window submitted at its time sits behind the game's next frame on
         // the same queue, and is shown only once that frame's rendering is done: at 2x the game's own frames reach the screen
         // ~3 ms after the made ones, unevenly apart, and a VRR display's refresh changes every frame (flicker on OLED).
         // So a set's copies go to the GPU
@@ -868,7 +868,7 @@ void display_main() {
         s.refresh = mhz > 0 ? (int64_t)(1e12 / mhz) : 0;
         fifo_refresh = s.line ? s.refresh : 0;   // (the catch-up's: the last set's on the timeline; 0 off it or unknown)
     };
-    // (YM) While a set on the game's timeline waits for its frames' times, the next one is taken as soon as it comes,
+    // (longshot) While a set on the game's timeline waits for its frames' times, the next one is taken as soon as it comes,
     // its copies to the GPU then for as many of its frames as the swapchain has images beside the ones this set still holds
     // (left: its frames still to be presented; vk_main.cpp asks for two sets' images, but an NVIDIA surface has 6 spare,
     // under two sets of 4); the rest as this set's presents give images back. Taken once this set's frames were shown, the
@@ -910,7 +910,7 @@ void display_main() {
         copy_up_to(s, (int)dev.swap_spare.load(std::memory_order_relaxed));
         const bool first = s.ahead && s.pending[0].used;   // (its first copy made ahead)
         if (first) vkWaitForFences(dev.device, 1, &s.pending[0].done, VK_TRUE, 100000000ull);   // (100 ms at most)
-        // (YM) A fixed multiplier's set on the game's timeline, presented ahead (its first copy's end waited for): its own
+        // (longshot) A fixed multiplier's set on the game's timeline, presented ahead (its first copy's end waited for): its own
         // delay and how late its first frame can be shown against its time, a millisecond to spare, set the delay of the sets
         // after it (pace_delay). The copy's end as seen while the set before was shown (ready_at, taken early), else now: a set
         // taken early was often done well before the set before it ended. Only from a set whose first copy went to the GPU
@@ -1007,7 +1007,7 @@ void display_main() {
     }
 }
 
-// (YM) The last sets' makers (framegen_maker): each framegen_record notes its set's on the replay thread; the menu's
+// (longshot) The last sets' makers (framegen_maker): each framegen_record notes its set's on the replay thread; the menu's
 // thread reads the counts. A ring of kMakerSets, the counts of each maker in it
 constexpr int kMakerSets = 64;
 std::atomic<int> maker_count[5] = {kMakerSets, 0, 0, 0, 0};   // (by FgMaker)
@@ -1024,7 +1024,7 @@ void note_maker(FgMaker m) {
     maker_at.store(now_ns(), std::memory_order_relaxed);
 }
 
-// (YM) This present gave FSR 3.1 a frame (fsr3fi_frames, right before fsr3fi::generate): its own images were in use, whatever
+// (longshot) This present gave FSR 3.1 a frame (fsr3fi_frames, right before fsr3fi::generate): its own images were in use, whatever
 // came of it and whichever made frames were shown. framegen_idle takes it, and clears it for the next present: both on the replay
 // thread, framegen_record before framegen_idle in every present
 bool fsr_given = false;
@@ -1248,7 +1248,7 @@ VkImage framegen_scale(VkCommandBuffer cmd, VkImageView src, VkImage image, uint
 
 VkImageView framegen_scaled_view() { return scale.output_view; }
 
-/// (YM) The Insert menu's HDR: src's crop to a dw x dh HDR10 image (PQ, Rec. 2020, 10 bits), to be copied into an HDR10
+/// (longshot) The Insert menu's HDR: src's crop to a dw x dh HDR10 image (PQ, Rec. 2020, 10 bits), to be copied into an HDR10
 /// swapchain's image as the SDR picture is (shaders/hdr_encode.comp); null when it cannot be made (then the SDR picture;
 /// Native's scaled picture, else black).
 /// src is the SDR picture, expanded, or with pq the game's own HDR10 picture (Native); either graded by the HDR contrast row
@@ -1304,7 +1304,7 @@ VkImage framegen_made_image(uint32_t* w, uint32_t* h, int* index) {
     return fg.recorded->frame[k].image;
 }
 
-// (YM) The HUD for AMD FSR 3.1's frame interpolation. The game draws its HUD (hearts, minimap, button
+// (longshot) The HUD for AMD FSR 3.1's frame interpolation. The game draws its HUD (hearts, minimap, button
 // prompts) into the same picture as the scene, after its gameplay upscale, and has no HUD-less colour. Guessing the HUD
 // as the pixels the same in both frames while the scene moves fails for the see-through parts (the minimap, the prompts'
 // backing), the soft edges and anything animated, which are moved with the scene: a HUD that smears and shakes with every
@@ -1527,7 +1527,7 @@ void framegen_hud_before(VkCommandBuffer cmd, Texture* picture, uint32_t level) 
     hud.fresh = true;
 }
 
-/// (YM) A set's made frames by AMD FSR 3.1's frame interpolation (vk_fsr3fi.h), from this frame's colour and the
+/// (longshot) A set's made frames by AMD FSR 3.1's frame interpolation (vk_fsr3fi.h), from this frame's colour and the
 /// scene's depth and motion (vk_fsr3_inputs.h): made frame i at t[i] between the frame before (0) and this one (1), into
 /// set.frame[slot[i]]. Returns count when it made them all, 0 when it did not (no inputs this present, a reset, anything not
 /// made), which leaves the set to the interpolation below. Called every present while FSR is asked (count 0 too: a set with
@@ -1657,7 +1657,7 @@ bool framegen_record(VkCommandBuffer cmd, VkImageView src, uint32_t sw, uint32_t
         } else {   // (nothing to blend from: the game's frame, and the timeline starts at it)
             n = 1, t[0] = 1.0f, at[0] = now, fg.slot_next = now + period;
         }
-        // (YM) AMD FSR 3.1's frame interpolation where it is asked (vk_fsr3fi.h): each made frame at its refresh's
+        // (longshot) AMD FSR 3.1's frame interpolation where it is asked (vk_fsr3fi.h): each made frame at its refresh's
         // place, from the scene's depth and motion. Given every present, with none to make too, so the next set has its
         // history; a set it does not make goes to the renderer's own below. DLSS-G is not asked: it makes a fixed 2x and up
         float made_t[kMaxMult];
@@ -1700,7 +1700,7 @@ bool framegen_record(VkCommandBuffer cmd, VkImageView src, uint32_t sw, uint32_t
         fg.recorded_at = now;
         return true;
     }
-    // (YM) NVIDIA DLSS Frame Generation through NGX where it runs and the Frame generation by row asks for it (vk_dlss.cpp):
+    // (longshot) NVIDIA DLSS Frame Generation through NGX where it runs and the Frame generation by row asks for it (vk_dlss.cpp):
     // every made frame of the set, from the scene's own depth, motion and camera. A set it does not make goes on below as before
     // (asked every present: turned off, it lets its feature go)
     if (m > 1) {
@@ -1710,11 +1710,11 @@ bool framegen_record(VkCommandBuffer cmd, VkImageView src, uint32_t sw, uint32_t
         set->made = dlss_fg_frames(cmd, fg.frames[cur].image, fg.frames[cur].view, uw, uh, m - 1, outs, views, blend, sequence);
     }
     FgMaker maker = set->made ? FgMaker::Dlss : FgMaker::None;
-    // (YM) DLSS FG chosen, on a temporal Upscaler, and no picture from it for this set (the game's own menus, movies and
+    // (longshot) DLSS FG chosen, on a temporal Upscaler, and no picture from it for this set (the game's own menus, movies and
     // loading screens draw no 3D: dlss_fg_holds): the game's frame alone, neither FSR 3.1's frames nor the built-in one's
     const bool held = set->made == 0 && blend && m > 1 && dlss_fg_holds();
     if (held) maker = FgMaker::DlssPaused;
-    // (YM) Where DLSS-G did not make them, AMD FSR 3.1's frame interpolation where it is asked (vk_fsr3fi.h): the set's
+    // (longshot) Where DLSS-G did not make them, AMD FSR 3.1's frame interpolation where it is asked (vk_fsr3fi.h): the set's
     // made frames at k/m, 1/2 at 2x, 1/3 and 2/3 at 3x. Given every present it is asked, with none to make too (nothing to
     // blend from), so the next set has its history; any it does not make stays with the interpolation below
     if (!held && set->made == 0 && m > 1 && fsr3fi::frames_wanted()) {
@@ -1739,7 +1739,7 @@ bool framegen_record(VkCommandBuffer cmd, VkImageView src, uint32_t sw, uint32_t
         maker = FgMaker::BuiltIn;
     }
     note_maker(maker);
-    // (YM) The set's times on the game's own timeline (fixed_dues): each frame at its place between the two game
+    // (longshot) The set's times on the game's own timeline (fixed_dues): each frame at its place between the two game
     // frames, its lead (pace_lead) and the GPU's delay (pace_delay) later. display_main shows the set at them
     // (fixed_on_timeline; under FIFO one a refresh at most, fifo_slot). Without a frame before it (the first, a hitch) or a
     // made frame, none

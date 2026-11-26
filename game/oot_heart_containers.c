@@ -1,4 +1,4 @@
-/* (YM) The pieces of heart Link has found, for the Discord status ({heart_pieces}: game/discord_activity.c).
+/* (longshot) The pieces of heart Link has found, for the Discord status ({heart_pieces}: game/discord_activity.c).
 
    The game keeps the pieces Link holds, 0 to 3 (four make a heart: game/oot_tools.c counts them in his pouch), and nothing
    that counts the ones he found. The total comes from his hearts instead: he starts with 3, each boss heart container he

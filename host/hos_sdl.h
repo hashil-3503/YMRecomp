@@ -35,7 +35,7 @@ uint32_t hos_sdl_mouse_buttons(void);   /* 1 left, 2 middle, 4 right */
 void hos_sdl_mouse_position(float *x, float *y);   /* main thread, window-coordinate units */
 void hos_sdl_window_size(void *window, int *width, int *height);   /* (in the units of the mouse's position, not pixels) */
 void hos_sdl_icon(void *window, const char *png);   /* (SDL 3.4's PNG loader: nothing on SDL2 or an older SDL3) */
-/* (YM) typed text, for the Insert menu's text fields: text input on or off for the window (SDL_StartTextInput: text
+/* (longshot) typed text, for the Insert menu's text fields: text input on or off for the window (SDL_StartTextInput: text
    events, an input method's window; SDL2 has it on from the start, SDL3 off), the clipboard's text (UTF-8, NULL when none;
    given back with hos_sdl_free) */
 void hos_sdl_text_input(void *window, int on);
@@ -67,7 +67,7 @@ int hos_sdl_poll_event(HosSdlEvent *e);
 int hos_sdl_output_count(void);
 int hos_sdl_output_info(int index, char *id, int id_capacity, char *name, int name_capacity);
 int hos_sdl_output_resolve(const char *id);
-int hos_sdl_output_channels(int index);   /* (YM) the index'th device's channels, after hos_sdl_output_count; 0 unknown */
+int hos_sdl_output_channels(int index);   /* (longshot) the index'th device's channels, after hos_sdl_output_count; 0 unknown */
 int hos_sdl_pad_audio_endpoint(void *pad); /* token for this pad's four-channel endpoint, or -1 */
 void *hos_sdl_audio_open(unsigned device, int freq, int channels, int s16, int frames,
                          void (*pull)(void *user, uint8_t *out, int len), void *user);
@@ -75,7 +75,7 @@ void hos_sdl_audio_close(void *audio);   /* stops callbacks before freeing their
 int hos_sdl_audio_alive(void *audio);   /* bounded polling for a removed named endpoint/stopped SDL2 device */
 int hos_sdl_audio_channels(void);   /* selected/default output's channels; 2 when SDL cannot say */
 
-/* ---- (YM) microphones: SDL3's recording devices or SDL2's capture devices, for the game's input streams
+/* ---- (longshot) microphones: SDL3's recording devices or SDL2's capture devices, for the game's input streams
    (host/nn_audio_in.c). The device's sound comes out converted to the format asked for (SDL resamples and mixes the
    channels down) ---- */
 int hos_sdl_mic_list(uint32_t *ids, char (*names)[128], int max);   /* the recording devices now: their count */
@@ -117,7 +117,7 @@ int hos_sdl_knows_steam_pads(void);
 uint16_t hos_sdl_pad_vendor(void *pad);
 uint16_t hos_sdl_pad_product(void *pad);   /* (its USB product id, 0 unknown: the Steam Deck's built-in controls and vibration.h's Steam Controller (2026)) */
 uint64_t hos_sdl_pad_steam_handle(void *pad);
-/* (YM) vibration (host/pad_sdl.c, host/rumble_renhdrum.c): a pad's transport (1 wireless, 0 wired, -1 when SDL
+/* (longshot) vibration (host/pad_sdl.c, host/rumble_renhdrum.c): a pad's transport (1 wireless, 0 wired, -1 when SDL
    cannot say); an Xbox pad's trigger motors (1 sent); a pad's device path ("" unknown) and a second handle on it */
 int hos_sdl_pad_wireless(void *pad);
 int hos_sdl_pad_rumble_triggers(void *pad, uint16_t left, uint16_t right, uint32_t ms);
@@ -126,4 +126,4 @@ int hos_sdl_hid_can(void);
 void *hos_sdl_hid_open(const char *path);
 int hos_sdl_hid_write(void *hid, const void *data, int size);   /* the bytes written, -1 on failure */
 void hos_sdl_hid_close(void *hid);
-int hos_sdl_pad_headphones(void *pad);   /* (YM) a DualSense's jack: 1 headphones in, 0 out, -1 when it cannot say */
+int hos_sdl_pad_headphones(void *pad);   /* (longshot) a DualSense's jack: 1 headphones in, 0 out, -1 when it cannot say */

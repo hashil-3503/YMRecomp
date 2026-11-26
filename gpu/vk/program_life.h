@@ -1,4 +1,4 @@
-// (YM) The states of what the game's programs need loaded (vk_programs.cpp), and nothing of Vulkan: tests/test_program_life.py.
+// (longshot) The states of what the game's programs need loaded (vk_programs.cpp), and nothing of Vulkan: tests/test_program_life.py.
 //
 // The game makes a program (gives it its shaders), draws with it some time later, and frees it. What the renderer keeps for a
 // program is a unit: the kept program variants of those stages and the pipelines the lists name for them. Several of the game's

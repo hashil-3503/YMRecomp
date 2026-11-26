@@ -1,4 +1,4 @@
-// (YM) HMMA.16816.F16 in software: D(16x8) = A(16x16) * B(16x8) + C on the subgroup's lanes, for GPUs without
+// (longshot) HMMA.16816.F16 in software: D(16x8) = A(16x16) * B(16x8) + C on the subgroup's lanes, for GPUs without
 // cooperative matrices (AMD before RDNA 3, the Steam Deck among them; GTX 10 and 16; Intel's integrated GPUs). The 32 lanes'
 // fragments (PTX mma.m16n8k16's layout: lane t, g = t/4, i = t%4) are exchanged through subgroup operations; the products are
 // accumulated with FMA in f32 and rounded to f16 after every 8 columns of K, as HMMA.F16 does. One function, called for each

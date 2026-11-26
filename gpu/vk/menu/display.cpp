@@ -47,7 +47,7 @@ const char* hn_fullscreen_monitor(int, int variant) {
     if (monitor_missing) return "The selected monitor is unavailable. The current monitor is used temporarily; the saved choice is kept.";
     return "While windowed, this chooses the next fullscreen screen. While fullscreen, it moves the game now. Leaving fullscreen restores the window.";
 }
-/// (YM) The host's monitors listed again, the row on the chosen one (by its ID, monitor_choice.h pick; past the list,
+/// (longshot) The host's monitors listed again, the row on the chosen one (by its ID, monitor_choice.h pick; past the list,
 /// the saved one unplugged), its name kept while it is there; the menu drawn again when any of that changed
 void refresh_monitors() {
     const int old_count = (int)fullscreen_monitors.size(), old_pick = monitor_pick;

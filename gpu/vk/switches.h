@@ -1,4 +1,4 @@
-// (YM) The switches, in one table (switches.def): every RX_, HOS_ and YM_ name the renderer or the host reads from
+// (longshot) The switches, in one table (switches.def): every RX_, HOS_ and YM_ name the renderer or the host reads from
 // the environment, what kind of switch it is, what it does unset and what setting it does. The reads stay where they are used;
 // tests/test_switch_table.py fails on a name read in the source that the table does not have, on a row nothing reads, and on a
 // removed name that is still read. At the start the renderer says which switches the run has set (switches::report): a log

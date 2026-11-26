@@ -1,4 +1,4 @@
-/* (YM) The performance summary (perf_report.cpp gathers it, the launcher sends it: YM-builder perf-report, builder/crates/build-driver/src/perf.rs): what a
+/* (longshot) The performance summary (perf_report.cpp gathers it, the launcher sends it: YM-builder perf-report, builder/crates/build-driver/src/perf.rs): what a
    player who ticked "Send performance statistics" in the launcher sends about their frames, split by the map they were
    on. Frame totals are sampled every second with Link's position and camera view. Every few minutes and at the end the game writes one summary into the game folder's
    perf_pending folder; the launcher sends them to the perf relay (YM-api's telemetry, /telemetry/perf: telemetry/perf there, whose

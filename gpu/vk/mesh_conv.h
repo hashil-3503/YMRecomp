@@ -1,4 +1,4 @@
-// (YM) The indirect mesh draws' arguments in Vulkan's layout (vk_draw.cpp mesh_indirect_convert): where a draw's
+// (longshot) The indirect mesh draws' arguments in Vulkan's layout (vk_draw.cpp mesh_indirect_convert): where a draw's
 // {count, 1, 1} records go in the ring, and which draws after a barrier of the game's have theirs converted there all at once
 // (RX_VK_MESH_CONV=2, vk_replay.cpp NOP_BARRIER). No Vulkan here: tests/mesh_conv_test.cpp runs it on a model of the stream.
 //

@@ -1,4 +1,4 @@
-// (YM) The programs the driver's compiler faulted on, kept out of the driver for good (vk_draw.cpp build_graphics).
+// (longshot) The programs the driver's compiler faulted on, kept out of the driver for good (vk_draw.cpp build_graphics).
 //
 // guarded_graphics catches an access violation inside vkCreateGraphicsPipelines so that one draw is lost, not the game. On
 // AMD's Windows driver (amdvlk64.dll, driver 0x800161) the fault leaves that program's compile unfinished inside

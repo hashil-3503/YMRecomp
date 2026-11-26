@@ -1,4 +1,4 @@
-// (YM) The built-in shaders from disk under RX_VK_SHADER_DIR. See vk_builtin_spv.h.
+// (longshot) The built-in shaders from disk under RX_VK_SHADER_DIR. See vk_builtin_spv.h.
 #include "vk_builtin_spv.h"
 
 #include <cctype>

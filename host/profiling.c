@@ -1,4 +1,4 @@
-/* (YM) HOS_PROFILE=1: the profiling mode. One switch (allowed in YM_env.txt) that records, for the whole run,
+/* (longshot) HOS_PROFILE=1: the profiling mode. One switch (allowed in YM_env.txt) that records, for the whole run,
    what it takes to find where the time goes and what each stutter was, into a folder of its own, logs/profile-<date>-<time>/:
 
      all.txt       every game and renderer thread's stack every 2 ms (HOS_SAMPLE_ALL, from the start; deleting all.txt.go

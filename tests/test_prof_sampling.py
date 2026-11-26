@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 
 def scopes(source):
     """The sampled timers, from their comment to the namespace's end, and the PROF macros"""
-    start = source.index("// (YM) The per-draw phases (PROF_HOT)")
+    start = source.index("// (longshot) The per-draw phases (PROF_HOT)")
     end = source.index("} // namespace mkwvk", start)
     macros = [line for line in source[end:].splitlines() if line.startswith("#define PROF")]
     if len(macros) != 3:

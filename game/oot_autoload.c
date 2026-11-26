@@ -1,4 +1,4 @@
-/* (YM) The Insert menu's Skip title screen row (gpu/vk/vk_menu.cpp): start with the most recent save instead of the
+/* (longshot) The Insert menu's Skip title screen row (gpu/vk/vk_menu.cpp): start with the most recent save instead of the
    title screen.
 
    The remake has one save the player chooses (its slot_NN folders are the game's own autosave slots). The title screen and

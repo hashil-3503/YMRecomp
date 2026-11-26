@@ -8,7 +8,7 @@
 /* the Gameplay tab's Text speed (host/nn_vi.c reads it as 5: the letters' clock, game/oot_text_step.c): 0 the game's, 1 2x,
    2 4x, 3 instant */
 enum { HOS_OPT_TEXT_SPEED = 5 };
-/* (YM) the Gameplay tab's Text size (game/oot_text_size.c): 0 the game's, 1 110%, 2 125%, 3 150%, 4 175% */
+/* (longshot) the Gameplay tab's Text size (game/oot_text_size.c): 0 the game's, 1 110%, 2 125%, 3 150%, 4 175% */
 enum { HOS_OPT_TEXT_SIZE = 10 };
 /* The Debug tab's cheats (game/oot_tools.c): Infinite hearts, Flight, the action, Free camera, Movement speed */
 enum { HOS_OPT_CHEAT_HEARTS = 32, HOS_OPT_CHEAT_FLIGHT, HOS_OPT_CHEAT_ACTION, HOS_OPT_CHEAT_CAMERA, HOS_OPT_CHEAT_SPEED };

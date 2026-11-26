@@ -1,4 +1,4 @@
-// (YM) The size NVIDIA's own driver lets its shader cache grow to, for the pipeline cache file's rule (pcache_load.h) and
+// (longshot) The size NVIDIA's own driver lets its shader cache grow to, for the pipeline cache file's rule (pcache_load.h) and
 // the start's log. A start builds about 2 GB of pipelines into that cache, the shader preparation's predicted ones into it alone
 // (vk_draw.cpp predict_run), and the driver cleans its cache down to the limit as it is written: under kRoomMb, the pipelines it
 // dropped are compiled again in play, the "everything compiles again" players see with no driver update (players' logs: caches

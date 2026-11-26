@@ -256,7 +256,7 @@ FSR3_VARIANTS = [
 ]
 
 
-# (YM) Frame interpolation and the optical flow it runs on, the same arrangement: AMD ships
+# (longshot) Frame interpolation and the optical flow it runs on, the same arrangement: AMD ships
 # each pass as GLSL over the SDK's own GPU headers, and the renderer records them as SPIR-V headers
 # beside the upscaler's. The options are the same promises about the same inputs -- the depth is
 # reversed and the motion is at the render extent -- because the inputs are the ones the upscaler is
@@ -272,7 +272,7 @@ FI_OPTIONS = [
 ]
 OF_OPTIONS = ["-DFFX_GPU=1", "-DFFX_GLSL=1"]
 
-# (YM) Frame interpolation's GPU headers with two changes of ours, made on a copy at compile time: third_party/
+# (longshot) Frame interpolation's GPU headers with two changes of ours, made on a copy at compile time: third_party/
 # stays AMD's, byte for byte (scripts/check_third_party.py), and what changes is written here, line by line, each one
 # found exactly as many times as it says or the script stops. gpu/vk/vk_fsr3fi.cpp fills what the changes read.
 #
@@ -304,32 +304,32 @@ FI_PATCHES = {
     "ffx_frameinterpolation_inpainting.h": [
         ("            const FfxFloat32 fStaticFactor = CalculateStaticContentFactor(RawRGBToLinear(fCurrentInterpolationSource), "
          "RawRGBToLinear(fPresentColor));\n",
-         "            const FfxFloat32 fStaticFactor = 1.0f;   // (YM) the presented frame's pixel, whole (FI_PATCHES 4)\n", 1),
+         "            const FfxFloat32 fStaticFactor = 1.0f;   // (longshot) the presented frame's pixel, whole (FI_PATCHES 4)\n", 1),
     ],
     "ffx_frameinterpolation_callbacks_glsl.h": [
         ("        FfxInt32        _pad1;\n",
-         "        FfxFloat32      fInterpolationT;   // (YM) the made frame's place: 0 the frame before, 1 this one\n", 1),
+         "        FfxFloat32      fInterpolationT;   // (longshot) the made frame's place: 0 the frame before, 1 this one\n", 1),
         ("    FfxFloat32 TanHalfFoV()\n    {\n        return cbFI.fTanHalfFOV;\n    }\n",
          "    FfxFloat32 TanHalfFoV()\n    {\n        return cbFI.fTanHalfFOV;\n    }\n"
          "\n"
-         "    // (YM) the made frame's place between the frame before (0) and this one (1): AMD's passes fix it at 0.5\n"
+         "    // (longshot) the made frame's place between the frame before (0) and this one (1): AMD's passes fix it at 0.5\n"
          "    FfxFloat32 InterpolationT()\n    {\n        return cbFI.fInterpolationT;\n    }\n"
          "    // (the vector fields keep half the motion: the frame before is 2t of it away, this one 2(1 - t))\n"
          "    FfxFloat32 PrevScale()\n    {\n        return 2.0f * cbFI.fInterpolationT;\n    }\n"
          "    FfxFloat32 CurrScale()\n    {\n        return 2.0f * (1.0f - cbFI.fInterpolationT);\n    }\n"
-         "    // (YM) the HUD kept where it is (vk_fsr3fi.cpp kKeepStatic)\n"
+         "    // (longshot) the HUD kept where it is (vk_fsr3fi.cpp kKeepStatic)\n"
          "    FfxBoolean KeepStaticPixels()\n    {\n        return (cbFI.dispatchFlags & (1u << 16)) != 0u;\n    }\n"
-         "    // (YM) the colour's alpha marks the HUD, 0 where it is (vk_fsr3fi.cpp kHudMask)\n"
+         "    // (longshot) the colour's alpha marks the HUD, 0 where it is (vk_fsr3fi.cpp kHudMask)\n"
          "    FfxBoolean HudMaskInAlpha()\n    {\n        return (cbFI.dispatchFlags & (1u << 17)) != 0u;\n    }\n", 1),
         # (each frame's HUD mark, the alpha of the two interpolation sources: KeepStaticPixels' known HUD)
         ("        return texelFetch(r_previous_interpolation_source, iPxPos, 0).rgb;\n    }\n",
          "        return texelFetch(r_previous_interpolation_source, iPxPos, 0).rgb;\n    }\n"
-         "    // (YM) the frame before's HUD mark: 0 the HUD (HudMaskInAlpha)\n"
+         "    // (longshot) the frame before's HUD mark: 0 the HUD (HudMaskInAlpha)\n"
          "    FfxFloat32 LoadPreviousBackbufferAlpha(FFX_PARAMETER_IN FfxInt32x2 iPxPos)\n    {\n"
          "        return texelFetch(r_previous_interpolation_source, iPxPos, 0).a;\n    }\n", 1),
         ("        return texelFetch(r_current_interpolation_source, iPxPos, 0).rgb;\n    }\n",
          "        return texelFetch(r_current_interpolation_source, iPxPos, 0).rgb;\n    }\n"
-         "    // (YM) this frame's HUD mark: 0 the HUD (HudMaskInAlpha)\n"
+         "    // (longshot) this frame's HUD mark: 0 the HUD (HudMaskInAlpha)\n"
          "    FfxFloat32 LoadCurrentBackbufferAlpha(FFX_PARAMETER_IN FfxInt32x2 iPxPos)\n    {\n"
          "        return texelFetch(r_current_interpolation_source, iPxPos, 0).a;\n    }\n", 1),
     ],
@@ -391,7 +391,7 @@ FI_PATCHES = {
          "                        fInPaintingWeight);\n}\n", 1),
         # (the two helpers, ahead of computeInterpolatedColor, which calls them)
         ("void updateInPaintingWeight(inout FfxFloat32 fInPaintingWeight, FfxFloat32 fFactor)\n",
-         "// (YM) The HUD kept where it is: a pixel the same in both frames (to within half an 8-bit step), inside the\n"
+         "// (longshot) The HUD kept where it is: a pixel the same in both frames (to within half an 8-bit step), inside the\n"
          "// frame. KeepStaticPixels says whether to look at all\n"
          "FfxBoolean YMSame(FfxInt32x2 iPx)\n"
          "{\n"

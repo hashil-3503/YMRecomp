@@ -1,4 +1,4 @@
-// (YM) The temporal upscalers' reactive mask: the scene's colour copied before its transparent draws, and compared
+// (longshot) The temporal upscalers' reactive mask: the scene's colour copied before its transparent draws, and compared
 // at the upscale with what its target holds then (shaders/reactive_mask.comp). See vk_reactive.h.
 //
 // One copy is kept, the last made: the draws after it are the scene's last run of transparent ones (reactive_policy.h).

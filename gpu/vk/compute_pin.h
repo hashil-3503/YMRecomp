@@ -1,4 +1,4 @@
-// (YM) Which of the game's compute programs are held to 32 lanes (vk_draw.cpp compute_pipeline_info, pin_subgroup).
+// (longshot) Which of the game's compute programs are held to 32 lanes (vk_draw.cpp compute_pipeline_info, pin_subgroup).
 //
 // The translated programs assume the guest's warp: 32 lanes that run together. A stage is held to that where the GPU
 // can (VkPipelineShaderStageRequiredSubgroupSizeCreateInfo), and every compute program was. On Mesa's Intel driver that

@@ -1,4 +1,4 @@
-// (YM) The start's wait for workers that build pipelines in the driver before the title, bounded by their progress:
+// (longshot) The start's wait for workers that build pipelines in the driver before the title, bounded by their progress:
 // a build the driver takes minutes over, or never finishes, must not hold the start for good behind a screen that shows
 // nothing moving. vk_draw.cpp precompile_at_create (RX_VK_LOAD=create, the default): on RDNA 1 cards (AMD's Windows driver,
 // the mesh programs through the compute fallback) a start without it can sit at 0%, "Loading the shader cache", for good.

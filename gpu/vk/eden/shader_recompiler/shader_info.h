@@ -179,7 +179,7 @@ struct StorageBufferDescriptor {
     auto operator<=>(const StorageBufferDescriptor&) const = default;
 };
 
-/// (YM) A simulated-turf private storage buffer (ir_opt/sim_turf_pool_pass.h): a buffer of the back end's own, found by the guest address
+/// (longshot) A simulated-turf private storage buffer (ir_opt/sim_turf_pool_pass.h): a buffer of the back end's own, found by the guest address
 /// at c0+(cbuf_offset & 0xffff), standing in for that address's records (bit 31; c0 holds 64 KiB, so no real offset has it).
 /// Bit 30: the 48-byte pool (else the 8-byte list); bit 29: the program that makes it (else one that reads it, from the game's
 /// own buffer when nothing made one)
@@ -391,7 +391,7 @@ struct Info {
     u32 constant_buffer_mask{};
     std::array<u32, MAX_CBUFS> constant_buffer_used_sizes{};
     u32 nvn_buffer_base{};
-    // (YM) storage buffer tables: NVN descriptors (address, size) at cbuf_offset + 16k of a constant buffer,
+    // (longshot) storage buffer tables: NVN descriptors (address, size) at cbuf_offset + 16k of a constant buffer,
     // which global memory accesses pick at run time (OoT's froxel fog: c4 + 0xe0 + 16 * a loop index). The global
     // memory fallbacks search their kGlobalTableSize entries (AddNVNStorageBuffers adds them as descriptors).
     static constexpr u32 kGlobalTableSize{16};

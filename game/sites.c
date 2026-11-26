@@ -1,4 +1,4 @@
-/* (YM) The hook sites' flags and callback slots, and the data rules' values and tables (game/sites.h has what
+/* (longshot) The hook sites' flags and callback slots, and the data rules' values and tables (game/sites.h has what
    they are; docs/dev/reference/hooks.md the whole). */
 #include "sites.h"
 #include "phases.h"

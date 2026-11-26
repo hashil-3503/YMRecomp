@@ -45,7 +45,7 @@ USER_ID = "5a3c9e1f0b7d24680000000000000001"
 def build(cc, tmp):
     source = (ROOT / "host" / "hos_main.c").read_text(encoding="utf-8")
     start = source.index("static int is_dir(const char *p) {")
-    end = source.index("/* (YM) What a write of a setting", source.index("static const char *saves_dir(const char *beside) {"))
+    end = source.index("/* (longshot) What a write of a setting", source.index("static const char *saves_dir(const char *beside) {"))
     src, exe = tmp / "mover.c", tmp / "mover"
     src.write_text(program(source[start:end], "/"), encoding="utf-8")
     subprocess.run([cc, "-std=gnu11", "-D_GNU_SOURCE", "-w", "-I", str(ROOT / "host" / "posix"), "-I", str(ROOT / "host"), str(src),
@@ -91,7 +91,7 @@ def compile_windows(tmp):
         return
     source = (ROOT / "host" / "hos_main.c").read_text(encoding="utf-8")
     start = source.index("static int is_dir(const char *p) {")
-    end = source.index("/* (YM) What a write of a setting", source.index("static const char *saves_dir(const char *beside) {"))
+    end = source.index("/* (longshot) What a write of a setting", source.index("static const char *saves_dir(const char *beside) {"))
     src = tmp / "mover_windows.c"
     src.write_text(program(source[start:end], "\\"), encoding="utf-8")
     r = subprocess.run([mingw, "-std=gnu11", "-Wall", "-Werror", "-Wno-unused-function", "-I", str(ROOT / "host"), str(src),

@@ -372,7 +372,7 @@ Id EmitStorageAtomicExchange32x2(EmitContext& ctx, const IR::Value& binding,
 
 Id EmitStorageAtomicAddF32(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset,
                            Id value) {
-    if (ctx.native_f32_add) {   // (YM) the GPU's own float add: one atomic, never given up (DefineStorageBuffers)
+    if (ctx.native_f32_add) {   // (longshot) the GPU's own float add: one atomic, never given up (DefineStorageBuffers)
         const Id pointer{StoragePointer(ctx, ctx.storage_types.F32, &StorageDefinitions::F32, binding, offset,
                                         sizeof(f32))};
         const auto [scope, semantics]{AtomicArgs(ctx)};

@@ -1,4 +1,4 @@
-/* (YM) Save my pipeline list (the Insert menu's Debug tab, vk_menu.cpp): the zip a player attaches to the "Submit your
+/* (longshot) Save my pipeline list (the Insert menu's Debug tab, vk_menu.cpp): the zip a player attaches to the "Submit your
    pipelines" issue (#14), as plain functions. No Vulkan, no menu, no files: tests/test_pipeline_share.py compiles this header.
    The builders make the same zip with YM-builder share: the same two files, the same checks of the list (scripts/pipeline_states.py
    --check), the same template lines.

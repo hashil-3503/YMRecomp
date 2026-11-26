@@ -1,4 +1,4 @@
-// (YM) The first start after a preparation, under RX_VK_LOAD=create, runs two passes on the start-up bar's one part:
+// (longshot) The first start after a preparation, under RX_VK_LOAD=create, runs two passes on the start-up bar's one part:
 // precompile_warm (every noted pipeline built into the pipeline cache) and then precompile_at_create (each mesh fallback
 // program's compute pipelines, then the kept programs' noted pipelines). Each counting its own steps, the warm reaches its
 // total, the bar never goes back (PrepareBar), and the screen reads 100% through the second pass (91 s on a Steam Deck).

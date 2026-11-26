@@ -1,4 +1,4 @@
-// (YM) A mark per 4 KB page that is set and never taken off, read without a lock: whether anything of a kind ever
+// (longshot) A mark per 4 KB page that is set and never taken off, read without a lock: whether anything of a kind ever
 // touched a page. invalidate_quick (vk_replay.cpp) reads two of them on the game's thread with its virtual core held: the
 // pages a write-back of GPU results ever landed on (vk_memory.cpp wb_pages_note) and the pages of a texture the GPU wrote
 // that was ever listed for its texels' write-back (vk_texture.cpp vw_note). A range with neither has nothing in it that

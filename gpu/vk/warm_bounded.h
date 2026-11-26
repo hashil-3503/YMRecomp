@@ -1,4 +1,4 @@
-// (YM) Work done one item at a time on a few threads, each item made, used and let go before the thread takes the
+// (longshot) Work done one item at a time on a few threads, each item made, used and let go before the thread takes the
 // next: no more than `threads` items are alive at once, however many there are (vk_draw.cpp precompile_warm: every noted
 // pipeline built into the pipeline cache and destroyed, where keeping them all ready needs more memory than some PCs have).
 // tests/test_warm_bounded.py.

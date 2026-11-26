@@ -202,7 +202,7 @@ def main():
         module = (ROOT / 'gpu/vk/menu/audio.cpp').read_text(encoding='utf-8')
         pick = re.search(r'^int output_pick = 0;.*\n', module, re.M)
         assert pick, 'gpu/vk/menu/audio.cpp: no output_pick'
-        globals_text=pick.group(0)+module[module.index('// The playback row stores'):module.index('// (YM) the Microphone row:')]
+        globals_text=pick.group(0)+module[module.index('// The playback row stores'):module.index('// (longshot) the Microphone row:')]
         helpers=module[module.index('void refresh_outputs()'):module.index('void mic_tell_host()')]
         src,exe=work/'menu.cpp',work/'menu.exe'
         src.write_text(MENU.replace('@GLOBALS@',globals_text).replace('@HELPERS@',helpers),encoding='utf-8')

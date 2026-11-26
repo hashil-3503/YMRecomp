@@ -1,4 +1,4 @@
-// (YM) The FPS counter's measurements (vk_fps.h): the game's frames, present to present on the thread that presents,
+// (longshot) The FPS counter's measurements (vk_fps.h): the game's frames, present to present on the thread that presents,
 // into a ring of the last seconds; from Breakdown on, where each frame's time went. OoT simulates on its main thread and
 // records its frame on its presentation thread, which presents: the parts are that thread's. The renderer's time is its
 // entries' (submit, present, finish, which replay on the calling thread), less the waits inside them; the waits for the GPU

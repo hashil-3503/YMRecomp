@@ -1,4 +1,4 @@
-// (YM) The shader store: every program's SPIR-V kept once, by its content, for every game folder of the player.
+// (longshot) The shader store: every program's SPIR-V kept once, by its content, for every game folder of the player.
 //
 // A game folder's YM_programs.bin held each stage's SPIR-V itself: 7.5 GB a build, half of it the same SPIR-V again
 // (programs sharing a vertex or a fragment stage), and the same again in every other build. Two builds a player kept, stable

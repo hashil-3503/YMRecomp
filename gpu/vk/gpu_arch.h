@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) GPU architecture classification in one place (gpu_arch.h), with no Vulkan calls or environment reads.
+// (longshot) GPU architecture classification in one place (gpu_arch.h), with no Vulkan calls or environment reads.
 // device_policy.h classifies DeviceFacts once from vendor ID, PCI device ID, device name and (for RADV GCN) 16-bit
 // stage-input support so architecture-specific rules and driver workarounds share one table instead of scattered PCI ID
 // lists and string checks. Verified by tests/test_gpu_arch.py.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) The shader module identifiers of kept programs (VK_EXT_shader_module_identifier), by program key and variant, in a
+// (longshot) The shader module identifiers of kept programs (VK_EXT_shader_module_identifier), by program key and variant, in a
 // side file beside the program cache: with one, a pipeline the driver's or the start's cache holds is made without the program's
 // code being read and without a module. The file is good for one program cache (its stamp) and one driver's identifiers (the
 // algorithm UUID): any other, and it starts empty. Nothing of Vulkan here: tests/test_module_ids.py runs it alone.

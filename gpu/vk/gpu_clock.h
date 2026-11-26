@@ -1,4 +1,4 @@
-// (YM) The GPU's clock on the Steam Deck: whether the renderer asks amdgpu for a stable power state (vk_gpu_clock.cpp
+// (longshot) The GPU's clock on the Steam Deck: whether the renderer asks amdgpu for a stable power state (vk_gpu_clock.cpp
 // asks), and which. On by default on the Steam Deck (choose); RX_VK_GPU_CLOCK=0 leaves the clocks to the driver. The rules
 // alone: no Vulkan, no system calls (tests/test_gpu_clock.cpp).
 //

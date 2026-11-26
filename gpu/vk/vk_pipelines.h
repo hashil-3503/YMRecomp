@@ -1,4 +1,4 @@
-// (YM) What the programs' loader (vk_programs.cpp) asks of the pipelines' code (vk_draw.cpp): the precompile's notes by
+// (longshot) What the programs' loader (vk_programs.cpp) asks of the pipelines' code (vk_draw.cpp): the precompile's notes by
 // position, a pipeline made from the caches alone, and a place for pipelines made ahead of their first draw.
 #pragma once
 

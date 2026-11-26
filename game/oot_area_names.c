@@ -1,4 +1,4 @@
-/* (YM) The place a map of the game is, in English, for the Discord status (oot_area_names.h).
+/* (longshot) The place a map of the game is, in English, for the Discord status (oot_area_names.h).
 
    The game names its maps in its data (Banc/GameBancParam/<map>.game__banc__GameBancParam.bgyml: 80 of them on the
    supported build), with the age, a changed state or Master Quest as a suffix: _Child, _Adult, _Alternative (Kakariko

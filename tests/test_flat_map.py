@@ -243,7 +243,7 @@ def cut(source, start, end):
 def harness():
     draw = (VK / "vk_draw.cpp").read_text(encoding="utf-8")
     shader = (VK / "vk_shader.cpp").read_text(encoding="utf-8")
-    hits = cut(draw, "struct HandleHit {", "\n// (YM) RX_VK_TRACE_TEX")
+    hits = cut(draw, "struct HandleHit {", "\n// (longshot) RX_VK_TRACE_TEX")
     tls = re.search(r"TLS_OBJECT\(handle_hits, (.+)\)\s*$", hits, re.M)
     if not tls:
         raise SystemExit("handle_hits is no longer a TLS_OBJECT: update this check")

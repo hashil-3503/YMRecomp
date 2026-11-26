@@ -1,4 +1,4 @@
-/* (YM) The game's sounds classed for the controller speaker: the player's own archives read at the start, and the
+/* (longshot) The game's sounds classed for the controller speaker: the player's own archives read at the start, and the
    class of the asset a wave buffer plays (host/audio_source.h has the formats and the classes' rules).
 
    hos_audio_source_load reads the archives audio_source_wants names from <romfs>/Sound/Resource/*.bars.zs: each is one

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) When kept programs are loaded, where RX_VK_LOAD does not say: at their create calls (create) or all before the
+// (longshot) When kept programs are loaded, where RX_VK_LOAD does not say: at their create calls (create) or all before the
 // title (start), and the safety net that takes an install back to start. Nothing of Vulkan here: tests/test_load_default.py.
 #pragma once
 #include <cstdint>

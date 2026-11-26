@@ -40,7 +40,7 @@ struct TemporalFrame;
 /// Whether it is asked for now: the Insert menu's Frame generation by row (DLSS FG), RX_VK_DLSS_FG=0 / 1 over it (and the
 /// build has it)
 bool dlss_fg_wanted();
-/// (YM) Why the last set it was asked for went to the renderer's own frame generation, for the Insert menu's Frame
+/// (longshot) Why the last set it was asked for went to the renderer's own frame generation, for the Insert menu's Frame
 /// generation by row (its texts are the menu's, to be translated): FG_SKIP_NONE when DLSS-G made it or nothing is known.
 /// most: its runtime's most made frames a set (FG_SKIP_TOO_MANY)
 enum FgSkip {
@@ -55,19 +55,19 @@ enum FgSkip {
     FG_SKIP_COUNT
 };
 int dlss_fg_skip(unsigned* most = nullptr);
-/// (YM) Why DLSS-G cannot run in this process at all, for the Frame generation by row, which offers DLSS FG only where
+/// (longshot) Why DLSS-G cannot run in this process at all, for the Frame generation by row, which offers DLSS FG only where
 /// it can: FG_SKIP_NONE while it can as far as is known (NGX not asked yet, or its yes), else for the rest of the run
 /// FG_SKIP_NOT_BUILT, FG_SKIP_DEVICE (DLSS does not run here, dlss_why says why: RX_VK_DLSS=0 among them), FG_SKIP_OFF
 /// (RX_VK_DLSS_FG=0), FG_SKIP_START (NGX's no) or FG_SKIP_REFUSED (its feature given up). Read without a lock, by the menu
 int dlss_fg_unavailable();
-/// (YM) RX_VK_DLSS_FG=1 for the run: DLSS-G asked for whatever the Frame generation by row says (the row shows it so)
+/// (longshot) RX_VK_DLSS_FG=1 for the run: DLSS-G asked for whatever the Frame generation by row says (the row shows it so)
 bool dlss_fg_forced();
-/// (YM) NGX asked once a run whether DLSS-G runs here (its runtime, the GPU and the driver), before any present needs
+/// (longshot) NGX asked once a run whether DLSS-G runs here (its runtime, the GPU and the driver), before any present needs
 /// it, so the Frame generation by row knows its choices: at the start-up screen on a thread of its own (vk_menu.cpp
 /// probe_upscalers_soon), and when the menu opens on the present thread (menu_tick, present_image_mu held). The answer is
 /// logged
 void dlss_fg_probe();
-/// (YM) Whether the set dlss_fg_frames did not make is the game's frame alone (vk_framegen.cpp framegen_record): DLSS FG
+/// (longshot) Whether the set dlss_fg_frames did not make is the game's frame alone (vk_framegen.cpp framegen_record): DLSS FG
 /// asked for, on a temporal Upscaler (vk_temporal.h temporal_wanted), and no picture from it for this set, as in the game's
 /// own menus, movies and loading screens. Else (another Upscaler, a refusal, a set of more frames than its runtime makes
 /// before NGX's answer) the built-in one makes them, as before. Right after dlss_fg_frames, on its thread
@@ -77,7 +77,7 @@ bool dlss_fg_holds();
 /// most; the multiplier as it runs stops there, dlss_fg_most). The swapchain's present mode follows it: vk_main.cpp
 /// swapchain_dlssg
 bool dlss_fg_runs(int frames);
-/// (YM) The most made frames its runtime makes a set (NGX's MultiFrameCountMax: 5 on an RTX 50's runtime, 1 on an RTX
+/// (longshot) The most made frames its runtime makes a set (NGX's MultiFrameCountMax: 5 on an RTX 50's runtime, 1 on an RTX
 /// 40's) while DLSS-G is to make the frames: asked for, on a device DLSS runs on, a temporal Upscaler chosen (its inputs),
 /// NGX's answer a yes and its feature not given up. 0 otherwise, and before NGX has answered. Frame generation's fixed
 /// multiplier stops at it + 1 (vk_framegen.h framegen_now): past it NGX was not asked for the sets (FG_SKIP_TOO_MANY) and the

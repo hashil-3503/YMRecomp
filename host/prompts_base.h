@@ -1,4 +1,4 @@
-/* (YM) host/prompts.c's two game files without a copy of them in the game folder: the textures
+/* (longshot) host/prompts.c's two game files without a copy of them in the game folder: the textures
    (UI/Layout2Archive/Common.*.bntx.zs) and the layouts (Common.*.blarc.zs) are read from the game's RomFS (romfs.h) as
    they stream out of their zstd frames, and the builder keeps only what prompts.c needs of them besides:
 

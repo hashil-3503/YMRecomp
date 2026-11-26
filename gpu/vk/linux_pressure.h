@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) Linux memory pressure (MemAvailable and SwapFree in /proc/meminfo): the textures' budget, compaction, idle imports
+// (longshot) Linux memory pressure (MemAvailable and SwapFree in /proc/meminfo): the textures' budget, compaction, idle imports
 // and spare capture buffers give memory back before earlyoom or kernel direct reclaim acts. Nothing of Vulkan here:
 // tests/test_linux_pressure.py.
 #pragma once

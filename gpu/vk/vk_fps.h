@@ -1,4 +1,4 @@
-// (YM) The FPS counter's measurements (vk_fps.cpp): each frame of the game, present to present on the thread that
+// (longshot) The FPS counter's measurements (vk_fps.cpp): each frame of the game, present to present on the thread that
 // presents, and from Breakdown on where its time went (fps_stats.h Part). vk_menu.cpp sets the level and draws them.
 // Off and FPS measure nothing here; Frame time and Graph read a clock at each present; Breakdown adds a clock read at the
 // renderer's entries and around its waits, and the counters the renderer keeps anyway (the GPU's timestamps, the pipelines
@@ -17,7 +17,7 @@ extern std::atomic<int> fps_level_now;
 /// The performance summary is on (perf_report.cpp: the launcher's Send performance statistics): the Breakdown measures
 /// every frame for it, whatever the counter shows
 extern std::atomic<bool> perf_measure;
-/// (YM) RX_VK_FRAME_TRACE=1: the Breakdown's parts measured whatever the counter shows, for the frame trace's columns
+/// (longshot) RX_VK_FRAME_TRACE=1: the Breakdown's parts measured whatever the counter shows, for the frame trace's columns
 extern const bool fps_traced;
 inline bool fps_breakdown_on() {
     return fps_traced || fps_level_now.load(std::memory_order_relaxed) >= fps_stats::kBreakdown ||
@@ -35,16 +35,16 @@ void perf_report_final(int event);
 int64_t fps_clock();   // (ns, the clock the frames are stamped with)
 /// At the game's present (vk_replay.cpp present), on the thread that presents: the frame since the last one, into the ring
 void fps_presented();
-/// (YM) The frame fps_presented measured last, its parts (the frame trace, vk_replay.cpp status_tick, at the same present)
+/// (longshot) The frame fps_presented measured last, its parts (the frame trace, vk_replay.cpp status_tick, at the same present)
 fps_stats::Frame fps_last_frame();
 /// A wait on this thread (fps_stats::kGpuWait, kPace, kWaitRender or kWaitGpu), ns: subtracted from the renderer's time it is
-/// inside. (YM) The game's fence waits (kWaitRender, kWaitGpu) on a thread other than the presenting one are summed for the
+/// inside. (longshot) The game's fence waits (kWaitRender, kWaitGpu) on a thread other than the presenting one are summed for the
 /// frame instead, and taken out of the game's part (fps_stats::split)
 void fps_wait(int part, int64_t ns);
-/// (YM) The kind of GPU wait on this thread now: inside the game's fence wait (vk_replay.cpp wait), whether its work was
+/// (longshot) The kind of GPU wait on this thread now: inside the game's fence wait (vk_replay.cpp wait), whether its work was
 /// recorded when it began (kWaitGpu) or not (kWaitRender); elsewhere kGpuWait
 int fps_gpu_wait_kind();
-/// (YM) The render thread (vk_replay.cpp replay_thread_main) marks itself; its waits by kind (fps_stats::RenderPart) are timed
+/// (longshot) The render thread (vk_replay.cpp replay_thread_main) marks itself; its waits by kind (fps_stats::RenderPart) are timed
 /// while the Breakdown is on, and its work is the rest of each frame
 void fps_render_thread();
 bool fps_render_thread_on();   // (a render thread runs: the counter shows its lane)

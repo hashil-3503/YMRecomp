@@ -92,7 +92,7 @@ def check_source(draw):
 
 def cut(draw):
     entry = between(draw, "struct PipeEntry {", "\n};\n") + "\n};\n"
-    code = between(draw, "/// (YM) RX_VK_QUICK_MS, read once and logged", "\n// ---- samplers")
+    code = between(draw, "/// (longshot) RX_VK_QUICK_MS, read once and logged", "\n// ---- samplers")
     return entry + code
 
 

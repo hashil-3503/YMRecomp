@@ -1,4 +1,4 @@
-// (YM) The start-up screen's numbers (vk_main.cpp, vk_menu.cpp): how far the shaders' preparation is, and about how long
+// (longshot) The start-up screen's numbers (vk_main.cpp, vk_menu.cpp): how far the shaders' preparation is, and about how long
 // it has left. Plain C++, no Vulkan: tests/test_startup_progress.py compiles it on its own.
 #pragma once
 
@@ -154,7 +154,7 @@ inline std::string waiting_text(const StartupState& s) {
     return counted ? "Getting the game ready" : left_text(s.left);
 }
 
-/// (YM) The whole preparation on one bar: its parts, 0 the shader programs, 1 the pipelines the notes predict, 2 the noted
+/// (longshot) The whole preparation on one bar: its parts, 0 the shader programs, 1 the pipelines the notes predict, 2 the noted
 /// pipelines, each counted in what one of it costs (kCost, in shader programs' time) and each in the total from the start. The
 /// predicted pipelines were a step of their own after a full bar: the bar sat at 100% while thousands of them were built. A part
 /// not counted yet stands in the total at its guess (prepare_guess: from the files on disk), and at its count once it reports one;
@@ -209,7 +209,7 @@ struct PrepareBar {
     }
 };
 
-/// (YM) prepare_run's count of the shader programs (PrepareBar's part 0), each at what it costs. The count is still in
+/// (longshot) prepare_run's count of the shader programs (PrepareBar's part 0), each at what it costs. The count is still in
 /// programs, as the log and the screen show it ("12,345 / 38,809 shaders"), and is all of them only when all the work is done.
 /// A graphics program is three translations of a few milliseconds; a compute program whose variants the driver compiles (up to 64
 /// of them) takes seconds, on Intel's drivers minutes. Counted one program each, the compute programs, prepared first and about one

@@ -233,7 +233,7 @@ def main():
                     .replace("/* HINT */", hint), "why")
 
     if os.name == "nt":
-        begin = main_cpp.find("#ifdef _WIN32\n// (YM) Windows 11 24H2's advanced colour info")
+        begin = main_cpp.find("#ifdef _WIN32\n// (longshot) Windows 11 24H2's advanced colour info")
         if begin < 0:
             raise SystemExit("FAIL: vk_main.cpp's AdvancedColorInfo2 (before system_hdr_on) is not found")
         system = block(main_cpp, "int system_hdr_on(std::string* display) {")

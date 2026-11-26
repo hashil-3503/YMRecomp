@@ -22,7 +22,7 @@
    The runtime commits what it hands out (image, system region, heap, address regions: hos_commit), because host
    APIs given guest buffers (ReadFile into a game buffer) fail on reserved pages without raising an exception. A
    guest or host access to a page nothing committed is committed on first touch, 64 KB at a time, by the handler. */
-/* (YM) a commit refused at Windows' commit limit (1455: RAM and page file full) is tried again for up to 5 s: the renderer's
+/* (longshot) a commit refused at Windows' commit limit (1455: RAM and page file full) is tried again for up to 5 s: the renderer's
    textures give commit back below a reserve (vk_texture.cpp's commit rule: every VRAM block is charged to the process's commit).
    Before, the commit failed and the game's next write to those pages crashed it: a 16 GB PC at 33.9 GB of commit, an area loading
    (a 960 KB commit, then a write into it from "ARes Loading 1"). 1: committed after waiting; 0: not */
@@ -42,7 +42,7 @@ static int commit_wait(void *p, SIZE_T size) {
     if (InterlockedIncrement(&waits) <= 8) hos_log("mem: commit of %#llx bytes still refused after 5 s at the commit limit", (unsigned long long)size);
     return 0;
 }
-/* (YM) The out-of-memory line and notice, said once for the run, by whichever runs out first: a guest commit
+/* (longshot) The out-of-memory line and notice, said once for the run, by whichever runs out first: a guest commit
    (commit_refused) or the host's own allocation (hos_alloc_failed). oom_state: 0 not said, 1 the notice up (or about to be), 2 said
    and the notice closed (or none: HOS_HEADLESS, or no thread for it). The notice is on a thread of its own. wait 0: the caller
    goes on; wait 1: the caller ends the game next, so it waits until the notice (its own or one already up) is closed, rather
@@ -76,7 +76,7 @@ static void commit_refused(uint64_t lo, uint64_t size, DWORD err) {
     if (err == ERROR_COMMITMENT_LIMIT) hos_out_of_memory(0);   /* (1455: RAM and page file full; the game crashes soon after) */
 }
 
-/* (YM) The host's own allocations that the game cannot go on without (the NVN layer's recording buffers and
+/* (longshot) The host's own allocations that the game cannot go on without (the NVN layer's recording buffers and
    tables, the video service's): at the commit limit malloc fails as a guest commit does, which would end the game at once with
    a fatal naming the table, with no wait and no out-of-memory notice. A failed one is tried
    again for up to 5 s, as commit_wait does, while the renderer's textures give commit back; past that comes the line, the
@@ -345,7 +345,7 @@ void hos_crash_record_prepare(const char *log_path) {
 }
 
 #ifdef _WIN32
-/* (YM) The x64 stack walks below (the crash report's, HOS_SAMPLE's and HOS_SAMPLE_ALL's) go one frame at a time
+/* (longshot) The x64 stack walks below (the crash report's, HOS_SAMPLE's and HOS_SAMPLE_ALL's) go one frame at a time
    through unwind_step, which reads only the walked thread's own stack. RtlVirtualUnwind reads the frame's saved registers
    and its return address at the stack pointer, or through the frame register when the function has one; a thread stopped
    where its unwind data does not describe the frame (being made or ending, switching stacks, mid-prologue) gave it a
@@ -438,7 +438,7 @@ static LONG WINAPI report_crash(EXCEPTION_POINTERS *info) {
         hos_log("%s", hb);
     }
 #else
-    {   /* (YM) Linux: the host stack as module+offset, from glibc (the frames above the signal's included): the
+    {   /* (longshot) Linux: the host stack as module+offset, from glibc (the frames above the signal's included): the
            x64 unwind data is Windows' */
         void *pcs[24];
         const int got = backtrace(pcs, 24);
@@ -758,7 +758,7 @@ static DWORD WINAPI thread_times_thread(void *p) {
     return 0;
 }
 
-/* (YM) HOS_SAMPLE_ALL=<path> (on its own: not HOS_PROFILE_EVERY): while <path>.go exists, every 2 ms every guest thread and the
+/* (longshot) HOS_SAMPLE_ALL=<path> (on its own: not HOS_PROFILE_EVERY): while <path>.go exists, every 2 ms every guest thread and the
    renderer's threads (descriptions starting "mkw_vk") are sampled at the same instant: one line per thread,
    "<ms> <name>|<frames>", the frames module+offset leaf first (16 at most). What each thread does while another waits:
    the frame's critical path (scripts/perf.py threads) */
@@ -870,7 +870,7 @@ static DWORD WINAPI sample_all_thread(void *p) {
     static char tn[MAXT][64];
     int nt = 0;
     int64_t t0 = 0;
-    /* (YM) HOS_SLOW_FRAMES (host/slow_frames.c): sampled the whole run into its ring, the thread list taken again every
+    /* (longshot) HOS_SLOW_FRAMES (host/slow_frames.c): sampled the whole run into its ring, the thread list taken again every
        5 s (threads come and go), nothing written here */
     const int ring = path == hos_slow_frames_path();
     int64_t listed_at = 0;
@@ -987,7 +987,7 @@ int hos_blank_cached_icon(const char *guest, const char *host) { (void)guest, (v
 int hos_ultrawide_redirect(const char *guest, char *out, size_t cap) { (void)guest, (void)out, (void)cap; return 0; }
 uint64_t hos_title_input(uint64_t buttons) { return buttons; }   /* (totk_title.c) */
 uint64_t hos_frame_step_buttons(uint64_t buttons) { return buttons; }   /* (nn_vi.c) */
-/* (YM) hos_sdl_pads, hos_sdl_rumble: host/pad_sdl.c (from TOTKPort; SDL2.dll beside the exe) */
+/* (longshot) hos_sdl_pads, hos_sdl_rumble: host/pad_sdl.c (from TOTKPort; SDL2.dll beside the exe) */
 
 /* TOTK's emulated GPU (gpu.c, its Maxwell command processor), which nvdrv.c and the debug commands call into: MKW
    has none (its NVN2 calls go to nvn_native.c), so a submission is only counted. */

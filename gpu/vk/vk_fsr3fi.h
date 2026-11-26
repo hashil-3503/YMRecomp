@@ -1,4 +1,4 @@
-// (YM) AMD FSR 3.1 frame interpolation, and the optical flow it runs on, recorded as our own Vulkan compute passes:
+// (longshot) AMD FSR 3.1 frame interpolation, and the optical flow it runs on, recorded as our own Vulkan compute passes:
 // the made frames between two of the game's, at any multiplier and at Frame generation's Auto.
 //
 // The renderer already makes frames: vk_framegen.cpp interpolates between the last two presented frames from colour alone.
@@ -44,11 +44,11 @@ struct Inputs {
     VkFormat color_format = VK_FORMAT_UNDEFINED;
     /// Encoding of the captured present, independent of its UNORM storage format.
     bool native_pq = false;
-    /// (YM) The colour's alpha marks the HUD, 0 where the game drew it over its picture after the upscale
+    /// (longshot) The colour's alpha marks the HUD, 0 where the game drew it over its picture after the upscale
     /// (vk_framegen.cpp hud_source): the interpolation keeps those pixels where they are. False: the alpha is 1, and the HUD
     /// is guessed as the pixels the same in both frames
     bool hud_mask = false;
-    /// (YM) The frame as presented, the HUD on it, when color is the picture before the HUD (vk_framegen.cpp
+    /// (longshot) The frame as presented, the HUD on it, when color is the picture before the HUD (vk_framegen.cpp
     /// hud_source): AMD's HUD-less mode. The interpolation moves only the scene, and the made frame takes this frame's
     /// pixels where they differ from color (the SDK's inpainting pass). Null: color is the presented frame itself
     VkImageView present = VK_NULL_HANDLE;
@@ -102,7 +102,7 @@ struct Inputs {
 /// Forgets the sequence, so the next frame is made with the reset flag set: a cut, a load, a resize.
 void reset();
 
-/// (YM) Frame generation off or not this one (vk_framegen.cpp framegen_idle): the images let go once the GPU is done with
+/// (longshot) Frame generation off or not this one (vk_framegen.cpp framegen_idle): the images let go once the GPU is done with
 /// them, and those of earlier sizes too (free_dead ran only in generate). The next generate makes them again. Every present
 /// while it is idle: nothing to do once they are gone
 void release();

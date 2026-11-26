@@ -1,4 +1,4 @@
-/* (YM) The game's side of its channel to the builder that started it (docs/dev/reference/build.md, "The game's
+/* (longshot) The game's side of its channel to the builder that started it (docs/dev/reference/build.md, "The game's
    channel to its builder"; builder/crates/build-core/src/channel.rs gives the ends, build-driver/src/channel.rs serves them).
 
    Two pipes, one each way, whose game ends the builder passes to this process alone: YM_BUILDER_CHANNEL is

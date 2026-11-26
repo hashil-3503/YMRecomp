@@ -17,7 +17,7 @@
 #include "shader_recompiler/backend/spirv/spirv_emit_context.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/program.h"
-#include "shader_recompiler/backend/spirv/mma_layout.h"   // (YM)
+#include "shader_recompiler/backend/spirv/mma_layout.h"   // (longshot)
 
 namespace Shader::Backend::SPIRV {
 namespace {
@@ -112,7 +112,7 @@ void EmitInstOf(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitInst(EmitContext& ctx, IR::Inst* inst) {
-    // (YM) the emitters that are left unimplemented say only "SPIR-V Instruction": name the IR op
+    // (longshot) the emitters that are left unimplemented say only "SPIR-V Instruction": name the IR op
     try {
         EmitInstOf(ctx, inst);
     } catch (const NotImplementedException& e) {
@@ -237,7 +237,7 @@ void Traverse(EmitContext& ctx, IR::Program& program) {
             break;
         case IR::AbstractSyntaxNode::Type::Unreachable:
             if (ctx.stage == Stage::Mesh && !ctx.mesh_fallback) {
-                // (YM) an indirect branch to none of its table's targets: the mesh shader leaves with no outputs.
+                // (longshot) an indirect branch to none of its table's targets: the mesh shader leaves with no outputs.
                 // RADV makes OpUnreachable a return that leaves its output counts undefined, and GS_ALLOC_REQ then asked
                 // for a garbage count and hung the GPU (issue 1000). Marker for OpSetMeshOutputsEXT 0 0
                 // (PatchMeshInstructions); the epilogue writes the outputs, so none were written yet

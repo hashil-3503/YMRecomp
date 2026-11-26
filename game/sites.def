@@ -1,4 +1,4 @@
-/* (YM) The hook sites the host gives a flag byte and a callback slot: one line per site of the game's site tables
+/* (longshot) The hook sites the host gives a flag byte and a callback slot: one line per site of the game's site tables
    (game/sites/sites.toml), included by game/sites.h and game/sites.c with the macros defined there.
 
      HOS_SITE(<ident>, "<name>")                   a named site nothing in the engine subscribes to: off until hos_site_set()

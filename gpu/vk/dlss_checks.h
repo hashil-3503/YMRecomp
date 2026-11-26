@@ -1,4 +1,4 @@
-/* (YM) Small checks of NVIDIA DLSS's (gpu/vk/vk_dlss.cpp), as plain functions: which scene sizes DLSS can take for an
+/* (longshot) Small checks of NVIDIA DLSS's (gpu/vk/vk_dlss.cpp), as plain functions: which scene sizes DLSS can take for an
    output, which quality mode takes a render size, and a Linux path (UTF-8) for NGX's wide strings. No Vulkan, no NGX: tests/test_dlss_checks.cpp
    checks them. */
 #pragma once

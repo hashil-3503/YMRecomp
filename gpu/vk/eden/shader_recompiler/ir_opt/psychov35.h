@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// (YM) PsychoV35, the scene tone mapper of RenoDX's zelda-oot-oz mod (github.com/clshortfuse/renodx,
+// (longshot) PsychoV35, the scene tone mapper of RenoDX's zelda-oot-oz mod (github.com/clshortfuse/renodx,
 // src/games/zelda-oot-oz/scene_tonemap.slangi and src/shaders/tonemap/psychov/test35.hlsl; Copyright (c) 2025 Carlos
 // Lopez Jr., MIT: LICENSE-renodx.md beside this file), at the mod's defaults: midgray matched to the game's, the game's tone
 // slope, hue clip emulation at 50%, the grading sliders neutral, BT.2020 target with the exact fit. scene_tonemap_pass.h

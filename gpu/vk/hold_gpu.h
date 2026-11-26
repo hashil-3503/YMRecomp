@@ -1,4 +1,4 @@
-// (YM) What the order's watch thread (vk_replay.cpp sync_watch) does with queues stopped at a wait for longer than
+// (longshot) What the order's watch thread (vk_replay.cpp sync_watch) does with queues stopped at a wait for longer than
 // hold_ms: let them be, hold them on, or make them go past their waits (drain). Kept apart so the rule is checked without
 // the renderer (tests/test_hold_gpu.py).
 //

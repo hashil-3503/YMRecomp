@@ -1,4 +1,4 @@
-/* (YM) The place a map of the game is, in English, for the Discord status (oot_area_names.c). No game state. */
+/* (longshot) The place a map of the game is, in English, for the Discord status (oot_area_names.c). No game state. */
 #pragma once
 #include <stddef.h>
 

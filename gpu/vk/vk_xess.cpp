@@ -1,4 +1,4 @@
-// (YM) Intel XeSS Super Resolution, one of the temporal upscaler's engines (vk_xess.h). The frame chain it draws with is
+// (longshot) Intel XeSS Super Resolution, one of the temporal upscaler's engines (vk_xess.h). The frame chain it draws with is
 // vk_temporal.cpp's, the same as NVIDIA DLSS's and AMD FSR 4's: the colour as the game's network samples it, the depth, the
 // motion (the camera's and the skinned draws' own) and the camera jitter. Here are Intel's library, the XeSS context and its
 // execution. The host side follows Intel's XeSS-SR developer guide (doc/xess_sr_developer_guide_english.md of

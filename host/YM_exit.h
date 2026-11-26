@@ -1,4 +1,4 @@
-/* (YM) What the game does when it is started by itself in a version folder (docs/dev/reference/build.md, "The game
+/* (longshot) What the game does when it is started by itself in a version folder (docs/dev/reference/build.md, "The game
    started by itself"):
    - The hand-over: the game started by itself in a version folder's game folder (<version>/builds/<build>/, the version
      folder holding the builder) hands over to the builder, `<builder> play -- <its arguments>`, so the folder is checked

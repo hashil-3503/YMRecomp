@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (YM) How the game's task and mesh programs run: 0 Automatic (the GPU's own mesh shaders where it has
+// (longshot) How the game's task and mesh programs run: 0 Automatic (the GPU's own mesh shaders where it has
 // them, the compute fallback where not, and for the task + mesh draws of the GPUs task_mesh_fallback_default names on
 // Windows), 1 Native (no fallback where there are mesh shaders), 2 Compute (the fallback on every GPU). A launch switch,
 // RX_VK_MESH_SHADERS, not a menu row: changing it translates every shader again and drops the pipeline caches for no gain

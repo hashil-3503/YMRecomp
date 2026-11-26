@@ -8,7 +8,7 @@
    changes. HOS_NO_SDL=1 leaves SDL out. The inputs go by position (HOS_PAD_*: the bottom face button
    first, cross on a DualSense, A on an Xbox pad); nn_hid.c's controls make them the Switch's buttons.
 
-   (YM) Motion: with the Insert menu's Motion controls on (the default), the open pad with a gyroscope and an
+   (longshot) Motion: with the Insert menu's Motion controls on (the default), the open pad with a gyroscope and an
    accelerometer (Switch Pro and pads in Switch mode, DualSense, DualShock 4, others) that was used last has them read
    each poll and turned into the six-axis state OoT aims with (host/hos_motion.h), which nn_hid.c's
    GetSixAxisSensorStates gives the game; Motion sensitivity X/Y and Invert motion X/Y apply there. Off, or with no such pad, the game sees the pad
@@ -53,7 +53,7 @@ static struct {
     uint16_t rumble_lo, rumble_hi;
     int64_t rumble_ns;
     uint8_t hd, hd_kind, hd_ever, virtual_pad;   /* HD rumble (hd_rumble.h): HD_RUMBLE_UNKNOWN / ON / OFF, the pad's kind, sent once */
-    /* (YM) what plays its vibration (host/vibration.h: -1 not chosen yet), the kind of pad and its transport for
+    /* (longshot) what plays its vibration (host/vibration.h: -1 not chosen yet), the kind of pad and its transport for
        that; a backend that would not open, and when to try it again; an Xbox pad's four motors as last sent */
     int8_t vib, vib_kind, wireless, vib_failed;
     int64_t vib_retry_ns, four_ns;
@@ -65,18 +65,18 @@ static struct {
     int motion, motion_on;
     int64_t motion_retry_ns, used_ns;
     uint64_t input_sig;
-    unsigned rested;   /* (YM) the sticks' axes seen at rest since it was opened, a bit each (AX_LX ... AX_RY):
+    unsigned rested;   /* (longshot) the sticks' axes seen at rest since it was opened, a bit each (AX_LX ... AX_RY):
                           only those steer; and its triggers seen let go (AX_LT, AX_RT): only those press */
     signed char held[4];   /* (the way each axis was last held, -1, 0 or 1: one held the other way has passed its rest) */
-    int64_t opened_ns;        /* (YM) when it was opened; since when each trigger has read held, and let go, */
+    int64_t opened_ns;        /* (longshot) when it was opened; since when each trigger has read held, and let go, */
     int64_t trig_held_ns[2];  /* without a break (0: not now); what the log said of them, and how many of their */
     int64_t trig_rest_ns[2];  /* changes it gave at debug (trigger_pull) */
     uint8_t trig_said, trig_changes[2];
     uint32_t serial;
     float bias[3], bias_t;
     int has_bias;
-    uint16_t vendor;      /* (YM) its USB vendor and product, and its Steam Input handle: not 0 for a Steam stand-in pad */
-    uint16_t product;     /* (YM) its USB product id (host/vibration.h: a Steam Controller (2026); the Deck's built-in controls, host/steam_pads.h) */
+    uint16_t vendor;      /* (longshot) its USB vendor and product, and its Steam Input handle: not 0 for a Steam stand-in pad */
+    uint16_t product;     /* (longshot) its USB product id (host/vibration.h: a Steam Controller (2026); the Deck's built-in controls, host/steam_pads.h) */
     uint64_t steam;
     int motion_only;      /* (host/steam_pads.h) a real Valve pad while a Steam stand-in pad is open: motion, no input */
 } pads[MAX_PADS];
@@ -85,7 +85,7 @@ static SRWLOCK state_lock = SRWLOCK_INIT;
 static uint64_t state_buttons;
 static int32_t state_stick[4];
 static int state_count;
-static int state_deck_builtin;   /* (YM) the Deck's built-in controls gave gameplay input in that poll */
+static int state_deck_builtin;   /* (longshot) the Deck's built-in controls gave gameplay input in that poll */
 static char state_name[128];   /* the first controller's name (host/prompts.c: the button prompts' Auto) */
 static int state_type, state_sdl;   /* and its SDL type (the loaded SDL's numbers, 0 unknown), and that SDL (3, 2; 0 none) */
 static volatile LONG rumble_low, rumble_high;   /* 0..65535, set by the vibration HLE */
@@ -122,7 +122,7 @@ static int pads_start(void) {
        are by position always) */
     hos_sdl_hint("SDL_GAMECONTROLLER_USE_BUTTON_LABELS", "0");
     /* (headless, SDL's SIGINT/SIGTERM handlers are off before any subsystem starts: hos_sdl_load, host/hos_sdl.c) */
-    /* (YM) Valve's own pads taken out of the ignore list Steam sets for the games it starts, so that their motion
+    /* (longshot) Valve's own pads taken out of the ignore list Steam sets for the games it starts, so that their motion
        sensors are read (host/steam_pads.h). Only with an SDL that tells Steam's stand-in pads apart: without
        that, a real pad and its stand-in would both play. A list emptied or unset in Steam's launch options is left as
        it is */
@@ -334,7 +334,7 @@ static void motion_poll(int64_t now, int count) {
     ReleaseSRWLockExclusive(&state_lock);
 }
 
-/* (YM) a motion-only pad's own presses (host/steam_pads.h): they are not the game's input, but they still mark it
+/* (longshot) a motion-only pad's own presses (host/steam_pads.h): they are not the game's input, but they still mark it
    the pad used last, which motion_poll reads motion from */
 static void motion_only_used(int i, int64_t now) {
     int rx_option(int id, int otherwise);
@@ -349,7 +349,7 @@ static void motion_only_used(int i, int64_t now) {
     if (sig != pads[i].input_sig) pads[i].input_sig = sig, pads[i].used_ns = now;
 }
 
-/* ---- (YM) what plays each pad's vibration (host/vibration.h); RenHDrum's backends are host/rumble_renhdrum.c ---- */
+/* ---- (longshot) what plays each pad's vibration (host/vibration.h); RenHDrum's backends are host/rumble_renhdrum.c ---- */
 static int vib_force = -1;   /* HOS_RUMBLE_BACKEND, read once */
 /* RenHDrum for a pad of this kind: loaded (once) only for a pad it would play */
 static int vib_rh_for(int kind) {
@@ -502,7 +502,7 @@ static int switch_poll(int i, int64_t now, int strength) {
     return 1;
 }
 
-/* (YM) Pad i's trigger t (0 left, 1 right) at its reading a (SDL's 0 to 32767): what it gives the game, a, or 0
+/* (longshot) Pad i's trigger t (0 left, 1 right) at its reading a (SDL's 0 to 32767): what it gives the game, a, or 0
    until it counts. It counts once it has read let go (8000 or below) for a second without a break since the pad was
    opened, as a stick steers once seen at rest. A device whose trigger reads held for good held ZL and ZR from every pad
    (#2327: a ShanWan USB receiver, 2563:0575), kept the Controls page from listening for a binding (it waits for every
@@ -564,7 +564,7 @@ static void pads_poll(void) {
                 if (pads[i].gc && !hos_sdl_pad_connected(pads[i].gc)) {
                     hos_log("hid: controller \"%s\" disconnected (SDL)", hos_sdl_pad_name(pads[i].gc));
                     hos_pad_speaker_forget(pads[i].gc);
-                    vib_leave(i, now);   /* (YM) what played its vibration lets go of it first */
+                    vib_leave(i, now);   /* (longshot) what played its vibration lets go of it first */
                     hos_sdl_pad_close(pads[i].gc);
                     pads[i].gc = NULL;
                     pads[i].rumble_lo = pads[i].rumble_hi = 0;
@@ -590,7 +590,7 @@ static void pads_poll(void) {
                 pads[slot].rumble_lo = pads[slot].rumble_hi = 0;
                 pads[slot].rumble_ns = 0;
                 hd_open(slot, gc);
-                /* (YM) what plays its vibration is chosen by the poll below (host/vibration.h) */
+                /* (longshot) what plays its vibration is chosen by the poll below (host/vibration.h) */
                 pads[slot].vib = -1, pads[slot].vib_failed = -1, pads[slot].vib_retry_ns = 0;
                 pads[slot].usb_token = -1, pads[slot].usb_next_look = 0;
                 pads[slot].product = hos_sdl_pad_product(gc);
@@ -616,7 +616,7 @@ static void pads_poll(void) {
                 pads[slot].motion_only = 0;   /* (the poll below decides, and says so) */
                 hos_sdl_pad_log_connection(gc, pads[slot].motion, pads[slot].steam != 0);
             }
-            {   /* (YM) the controller speaker follows the DualSense that is open (host/pad_speaker.c) */
+            {   /* (longshot) the controller speaker follows the DualSense that is open (host/pad_speaker.c) */
                 void *dualsense = NULL;
                 int wired = 0;
                 /* Prefer the first known wired pad; otherwise try the first with an unknown transport. */
@@ -634,7 +634,7 @@ static void pads_poll(void) {
         int32_t s[4] = {0};
         int count = 0;
         int rx_option(int id, int otherwise);
-        /* (YM) the Controls page's Vibration (Auto, Basic, Off) and Vibration strength (percent of the game's, every
+        /* (longshot) the Controls page's Vibration (Auto, Basic, Off) and Vibration strength (percent of the game's, every
            backend's: host/vibration.h). An options file's Rumble strength of 0 is Off */
         int strength = rx_option(9, 100);
         int mode = rx_option(HOS_OPT_VIBRATION, VIB_MODE_AUTO);
@@ -661,15 +661,15 @@ static void pads_poll(void) {
             hd_rumble_merge(felt[0], felt[1], felt[2]);
             hd_rumble_encode(felt[2], strength, side[2]);
         }
-        int stand_in = 0;   /* (YM) a Steam stand-in pad open (host/steam_pads.h) */
-        int64_t status_used = -1;   /* (YM) the Controls page's vibration line: the pad used last */
+        int stand_in = 0;   /* (longshot) a Steam stand-in pad open (host/steam_pads.h) */
+        int64_t status_used = -1;   /* (longshot) the Controls page's vibration line: the pad used last */
         int status_pad = -1;
-        int deck_builtin = 0;   /* (YM) the Deck's built-in controls give gameplay input: its mouse must not */
+        int deck_builtin = 0;   /* (longshot) the Deck's built-in controls give gameplay input: its mouse must not */
         for (int i = 0; i < MAX_PADS; i++) stand_in |= pads[i].gc && pads[i].steam;
         for (int i = 0; i < MAX_PADS; i++) {
             void *gc = pads[i].gc;
             if (!gc) continue;
-            /* (YM) a real Valve pad beside its Steam stand-in: its motion is read (motion_poll), its buttons and
+            /* (longshot) a real Valve pad beside its Steam stand-in: its motion is read (motion_poll), its buttons and
                sticks come through the stand-in as the player's Steam layout maps them, so they are not merged twice,
                and its rumble goes through Steam too. Its own presses still mark it the pad used last, for motion */
             const int motion_only = steam_pads_motion_only(pads[i].vendor, pads[i].steam, stand_in);
@@ -700,10 +700,10 @@ static void pads_poll(void) {
             for (int k = BTN_RPADDLE1; k <= BTN_LPADDLE2; k++)
                 if (hos_sdl_pad_button(gc, k)) sig |= 1ULL << (HOS_PAD_RPADDLE1 + k - BTN_RPADDLE1);
             b |= sig;
-            /* (YM) a DualShock 4's or DualSense's touchpad click: it opens the Insert menu as F1 does (vk_menu.cpp).
+            /* (longshot) a DualShock 4's or DualSense's touchpad click: it opens the Insert menu as F1 does (vk_menu.cpp).
                SDL numbers it 20, past the buttons above; an SDL without it answers 0 */
             if (hos_sdl_pad_button(gc, BTN_TOUCHPAD)) b |= 1ULL << HOS_PAD_TOUCHPAD;
-            /* (YM) A trigger presses once it has read let go for a second since the pad was opened (trigger_pull,
+            /* (longshot) A trigger presses once it has read let go for a second since the pad was opened (trigger_pull,
                #2327). */
             int pull[2];   /* (each trigger's axis, 0 until it counts: HD Haptics' triggers below too) */
             for (int t = 0; t < 2; t++) {
@@ -718,7 +718,7 @@ static void pads_poll(void) {
             hos_filter_stick(hos_sdl_pad_axis(gc, AX_RX), hos_sdl_pad_axis(gc, AX_RY), z, v + 2);
             v[1] = -v[1];   /* SDL's Y axes point down */
             v[3] = -v[3];
-            /* (YM) An axis steers once it has been seen at rest (inside the dead zone) since the pad was opened. The sticks are
+            /* (longshot) An axis steers once it has been seen at rest (inside the dead zone) since the pad was opened. The sticks are
                the strongest of all the pads', so a device whose axis reads held for good (a mapping that puts a trigger or an
                unused axis on a stick, a second virtual pad) would turn the camera or walk Link in circles on its own, with the
                player's pad at rest. A real stick rests at the start. */
@@ -747,7 +747,7 @@ static void pads_poll(void) {
                 for (int k = 0; k < 4; k++) sig |= (uint64_t)(v[k] > 0 ? 1 : v[k] < 0 ? 2 : 0) << (32 + 2 * k);
                 if (sig != pads[i].input_sig) pads[i].input_sig = sig, pads[i].used_ns = now;
             }
-            /* (YM) what plays its vibration: chosen again each poll (host/vibration.h), then played */
+            /* (longshot) what plays its vibration: chosen again each poll (host/vibration.h), then played */
             vib_choose(i, mode, now);
             if (pads[i].used_ns >= status_used) status_used = pads[i].used_ns, status_pad = i;
             if (pads[i].vib == VIB_NONE) continue;
@@ -778,7 +778,7 @@ static void pads_poll(void) {
                 pads[i].rumble_ns = now;
             }
         }
-        {   /* (YM) the Controls page's vibration line: what plays the pad used last (host/vibration.h) */
+        {   /* (longshot) the Controls page's vibration line: what plays the pad used last (host/vibration.h) */
             void rx_option_set(int id, int value);
             int st = vibration_status(VIB_PAD_OTHER, VIB_SAY_NO_PAD);
             if (status_pad >= 0) {
@@ -855,7 +855,7 @@ int hos_sdl_pads(uint64_t *buttons, int32_t stick[4], int *deck_builtin_input) {
         }
 #ifdef _WIN32
         CreateThread(NULL, 0, pad_main, NULL, 0, NULL);
-        {   /* (YM) the Switch 2 Pro Controller over USB, which Windows and this SDL have no driver for: host/pad_switch2.c */
+        {   /* (longshot) the Switch 2 Pro Controller over USB, which Windows and this SDL have no driver for: host/pad_switch2.c */
             void hos_switch2_start(void);
             hos_switch2_start();
         }

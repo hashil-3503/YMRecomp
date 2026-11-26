@@ -1,4 +1,4 @@
-/* (YM) The button prompts of the controller in use: the game's button-icon font (Font2/Scalable/External.*.bfotf, every
+/* (longshot) The button prompts of the controller in use: the game's button-icon font (Font2/Scalable/External.*.bfotf, every
    icon in a text: dialogue, the control hints, menus) made from prompts/External.bfotf in the game folder, which
    builder/crates/build-assets/src/prompts draws with every controller face's icons at build time, and served from the game folder's cache/prompts/
    (made again whenever the face or the controls change, so a cache: game/game_layout.c), with each Switch button's icon pointed
@@ -714,7 +714,7 @@ static int build_textures(char *out, size_t cap) {
     return ok;
 }
 
-/* ---- (YM) the prompts changed while the game runs: a new face (the Button prompts row, or Auto's controller) or new
+/* ---- (longshot) the prompts changed while the game runs: a new face (the Button prompts row, or Auto's controller) or new
    controls (the Controls page, a layout preset) reach what the game has loaded, at once, by the rules the start follows
    (each icon the pad input bound to its button; a mod's file never touched: only the files served here are looked for).
    - The textures (Common.bntx): their data lies in a memory pool the game makes over the file (hos_prompts_pool, found by

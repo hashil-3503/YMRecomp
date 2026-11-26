@@ -1,4 +1,4 @@
-/* (YM) Sprint (the Controls tab's Sprint row, the Controls page's Sprint line and its Toggle; host/nn_hid.c reads
+/* (longshot) Sprint (the Controls tab's Sprint row, the Controls page's Sprint line and its Toggle; host/nn_hid.c reads
    them): Link sprints while his input flags hold the dash input (bit 4 of the word at *(Link +0x50)), the flag the game sets
    itself for the run that follows a roll. Two places load those flags (the hook sites sprint.link
    and sprint.stance, game/oot_sites.c): Link's movement update, f_804caa80 at 0x804ce798, for the sprint's start and keep tests, and the

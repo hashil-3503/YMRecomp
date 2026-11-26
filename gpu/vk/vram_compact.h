@@ -1,4 +1,4 @@
-// (YM) The compaction's rules (on unless RX_VK_COMPACT=0; vk_texture.cpp's compact_step and the texture budget), apart from Vulkan so
+// (longshot) The compaction's rules (on unless RX_VK_COMPACT=0; vk_texture.cpp's compact_step and the texture budget), apart from Vulkan so
 // that tests/test_vram_compact.py can run them.
 //
 // The driver counts VMA's blocks whole. An evicted texture's memory stays inside its 128 MB block, so the count keeps what the

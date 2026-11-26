@@ -1,4 +1,4 @@
-"""(YM) The A/B within one run (host/hos_ab.c, HOS_AB) and its summary (scripts/perf.py ab), game-free.
+"""(longshot) The A/B within one run (host/hos_ab.c, HOS_AB) and its summary (scripts/perf.py ab), game-free.
 
 The real host/hos_ab.c is compiled over a stub hos.h (the real one's A/B declarations, a clock the fixture moves, the log kept
 in memory) and a stub windows.h (no thread is started: the fixture calls hos_ab_tick at the times it chooses), with the wired
@@ -406,7 +406,7 @@ def wiring_checks():
     for path in sorted((ROOT / "host").rglob("*.c")) + sorted((ROOT / "game").rglob("*.c")):
         for m in re.finditer(r'hos_ab_value\("([A-Z0-9_]+)"', path.read_text(encoding="utf-8")):
             found.setdefault(m.group(1), []).append(path.relative_to(ROOT).as_posix())
-    for path in sorted((ROOT / "gpu/vk").glob("*.cpp")):   # ((YM) the renderer's readers: through the host's table)
+    for path in sorted((ROOT / "gpu/vk").glob("*.cpp")):   # ((longshot) the renderer's readers: through the host's table)
         text = path.read_text(encoding="utf-8")
         for m in re.finditer(r'\bab_value\("([A-Z0-9_]+)"', text):
             found.setdefault(m.group(1), []).append(path.relative_to(ROOT).as_posix())

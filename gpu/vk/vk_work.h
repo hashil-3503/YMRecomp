@@ -1,4 +1,4 @@
-// (YM) Every Vulkan command that does GPU work, or orders it, counts in work_epoch, the recording thread's own count.
+// (longshot) Every Vulkan command that does GPU work, or orders it, counts in work_epoch, the recording thread's own count.
 // full_barrier (vk_texture.cpp) leaves out a barrier recorded right after another one on the same command buffer with nothing in
 // between: the second orders nothing the first did not. The count is the recording thread's own: work another thread records
 // (a background upload) never makes this thread's barrier look needed. Include this header AFTER the file's other includes: it turns the calls below

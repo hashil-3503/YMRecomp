@@ -8,7 +8,7 @@
 
 namespace mkwvk {
 
-// (YM) Vibration (host/vibration.h): what plays each controller, and how strongly. Auto plays the best a controller
+// (longshot) Vibration (host/vibration.h): what plays each controller, and how strongly. Auto plays the best a controller
 // can do, Basic its motors, Off nothing; the strength is one percent of what the game asks for, every backend's. The host
 // writes back what plays the controller used last (HOS_OPT_VIBRATION_STATUS: its kind times 16, plus what it says), which
 // Test vibration's cell and help show.

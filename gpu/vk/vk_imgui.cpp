@@ -1,4 +1,4 @@
-// (YM) Dear ImGui (third_party/imgui) over the window's image (vk_imgui.h): at the window's size, after the game's picture,
+// (longshot) Dear ImGui (third_party/imgui) over the window's image (vk_imgui.h): at the window's size, after the game's picture,
 // its scaling and frame generation, in present_image. The overlays are drawn with ImGui's draw lists (vk_menu.cpp, vk_ui.h);
 // ImGui takes no input of its own: the menu keeps its keys, gamepad and mouse (vk_menu.cpp menu_tick).
 // Textures (the fonts' glyphs, the logo) are copied in on the present's own command buffer, before its render pass: the
@@ -215,7 +215,7 @@ struct Tex {
     VkImageView view = VK_NULL_HANDLE;
     VkDescriptorSet set = VK_NULL_HANDLE;
 };
-/// (YM) With no window (dev.offscreen) the overlays are drawn into the replay's recordings
+/// (longshot) With no window (dev.offscreen) the overlays are drawn into the replay's recordings
 /// (RX_VK_SHOT_MENU), not into the present's copy, and the frames counted here are not the present ring's (idle counts them too):
 /// what they let go waits for the timeline value that follows its last use as well (vk_retirement_value; never at 0). In a window
 /// the present ring alone, as before

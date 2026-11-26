@@ -1,6 +1,6 @@
 // The lane count a mesh fallback compute stage runs at (vk_draw.cpp fallback_compute_pipelines). tests/test_fallback_lanes.py
 //
-// (YM) NVN's programs are written for warps of 32 lanes, so a stage with a subgroup instruction is held to 32 lanes. On
+// (longshot) NVN's programs are written for warps of 32 lanes, so a stage with a subgroup instruction is held to 32 lanes. On
 // Intel's GPUs that is the widest a thread runs, with the fewest registers a lane: Hyrule Castle's colour mesh stages have about
 // 280 values live at once against the 32 a lane has at 32 lanes, and spent most of their time moving them to and from scratch
 // memory. By Mesa's count (Iris Xe, Mesa 26.2.4) a workgroup of d8e59341cf4f629c takes 843,112 cycles at 32 lanes, 2 x 285,094
