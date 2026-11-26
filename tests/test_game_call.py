@@ -20,7 +20,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)

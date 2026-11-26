@@ -14,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ("upmix", "downmix", "retry", "same-layout-retry", "default", "normal")
 REGRESSIONS = {"upmix", "downmix", "retry"}

@@ -45,7 +45,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc", "--cargo", "{cargo}"]
+RUN_ALL_ARGS = ["--cc", "{cc}", "--cargo", "{cargo}"]
 ROOT = Path(__file__).resolve().parents[1]
 
 WINDOWS = sys.platform == "win32"

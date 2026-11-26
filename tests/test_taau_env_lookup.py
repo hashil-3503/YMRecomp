@@ -9,7 +9,7 @@ import re
 import subprocess
 import tempfile
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "YM_env.h")

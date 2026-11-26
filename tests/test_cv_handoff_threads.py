@@ -70,7 +70,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (python -I leaves the check's own folder off the path)
 from srccut import between, block  # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 HLE = {"@LOCK@": "HLE(_ZN2nn2os9LockMutexEPNS0_9MutexTypeE) {",
@@ -939,7 +939,7 @@ def main():
         c, exe = Path(tmp) / (name + ".c"), Path(tmp) / (name + ".exe")
         c.write_text(text, encoding="utf-8")
         subprocess.run([a.cc, "-std=c11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function", "-Wno-unused-value",
-                        "-pthread", "-I", str(ROOT / "gpu" / "vk" / "compat"), str(c), "-o", str(exe)], check=True)
+                        "-pthread", "-static", "-I", str(ROOT / "gpu" / "vk" / "compat"), str(c), "-o", str(exe)], check=True)
         return exe
 
     def run(exe, no_handoff, handoff, group=None):

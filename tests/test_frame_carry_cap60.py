@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block   # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "YM_env.h")
 

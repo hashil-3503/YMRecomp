@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -49,6 +49,10 @@ CPP = r"""
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#ifdef _WIN32
+#define setenv(n, v, o) _putenv_s(n, v)   /* (no setenv on Windows; an empty value unsets) */
+#define unsetenv(n) _putenv_s(n, "")
+#endif
 #include "gpu/vk/auto_settings.h"
 enum { VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1, VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2 };
 struct Props { int deviceType; char deviceName[256]; unsigned vendorID; };

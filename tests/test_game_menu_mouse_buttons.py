@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block, find   # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -80,7 +80,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="YM-game-menu-mouse-") as tmp:
         c, exe = Path(tmp) / "fixture.c", Path(tmp) / "fixture.exe"
         c.write_text(source, encoding="utf-8")
-        subprocess.run([a.cc, "-std=c11", "-O0", "-Wall", "-Wextra", "-Werror", str(c), "-o", str(exe)], check=True)
+        subprocess.run([a.cc, "-std=c11", "-O0", "-Wall", "-Wextra", "-Werror", "-Wno-unused-but-set-global", str(c), "-o", str(exe)], check=True)
         run = subprocess.run([str(exe)], capture_output=True, text=True)
         print(run.stdout, end="")
         if run.returncode:

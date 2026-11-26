@@ -16,7 +16,7 @@ import tempfile
 # (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/YM_env.h)
 ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "YM_env.h")
 
-RUN_ALL_ARGS = ["--cc", "gcc", "--cxx", "g++"]
+RUN_ALL_ARGS = ["--cc", "{cc}", "--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))

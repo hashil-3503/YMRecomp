@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ("vulkan", "fallback", "immediate", "fallback-immediate", "zero", "already-away",

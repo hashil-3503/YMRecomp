@@ -24,7 +24,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (python -I leaves the check's own folder off the path)
 from menu_model_fixture import GAME_OPTION_ANSWER, game_row, menu_text  # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 MENU = ROOT / "gpu" / "vk" / "vk_menu.cpp"

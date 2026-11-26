@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from srccut import between, block
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 FIXTURE = r"""
 #include <stdint.h>

@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block   # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "YM_env.h")
@@ -165,7 +165,7 @@ def main():
         # (_POSIX_C_SOURCE before YM_env.h's own includes, for pthread_rwlock_t; the state cut out of nn_hid.c has
         # variables and functions only the rest of the file uses)
         subprocess.run([a.cc, "-std=c11", "-D_POSIX_C_SOURCE=200809L", "-include", ENV_ON_H, "-Wall", "-Wextra", "-Werror",
-                        "-Wno-unused-function", "-Wno-unused-variable", "-pthread", "-o", str(exe), str(src)], check=True)
+                        "-Wno-unused-function", "-Wno-unused-variable", "-pthread", "-static", "-o", str(exe), str(src)], check=True)
         r = subprocess.run([str(exe)], capture_output=True, text=True)
         sys.stdout.write(r.stdout)
         sys.stderr.write(r.stderr)

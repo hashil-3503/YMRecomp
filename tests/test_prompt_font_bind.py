@@ -23,7 +23,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 PROMPTS = ROOT / "builder" / "crates" / "build-assets" / "src" / "prompts"

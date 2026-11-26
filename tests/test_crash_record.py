@@ -14,7 +14,7 @@ import signal
 import subprocess
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -62,7 +62,7 @@ def source_contract():
     main = (ROOT / "host/hos_main.c").read_text(encoding="utf-8")
     prepare = main.index("hos_crash_record_prepare(path);")
     rotate = main.index("MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING);")
-    assert main.index('memcpy(path + n, "YM_log.txt", 17);') < prepare < rotate < main.index('freopen(path, "w", stderr)')
+    assert main.index('memcpy(path + n, "YM_log.txt", 11);') < prepare < rotate < main.index('freopen(path, "w", stderr)')
     assert "else hos_crash_record_prepare(NULL);" in main
     assert "hos_crash_record_start(path, hos_version(), log_path);" in block(glue, "void hos_crash_record_prepare(")
     banner = main[main.index('    hos_log("YM %s", YM_VERSION);'):main.index("    removed_switch_notes();")]

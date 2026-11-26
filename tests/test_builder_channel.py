@@ -12,7 +12,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
+RUN_ALL_SKIP = {"windows": "checks the Linux branch (POSIX pipes, fcntl close-on-exec); the Windows branch is compiled by scripts/check_host_compile.py"}
 
 ROOT = Path(__file__).resolve().parents[1]
 

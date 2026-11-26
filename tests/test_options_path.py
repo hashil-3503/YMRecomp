@@ -25,7 +25,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS = sys.platform == "win32"
 EXE = "YM.exe" if WINDOWS else "YM"

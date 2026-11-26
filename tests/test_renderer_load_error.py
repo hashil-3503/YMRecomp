@@ -19,7 +19,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 
 DRIVER = r"""#include <windows.h>

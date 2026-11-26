@@ -2,8 +2,8 @@
 
 Seventeen of OoT's compute programs stopped at it as "native formatted surface load mode": the lowering took only 2D,
 2D_ARRAY and 3D. 1D is Maxwell SULD.P with dimension code 0 and one coordinate register, which the Maxwell frontend
-already reads as a Color1D image (and the back end binds as VK_IMAGE_VIEW_TYPE_1D). 1D_BUFFER and 1D_ARRAY are not seen
-in the game and stay refused.
+already reads as a Color1D image (and the back end binds as VK_IMAGE_VIEW_TYPE_1D). 1D_ARRAY is not seen
+in the game and stays refused (1D_BUFFER lowers since: one coordinate register, dimension code 1).
 python -I -B tests/test_lower_suld_1d.py [--cxx clang++]
 """
 import argparse
@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,8 +57,12 @@ int main() {
         CHECK(std::find(r.instructions.begin(), r.instructions.end(), suld(0, 254, 1, 0, 0x10)) != r.instructions.end());
         CHECK(!lower(insn(0xff007b97, 0x00001000, 0x001e0100, 0x000f6200)));
     }
-    // 1D_BUFFER and 1D_ARRAY (codes 1 and 2) are still refused
-    CHECK(!lower(insn(0x00007b97, 0x20001000, 0x001e0100, 0x000f6200)));
+    {   // 1D_BUFFER (code 1) lowers too now, with one coordinate register like 1D
+        const auto r = lower(insn(0x00007b97, 0x20001000, 0x001e0100, 0x000f6200));
+        CHECK(r);
+        CHECK(r.instructions.size() >= 1 && r.instructions[0] == suld(0, 0, 1, 1, 0x10));
+    }
+    // 1D_ARRAY (code 2) is still refused
     CHECK(!lower(insn(0x00007b97, 0x40001000, 0x001e0100, 0x000f6200)));
     std::printf("PASS: SULD.P on a 1D surface lowers to Maxwell SULD.P.1D\n");
 }

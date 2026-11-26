@@ -39,7 +39,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block   # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -674,7 +674,7 @@ def wiring():
 
 def compile_c(cc, src, exe, extra):
     libraries = [] if os.name == "nt" else ["-lpthread"]
-    r = subprocess.run([cc, "-std=gnu11", "-O1", "-Wall", "-Wextra", "-Werror", "-Wno-format-truncation"] + extra +
+    r = subprocess.run([cc, "-std=gnu11", "-O1", "-Wall", "-Wextra", "-Werror", "-Wno-unused-but-set-global", "-Wno-format-truncation"] + extra +
                        [str(src), "-o", str(exe), "-lm"] + libraries, text=True, capture_output=True)
     check(r.returncode == 0, "compile failed:\n" + r.stdout + r.stderr)
 

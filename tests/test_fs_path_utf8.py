@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 RUN_ALL_SKIP = {"linux": "native Windows filesystem conversion APIs"}
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -30,7 +30,7 @@ import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block, between   # noqa: E402
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 # (env_on, the switches' rule, before host/hos_mem.c: it reads gpu/vk/compat/YM_env.h by a path from host/)

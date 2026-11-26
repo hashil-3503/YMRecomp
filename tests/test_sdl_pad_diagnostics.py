@@ -11,7 +11,7 @@ import re
 import subprocess
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 
 

@@ -377,23 +377,23 @@ FI_PATCHES = {
          f"        t -= {FI_T} * (1 - (fDisocclusionFactor.y));\n", 1),
         ("        fInterpolatedColor = ffxLerp(fPrevColorGame.fRaw, fCurrColorGame.fRaw, ffxSaturate(t));\n",
          "        fInterpolatedColor = ffxLerp(fPrevColorGame.fRaw, fCurrColorGame.fRaw, ffxSaturate(t));\n"
-         "        YMStaticSamples(fUvInScreenSpace, gameMv.fMotionVector * fUvLetterBoxScale, t, fPrevColorGame.fRaw,\n"
+         "        LongshotStaticSamples(fUvInScreenSpace, gameMv.fMotionVector * fUvLetterBoxScale, t, fPrevColorGame.fRaw,\n"
          "                              fCurrColorGame.fRaw, fInterpolatedColor);\n", 1),
         ("        FfxFloat32 ofT = 0.5f;\n", f"        FfxFloat32 ofT = {FI_T};\n", 1),
         ("            ofT = 0.5f;\n", f"            ofT = {FI_T};\n", 1),
         ("        const FfxFloat32x3 ofColor = ffxLerp(fPrevColorOF.fRaw, fCurrColorOF.fRaw, ofT);\n",
          "        FfxFloat32x3 ofColor = ffxLerp(fPrevColorOF.fRaw, fCurrColorOF.fRaw, ofT);\n"
-         "        YMStaticSamples(fUvInScreenSpace, ofMv.fMotionVector * fUvLetterBoxScale, ofT, fPrevColorOF.fRaw,\n"
+         "        LongshotStaticSamples(fUvInScreenSpace, ofMv.fMotionVector * fUvLetterBoxScale, ofT, fPrevColorOF.fRaw,\n"
          "                              fCurrColorOF.fRaw, ofColor);\n", 1),
         ("        fInterpolatedColor = ffxLerp(ofColor, fInterpolatedColor, ffxSaturate(fGameMvBias));\n    }\n}\n",
          "        fInterpolatedColor = ffxLerp(ofColor, fInterpolatedColor, ffxSaturate(fGameMvBias));\n    }\n"
-         "    YMStaticPixel(FfxInt32x2(iPxPos), max(gameMv.fVelocity, ofMv.fVelocity), fInterpolatedColor,\n"
+         "    LongshotStaticPixel(FfxInt32x2(iPxPos), max(gameMv.fVelocity, ofMv.fVelocity), fInterpolatedColor,\n"
          "                        fInPaintingWeight);\n}\n", 1),
         # (the two helpers, ahead of computeInterpolatedColor, which calls them)
         ("void updateInPaintingWeight(inout FfxFloat32 fInPaintingWeight, FfxFloat32 fFactor)\n",
          "// (longshot) The HUD kept where it is: a pixel the same in both frames (to within half an 8-bit step), inside the\n"
          "// frame. KeepStaticPixels says whether to look at all\n"
-         "FfxBoolean YMSame(FfxInt32x2 iPx)\n"
+         "FfxBoolean LongshotSame(FfxInt32x2 iPx)\n"
          "{\n"
          "    if (!IsInRect(iPx, InterpolationRectBase(), InterpolationRectSize())) return false;\n"
          "    const FfxFloat32x3 fDiff = abs(LoadPreviousBackbuffer(iPx) - LoadCurrentBackbuffer(iPx));\n"
@@ -401,10 +401,10 @@ FI_PATCHES = {
          "}\n"
          "\n"
          "// A pixel of the frame before (bCurrent false) or of this one that is the HUD: marked in that frame's alpha where the\n"
-         "// renderer knows it (HudMaskInAlpha), else one the same in both frames (YMSame)\n"
-         "FfxBoolean YMHud(FfxInt32x2 iPx, FfxBoolean bCurrent)\n"
+         "// renderer knows it (HudMaskInAlpha), else one the same in both frames (LongshotSame)\n"
+         "FfxBoolean LongshotHud(FfxInt32x2 iPx, FfxBoolean bCurrent)\n"
          "{\n"
-         "    if (!HudMaskInAlpha()) return YMSame(iPx);\n"
+         "    if (!HudMaskInAlpha()) return LongshotSame(iPx);\n"
          "    if (!IsInRect(iPx, InterpolationRectBase(), InterpolationRectSize())) return false;\n"
          "    return (bCurrent ? LoadCurrentBackbufferAlpha(iPx) : LoadPreviousBackbufferAlpha(iPx)) < 0.5f;\n"
          "}\n"
@@ -412,12 +412,12 @@ FI_PATCHES = {
          "// A blend of the two frames' samples (0 < t < 1: both ends seen) where one sample lands on a pixel the same in both\n"
          "// frames and the other does not: that one is the HUD, the scene behind it in neither frame, so the other is taken.\n"
          "// fMv: the vector the samples were taken with, in UV (half the motion, as the fields keep it)\n"
-         "void YMStaticSamples(FfxFloat32x2 fUv, FfxFloat32x2 fMv, FfxFloat32 t, FfxFloat32x3 fPrev, FfxFloat32x3 fCurr,\n"
+         "void LongshotStaticSamples(FfxFloat32x2 fUv, FfxFloat32x2 fMv, FfxFloat32 t, FfxFloat32x3 fPrev, FfxFloat32x3 fCurr,\n"
          "                           inout FfxFloat32x3 fColor)\n"
          "{\n"
          "    if (!KeepStaticPixels() || t <= 0.0f || t >= 1.0f || length(fMv * DisplaySize()) < 0.5f) return;\n"
-         "    const FfxBoolean bPrev = YMHud(FfxInt32x2((fUv + fMv * PrevScale()) * DisplaySize()), false);\n"
-         "    const FfxBoolean bCurr = YMHud(FfxInt32x2((fUv - fMv * CurrScale()) * DisplaySize()), true);\n"
+         "    const FfxBoolean bPrev = LongshotHud(FfxInt32x2((fUv + fMv * PrevScale()) * DisplaySize()), false);\n"
+         "    const FfxBoolean bCurr = LongshotHud(FfxInt32x2((fUv - fMv * CurrScale()) * DisplaySize()), true);\n"
          "    if (bPrev && !bCurr) fColor = fCurr;\n"
          "    else if (bCurr && !bPrev) fColor = fPrev;\n"
          "}\n"
@@ -425,11 +425,11 @@ FI_PATCHES = {
          "// The made pixel itself: this frame's HUD where it is marked; else the same in both frames while the scene there moves\n"
          "// (fVelocity: the larger of the two fields' vectors, in UV) is the HUD, or a flat colour where this frame's pixel is\n"
          "// right too: this frame's pixel\n"
-         "void YMStaticPixel(FfxInt32x2 iPx, FfxFloat32 fVelocity, inout FfxFloat32x3 fColor, inout FfxFloat32 fInPaintingWeight)\n"
+         "void LongshotStaticPixel(FfxInt32x2 iPx, FfxFloat32 fVelocity, inout FfxFloat32x3 fColor, inout FfxFloat32 fInPaintingWeight)\n"
          "{\n"
          "    if (!KeepStaticPixels()) return;\n"
-         "    if (HudMaskInAlpha() ? !YMHud(iPx, true)\n"
-         "                         : fVelocity * length(FfxFloat32x2(DisplaySize())) < 0.5f || !YMSame(iPx)) return;\n"
+         "    if (HudMaskInAlpha() ? !LongshotHud(iPx, true)\n"
+         "                         : fVelocity * length(FfxFloat32x2(DisplaySize())) < 0.5f || !LongshotSame(iPx)) return;\n"
          "    fColor = LoadCurrentBackbuffer(iPx);\n"
          "    fInPaintingWeight = 0.0f;\n"
          "}\n"

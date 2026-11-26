@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 import subprocess,tempfile
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT=Path(__file__).resolve().parents[1]
 def main():

@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 RUN_ALL_SKIP = {"linux": "the Windows log writer: SRW locks and threads"}
 
 ROOT = Path(__file__).resolve().parents[1]

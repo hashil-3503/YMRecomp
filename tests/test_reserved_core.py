@@ -24,7 +24,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cxx", "g++", "--cc", "gcc"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}", "--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 

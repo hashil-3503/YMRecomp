@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (python -I leaves the check's own folder off the path)
 from menu_model_fixture import built_menu, module_rows  # noqa: E402
 
-RUN_ALL_ARGS = ["--cxx", "g++"]
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = {"TAB_GRAPHICS": "graphics", "TAB_AUDIO": "audio", "TAB_GAMEPLAY": "gameplay", "TAB_CONTROLS": "controls",

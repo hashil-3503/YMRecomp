@@ -23,7 +23,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 WAIT = "HLE(_ZN2nn2os21WaitConditionVariableEPNS0_21ConditionVariableTypeEPNS0_9MutexTypeE) {"
@@ -269,7 +269,7 @@ def main():
             text = text.replace(key, changed.get(key, part))
         c, exe = Path(tmp) / (name + ".c"), Path(tmp) / (name + ".exe")
         c.write_text(text, encoding="utf-8")
-        subprocess.run([a.cc, "-std=c11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function", "-pthread", "-I",
+        subprocess.run([a.cc, "-std=c11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function", "-pthread", "-static", "-I",
                         str(ROOT / "gpu" / "vk" / "compat"), str(c), "-o", str(exe)], check=True)
         return exe
 

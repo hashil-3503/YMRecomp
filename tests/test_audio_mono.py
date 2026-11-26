@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 from menu_model_fixture import menu_text  # noqa: E402

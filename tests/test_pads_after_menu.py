@@ -14,7 +14,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "YM_env.h")
@@ -183,7 +183,7 @@ def main():
         src = Path(tmp) / "t.c"
         src.write_text(code, encoding="utf-8")
         exe = Path(tmp) / "t.exe"
-        subprocess.run([a.cc, "-std=c11", "-include", ENV_ON_H, "-Wall", "-Wextra", "-Werror", "-Wno-unused-function",
+        subprocess.run([a.cc, "-std=c11", "-include", ENV_ON_H, "-Wall", "-Wextra", "-Werror", "-Wno-unused-variable", "-Wno-unused-function",
                         "-o", str(exe), str(src)], check=True)
         r = subprocess.run([str(exe)], capture_output=True, text=True)
         sys.stdout.write(r.stdout)

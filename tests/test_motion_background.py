@@ -17,7 +17,7 @@ import subprocess
 import sys
 import tempfile
 
-RUN_ALL_ARGS = ["--cc", "gcc"]
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 
 ROOT = Path(__file__).resolve().parents[1]
 # (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/YM_env.h)

@@ -193,7 +193,7 @@ struct FfxFloat32x2 { float x, y; };
 float length(FfxFloat32x2 value) { return std::hypot(value.x, value.y); }
 bool KeepStaticPixels() { return true; }
 bool HudMaskInAlpha() { return true; }
-bool YMSame(FfxInt32x2) { return false; }
+bool LongshotSame(FfxInt32x2) { return false; }
 bool IsInRect(FfxInt32x2, FfxInt32x2, FfxInt32x2) { return true; }
 FfxInt32x2 InterpolationRectBase() { return {0}; }
 FfxInt32x2 InterpolationRectSize() { return {1}; }
@@ -215,7 +215,7 @@ void check_pq_hud_pixels() {
         CHECK(mask_pixel.a == (marked ? 0.0f : 1.0f) && mask_pixel.rgb == shown_pq);
         vec3 made = generated_pq;
         float weight = 1.0f;
-        YMStaticPixel({0}, 1.0f, made, weight);
+        LongshotStaticPixel({0}, 1.0f, made, weight);
         CHECK(made == (marked ? shown_pq : generated_pq));
         CHECK(weight == (marked ? 0.0f : 1.0f));
     }
@@ -398,8 +398,8 @@ def pixel_fixture(source):
                    and any(isinstance(target, ast.Name) and target.id == "FI_PATCHES" for target in node.targets))
     patched = "\n".join(edit.elts[1].value for edits in patches.values for edit in edits.elts
                         if isinstance(edit.elts[1], ast.Constant))
-    hud = block(patched, "FfxBoolean YMHud(")
-    static_pixel = block(patched, "void YMStaticPixel(").replace("inout ", "").replace("fColor,", "&fColor,")
+    hud = block(patched, "FfxBoolean LongshotHud(")
+    static_pixel = block(patched, "void LongshotStaticPixel(").replace("inout ", "").replace("fColor,", "&fColor,")
     static_pixel = static_pixel.replace("fInPaintingWeight)", "&fInPaintingWeight)")
     mask = f"vec4 pack_mask(vec3 scene, vec3 drawn, vec3 shown) {{ return {{shown, float({alpha})}}; }}\n"
     return PIXEL_STUBS + mask + hud + "\n" + static_pixel + PIXEL_CHECK
