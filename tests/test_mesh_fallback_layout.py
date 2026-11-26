@@ -23,7 +23,6 @@ import tempfile
 from pathlib import Path
 
 RUN_ALL_ARGS = ["--cxx", "{cxx}", "--headers", "{spirv_headers}", "--spirv-val", "{spirv_val}"]
-RUN_ALL_SKIP = {"windows": "builds the SPIR-V back end with POSIX compiler flags and needs spirv-val: checked on Linux"}
 
 ROOT = Path(__file__).resolve().parents[1]
 VK = ROOT / "gpu" / "vk"

@@ -24,7 +24,6 @@ import tempfile
 from pathlib import Path
 
 RUN_ALL_ARGS = ["--cxx", "{cxx}", "--spirv-val", "{spirv_val}"]
-RUN_ALL_SKIP = {"windows": "needs spirv-val: checked on Linux"}
 
 ROOT = Path(__file__).resolve().parents[1]
 VK = ROOT / "gpu" / "vk"

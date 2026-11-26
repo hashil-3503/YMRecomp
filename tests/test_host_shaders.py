@@ -13,7 +13,6 @@ from pathlib import Path
 
 RUN_ALL_ARGS = ["--glslang", "{glslang}"]
 # (glslang: a Linux runner package. The headers it checks are SPIR-V, the same on every platform)
-RUN_ALL_SKIP = {"windows": "needs glslang: checked on Linux"}
 
 ROOT = Path(__file__).resolve().parents[1]
 
