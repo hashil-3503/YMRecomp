@@ -49,7 +49,7 @@ The unit tests are structural: every word the decoder accepts (and every SIMD wo
 accepts or says why not; a few forms are checked by what they read and write. What the IR computes is checked against
 Unicorn by `tests/test_lifter_semantics.py` (game-free: every word generated, each lifted through `YM-builder
 dev words`, compiled and run beside Unicorn; it needs unicorn, cargo and clang++). On a shared PC it goes through the job
-queue ([share a PC](../../../docs/dev/developing.md#share-a-pc-the-job-queue)):
+queue:
 
 ```
 python -I scripts/dev.py queue run semantics --mode build --desc "lifter semantics" -- \

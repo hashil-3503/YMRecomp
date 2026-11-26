@@ -3,7 +3,7 @@
 The game sees one Pro Controller on Npad No. 1. [`host/nn_hid.c`](../../../host/nn_hid.c) builds it by merging every
 source: SDL controllers, XInput, the keyboard and the mouse. Buttons map by position (the bottom face button is the
 Switch's bottom one, B). The player's bindings come from the Insert menu's Controls page and are saved in
-`YM_options.ini` (`binds_load`). Player-facing controls are in [Settings](../../user/graphics-and-controls.md).
+`YM_options.ini` (`binds_load`). Player-facing controls are in the Settings menu.
 
 | Source | Code | Notes |
 |---|---|---|
@@ -141,7 +141,7 @@ in the replay (`rx_option` answers those rows with the recording's), nor the rep
   reach the menu (not the game), and pressing any of the page's rows stops it. **Drift correction** is its `HOS_INPUT_SYNC` (Off, every
   update, every second, every 5 s). The rows work with the Debug tools on or off.
 - **Over the control bridge:** `record` and `play` ([the bridge](control-bridge.md)), and `status`'s `recorder`: an
-  agent's or a test's way ([replay a recording](../developing.md#replay-a-recording)).
+  agent's or a test's way.
 - **From the start, with the switches:**
 
 ```
@@ -221,7 +221,7 @@ the game or copied for a recording.
 | `HOS_RUMBLE_BACKEND` | `renhdrum`: also a DualSense whose connection SDL can't tell, through RenHDrum; `motors`: every pad's motors; `hd`: no RenHDrum (a Switch pad its own HD rumble) |
 | `HOS_MOUSE_NATIVE`, `HOS_MOUSE_SENS`, `HOS_MOUSE_INVERT_X`, `HOS_MOUSE_INVERT_Y` | Mouse camera settings over the menu |
 
-Scripted input for test runs (`HOS_INPUT_SCRIPT`, `HOS_INPUT_LIVE`) is in [developing](../developing.md#scripted-input). The full list is in
+Scripted input for test runs (`HOS_INPUT_SCRIPT`, `HOS_INPUT_LIVE`) is in `docs/dev/reference/switches.md`. The full list is in
 [`switches.def`](../../../gpu/vk/switches.def).
 
 ## Checks

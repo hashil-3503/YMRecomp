@@ -1,6 +1,6 @@
 # Mods
 
-The player page is [using mods](../../user/using-mods.md). This page is the loader's contract: what counts as a mod,
+This page is the loader's contract: what counts as a mod,
 which file wins, and what the loader does not do.
 
 ## One mod format

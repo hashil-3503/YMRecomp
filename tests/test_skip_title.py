@@ -319,8 +319,6 @@ def check_menu():
                               sorted((ROOT / "gpu" / "vk" / "menu").glob("*.cpp")))
     if renderer_menu.count("HOS_OPT_SKIP_TITLE") or header.count("HOS_OPT_SKIP_TITLE"):
         raise SystemExit("the renderer's menu should keep the game row's value by its id generically, naming no HOS_OPT_SKIP_TITLE")
-    if "| | Skip title screen |" not in (ROOT / "docs" / "user" / "graphics-and-controls.md").read_text(encoding="utf-8"):
-        raise SystemExit("docs/user/graphics-and-controls.md: the menu's Skip title screen row is not in the settings table")
 
 
 BUILD = "e0f3ccfaf50065ae4ea01eb5aeb13b1a45da3348"

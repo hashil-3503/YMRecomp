@@ -15,7 +15,7 @@
    The frame trace (RX_VK_FRAME_TRACE) gets each frame's side as its ab_side column (MkwVkHost.ab_frame): -1 outside the A/B,
    0 or 1, and 2 or 3 for that side's frames in a transition (a flip inside the frame, or less than AB_SETTLE_NS before its
    end), which scripts/perf.py ab leaves out. The host also sums the presents' intervals by side (rx_nvn_present) and logs
-   the sums at the end of the run (hos_close_finish): "ab: ...". docs/dev/developing.md, "An A/B within one run". */
+   the sums at the end of the run (hos_close_finish): "ab: ...". */
 #include "hos.h"
 #include <stdint.h>
 #include <stdio.h>

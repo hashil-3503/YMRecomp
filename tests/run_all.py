@@ -467,7 +467,7 @@ class Result:
 
 # (--changed, the dev-loop proposal's D1) the checks that read what changed: most tests name the files they cut code from or run,
 # by path or by name, so a test whose text names a changed file is picked. A change to this runner, or to a shared .py of tests/
-# that is not a test, picks every check. Before a pull request the whole run is still the one that counts (docs/dev/developing.md#from-claim-to-merge)
+# that is not a test, picks every check. Before a pull request the whole run is still the one that counts
 YM_REMOTE = "git.magicbean.dev/magicbeandev/ym"   # (forge.py's HOST and REPO, as add_remote matches them)
 
 

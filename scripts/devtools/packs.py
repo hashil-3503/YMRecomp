@@ -1,7 +1,7 @@
 """A development build as a base and small packs over it, in a base folder you name, without the job queue (`dev.py
 packs`): build the game once, then build only what a change touches and run it from a copy of that base. For development
 and A/B tests only: it runs YM-builder (docs/dev/reference/builder.md) as players' builders do, built from the
-checkout's own builder/ (docs/dev/developing.md, *Test a change against a base*). `dev.py base`, `pack` and `rt`
+checkout's own builder/. `dev.py base`, `pack` and `rt`
 (build.py) run these on the PC's shared bases through the queue; the Test Farm runs them on its own.
 
     dev.py packs base DIR --game G [--tree T] [--seed GAME] [--upscaler LIST]

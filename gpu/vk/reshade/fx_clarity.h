@@ -10,7 +10,6 @@ struct ClarityPreset {
 };
 
 // SDR adaptations of the Clarity GFX presets by Jamie, Kiri, Crementif and the preset authors.
-// Background, license and the upstream revision are recorded in docs/user/reshade-presets.md.
 // The order is part of reshade_preset in YM_options.ini (fx_builtin.h first_clarity_preset): append new entries.
 inline constexpr auto clarity_presets = std::to_array<ClarityPreset>({
     {"Serfrost (Recommended)", "Exposure=1.06\nLevels=5,232\nGamma=0.91,0.91,0.91\nGain=1.06,1.06,1.06\n"

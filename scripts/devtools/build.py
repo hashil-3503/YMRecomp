@@ -2,7 +2,6 @@
 as a pack over it, a runtime to play, every step through the job queue (jobqueue.py) in the build environment a player's
 build has: YM-builder (docs/dev/reference/builder.md) and tools.lock's build tools. Linux and Windows; Python's
 standard library only.
-docs/dev/developing.md, *Test a change against a base*.
 
     dev.py base [REV]           the shared base of REV (default: where this checkout left main), built once by whoever
                                 asks first (`dev.py packs base`, run by a checkout of that commit)
@@ -47,7 +46,7 @@ from . import common, jobqueue, packs, vcs
 
 ROOT = common.ROOT
 WHO = "dev.py"
-HOT_QUICK = {"RX_HOT_OPT": "O1"}   # (docs/dev/developing.md, Build quickly: the hot units' level, in their objects' keys)
+HOT_QUICK = {"RX_HOT_OPT": "O1"}   # (the hot units' level, in their objects' keys)
 # (each tool's variable, build-driver's tools/mod.rs TOOLS: the folder YM-builder takes it from, with YM_OWN_TOOLS=1)
 TOOL_ENV = {"windows-x64": {"llvm-mingw": "YM_MINGW", "cpm": "RX_CPM", "sdl": "YM_SDL_DIR"},
             "linux-x64": {"llvm": "YM_LLVM", "sysroot": "YM_SYSROOT", "ffmpeg": "YM_FFMPEG",

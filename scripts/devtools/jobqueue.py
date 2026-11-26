@@ -1,6 +1,5 @@
 """The PC's queue of builds, game runs and measurements (`dev.py queue`). Several agents and people share one PC, its GPU,
-CPUs and memory, and a timed run is only worth its numbers when nothing else runs beside it (docs/dev/developing.md,
-*Share a PC: the job queue*). Python's standard library only.
+CPUs and memory, and a timed run is only worth its numbers when nothing else runs beside it. Python's standard library only.
 
     dev.py queue run NAME [--mode MODE] -- CMD...   CMD when the queue lets it; exits with CMD's status
     dev.py queue status                             who plays, what runs, what waits and why, memory and disk

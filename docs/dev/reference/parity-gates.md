@@ -12,7 +12,7 @@ leave the game playing exactly as before. The parity gates are how a pull reques
 | 5, nothing started | with no mods: none loaded, no `modcache`, no reserved log line, thread or process | `scripts/parity_gates.py` |
 
 This page is gates 3 to 5. They need your own game, and they run the game: they are local checks like the in-game
-runs in [Run the game for a test](../developing.md#run-the-game-for-a-test), not game-free ones. The game-free
+runs in a real run of the game, not game-free ones. The game-free
 checks of the script itself are `tests/test_parity_gates.py`.
 
 ## When they are required
@@ -39,7 +39,7 @@ python -I scripts/parity_gates.py ab --a main=build-linux/rt-base --b branch=bui
 
 `ab` plays the scenario three times, one game after the other: A (main), B (the branch), then A again, in the folders
 `a1-<label>`, `b-<label>` and `a2-<label>` (so one label on both sides is fine). **Each run is a job of the PC's queue
-in `--mode shared`** (`scripts/dev.py queue`, [Share a PC](../developing.md#share-a-pc-the-job-queue)), so it waits
+in `--mode shared`** (`scripts/dev.py queue`, the job queue), so it waits
 its turn beside other agents' builds and runs; `parity_gates.py run` refuses to start a game outside a `shared` job
 (not `gpu`, not `timing`), and on Windows. The runs and their output go in `work/parity/<a>-<b>-<time>/` (`--out` for
 another folder); a folder on a RAM file system (tmpfs) is refused, for the game folders too. Each run plays in a test

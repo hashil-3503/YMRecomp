@@ -51,7 +51,6 @@ def main():
     replay = (ROOT / "gpu" / "vk" / "vk_replay.cpp").read_text(encoding="utf-8")
     menu = menu_text()   # (vk_menu.cpp and its modules' rows, #1633)
     header = (ROOT / "gpu" / "vk" / "vk_menu.h").read_text(encoding="utf-8")
-    settings = (ROOT / "docs" / "user" / "graphics-and-controls.md").read_text(encoding="utf-8")
 
     check(not re.search(r"HOS_OPT_\w+ = 11\b", api), "a HOS_OPT_ enum also takes option 11")
     pads = block(hid, "static void xinput_poll(")   # (XInput's pads, read off the game's thread)
@@ -72,8 +71,6 @@ def main():
     check(row is not None, "the Insert menu has no Stick dead zone row (0 to 5)")
     check(row.group(0).rstrip().endswith("nullptr, false, true},"),
           "the row is not preset_exempt: changing the dead zone would set the quality preset to Custom")
-    check("| | Stick dead zone | Default (24%), 5%, 10%, 15%, 20%, 30% | Default (24%) |" in settings,
-          "docs/user/graphics-and-controls.md's settings table has no Stick dead zone row")
 
     c = r'''#include <stdint.h>
 #include <stdio.h>

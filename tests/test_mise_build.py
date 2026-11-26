@@ -41,7 +41,7 @@ class MiseBuildTest(unittest.TestCase):
         # (a non-Linux setup goes on without the checks' Linux tools)
         self.assertIn("exit 0", t["test-deps"]["run"].split("fi", 1)[0])
         shown = sorted(n for n, task in t.items() if not task.get("hide"))
-        # (tools: setup's step that puts tools.lock's build tools in the checkout, as a player's build has them; setup.md)
+        # (tools: setup's step that puts tools.lock's build tools in the checkout, as a player's build has them)
         self.assertEqual(shown, ["build", "build-dev", "ci", "ci:smoke", "dev", "lint", "rust", "setup", "test", "test-changed",
                                  "tools", "tracy-tools"],
                          "a new task is one more thing to learn: fold it into one of these, or hide a helper")

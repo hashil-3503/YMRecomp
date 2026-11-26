@@ -79,8 +79,8 @@ Every hand-off is a job or a present, but for the recorder's packets:
    (0x3980 bytes) is read without its wait on every PC (`RX_VK_READBACK_LATE`, `gpu/vk/readback_late.h`): the game reads
    it right after submitting the work that fills it, so on the console it cannot count on that work either, and the
    reads of it were 40 to 45% of the readback wait on a Steam Deck. On a discrete RADV card (RX 9070 XT) a rule naming two further sizes besides the camera block
-   (`RX_VK_READBACK_LATE=3980,40,2000`) lowered the median frame time 3.6-10.7% on five of six legs of a heavy route
-   (`docs/tested/`); the exposure meter's own sizes are left waiting.
+   (`RX_VK_READBACK_LATE=3980,40,2000`) lowered the median frame time 3.6-10.7% on five of six legs of a heavy route;
+   the exposure meter's own sizes are left waiting.
 5. **One queue, one submission order, under `dev.present_mu`.** Every submit to the replay's queue, and a present on it,
    takes that lock. The presenter thread holds the queue's lock only for its `vkQueuePresentKHR` call, after the copy's
    fence, so the call does not wait for the GPU with the replay's submits held behind it. The recorder thread takes it

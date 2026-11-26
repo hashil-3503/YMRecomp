@@ -57,7 +57,6 @@ python -I scripts/pipeline_tour.py compare <new>/play.bin <old>/play.bin  # what
 - `value <run dirs>` shows each step's pipelines no other step or contributed list has, to decide what to cut.
 - Check a changed route or wait by its lists, not the clock: a tour each way on the same PC, then `compare` (or
   `tour --compare-to <old list>`). A change that only saves time loses nothing.
-- `--vk-profile <dir>` also records the renderer's play profile
-  ([developing](../developing.md#record-the-renderers-play-profile)).
+- `--vk-profile <dir>` also records the renderer's play profile.
 
 `tests/test_pipeline_tour.py` checks the tour against a fake bridge.

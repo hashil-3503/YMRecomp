@@ -33,7 +33,7 @@ Recorded: 71,741 of the game's 294,518 functions ran in at least one of:
 
 ## YM_vk.profdata.xz: the renderer's
 
-The Vulkan back end's play profile (`RX_VK_PGO`; docs/dev/developing.md, "Record the renderer's play profile"),
+The Vulkan back end's play profile (`RX_VK_PGO`),
 compressed with xz. YM-builder unpacks it into the work folder (`YM_vk.shipped.profdata`) and builds the
 renderer's own files with it, unless `RX_VK_PGO` says otherwise (builder/crates/build-compile/src/vk_profile.rs). A
 compiler that can't read it builds the renderer without it.

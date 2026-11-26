@@ -80,7 +80,7 @@ the profile. The game takes from it, and from nowhere else:
 
 No switch and no command line names another place for these three: a run is started with a profile, the way it
 plays. A developer's or a test's run plays a throwaway profile of its own, made per run (`scripts/YM_bridge.py`
-`start_session`: `settings.ini` from the run's options, `saves/` from the save given, a `profile.json`; [developing](../developing.md)).
+`start_session`: `settings.ini` from the run's options, `saves/` from the save given, a `profile.json`).
 `--user <folder>` moves only the user folder (the recordings, the mouse's sensitivity, the game's cache storage),
 never the profile's saves or settings. A game started with no profile at all (a developer's game folder) keeps its
 saves in the user folder and its settings beside the game, as before. The start's log says what it took: `fs: the

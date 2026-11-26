@@ -1,5 +1,5 @@
 """`dev.py ab`: measure a switch or this checkout's change against main in the game, in one command
-(docs/dev/developing.md, *Measure a change*; docs/dev/standards.md#measurements). Python's standard library only.
+Python's standard library only.
 
     dev.py ab --env NAME=VALUE [...]            a switch, set against unset, on one runtime (no build)
     dev.py ab --a NAME=VALUE --b NAME=VALUE     a switch, two values
@@ -464,7 +464,7 @@ def version_hash(results):
 
 
 def measurements(plan, results):
-    """The pull request's Measurements section (docs/dev/standards.md#measurements); scripts/check_pr_description.py
+    """The pull request's Measurements section; scripts/check_pr_description.py
     measurement_problems passes it"""
     out = ["**Verdict:** %s." % results["verdict"][1], ""]
     if noisy_line(results["runs"]):

@@ -3,7 +3,7 @@
 How to run `YM-builder`: its commands and options, the switches it reads, the compiler memory gate, the guest
 profile, how long a build takes, and what each error means. How the builder works inside (the lift, the units, gen/,
 the caches' keys) is in [the builder](builder.md); what a launcher reads from it is in [its events](build-events.md). To
-set up a PC, see [setup](../setup.md); for quick builds against a base, see [developing](../developing.md#build-quickly).
+set up a PC, see `scripts/setup.py`.
 
 ## Build a game folder
 
@@ -670,7 +670,7 @@ test's override: the launcher sets none of them.
 | `RX_COLD_OPT=<level>` | The level of the units of the functions the guest profile saw never run (`O0`; `O1` builds them as the rest) |
 | `RX_A64_RT_O2=0` | The lift's runtime (`gen/rt`) at the lifted units' level instead of `-O2` |
 | `RX_MARCH=<level>` | The game's CPU level. Default: this PC's CPU (`-march=native`); `cpu_unknown` when clang cannot say what that is |
-| `RX_VK_PGO=gen\|<file>` | The renderer counts branches for a profile, or builds with this one. Default: `assets/profiles/YM_vk.profdata.xz` ([recording one](../developing.md#record-the-renderers-play-profile)) |
+| `RX_VK_PGO=gen\|<file>` | The renderer counts branches for a profile, or builds with this one. Default: `assets/profiles/YM_vk.profdata.xz` |
 | `RX_RELEASE=1` | A release build: no console window, shaders prepared before the title. `build` and `update` always are; `compile` only with it |
 | `YM_THIRD_PARTY_OBJECTS=<dir>\|0` | The prebuilt third-party objects. Default: the tools' `third_party_objects/`; `0`: compile them |
 | `YM_TRACY=1`, `YM_TRACY_FIBERS=1` | A Tracy build ([profiling](profiling.md#tracy)); the game's fibers told to Tracy |
@@ -892,10 +892,9 @@ A first build needs **about 5 GB free** (and the cache keeps itself within [its 
 index, 16 MB), a release's
 YM-builder unpacks what it carries into its cache (about 0.6 GB: the sources and the build tools), and the builder
 warns (`low_disk_space`) below 3 GB free for a first build ([where things are](#where-things-are)). This is the one
-place the number is worked out: the player docs ([requirements](../../user/requirements.md)) link here.
+place the number is worked out.
 
-The player docs (`docs/user/`) quote these figures and link here: change them together. How to measure them again:
-[developing](../developing.md#measure-the-build-time).
+Measure these figures again when a change moves them.
 
 ## When a build stops
 
@@ -924,7 +923,7 @@ the build log, `build.log` in the work folder.
 | `tool_failed` | A tool the build ran failed | Read `build.log` |
 | `license_not_accepted`, `bad_license` | An upscaler's vendor files are needed without its license in `--accept-licenses`, or a name there is not `nvidia`, `amd` or `intel` | Accept the license, or build without that upscaler |
 | `download_failed` | A vendor's runtime could not be downloaded, or its SHA-256 did not match | Check the connection and build again |
-| `compiler_missing`, `cpu_unknown`, `vulkan_headers_missing`, `ffmpeg_missing` | A tool or a package is missing | [Setup](../setup.md#3-set-up-the-compiler); `RX_MARCH` for `cpu_unknown` |
+| `compiler_missing`, `cpu_unknown`, `vulkan_headers_missing`, `ffmpeg_missing` | A tool or a package is missing | `RX_MARCH` for `cpu_unknown` |
 | `dlss_sdk_missing` | `--upscaler dlss` without NVIDIA's SDK (not downloaded, no `YM_NGX_SDK`) | `--accept-licenses nvidia`, or build without DLSS |
 | `compile_failed`, `link_failed`, `renderer_link_failed` | A file did not compile, or a module did not link | Read `build.log`. The next build does not fail the same way at once: a lifted unit that failed is lifted again, a failed link's objects compiled again |
 | `image_missing`, `lift_missing` | `lift` or `compile` alone, before the stage before it | Run `image`, then `lift` |

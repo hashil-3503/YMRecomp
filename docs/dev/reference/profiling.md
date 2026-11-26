@@ -20,7 +20,7 @@ numbers.
 | What happened in the rare frames over 50 ms? | `HOS_SLOW_FRAMES` (the slow-frame recorder) |
 | GPU time by pass and program | `RX_VK_PASS_TIMING=1` (or `2`), in the log |
 | What each program's draws produce on the GPU in one frame | [Draw statistics](#draw-statistics) |
-| Is switch A faster than switch B, within the noise? | [An A/B within one run](../developing.md#an-ab-within-one-run) (`HOS_AB`) |
+| Is switch A faster than switch B, within the noise? | An A/B within one run (`HOS_AB`, [switches](switches.md)) |
 | Where CPU time goes by category, for a publishable report | [CPU profile](#cpu-profile) |
 | How does YM run on players' PCs? | [Performance statistics](#performance-statistics) |
 | How often each of the game's functions, blocks and branches runs, for the lifter to optimise by | The guest profile: an instrumented build and `HOS_GUEST_PROFILE` ([the build](build.md#the-guest-profile)) |
@@ -32,7 +32,7 @@ Every profiling tool costs frame rate. Use them to find what to optimise, then m
 `HOS_PROFILE=1` (in the environment or `YM_env.txt`) turns on the samplers, traces and timing logs for one run and
 records them in `logs/profile-<date>-<time>/` in the game folder ([`host/profiling.c`](../../../host/profiling.c)). The
 log's `env: HOS_PROFILE=1: a profile of this run in ...` line names the folder. It is also what
-[Report slow performance](../../user/performance-report.md) asks players to turn on.
+The Report slow performance menu asks players to turn on.
 
 It sets these defaults; a switch you set yourself keeps your value (`RX_VK_PASS_TIMING=0` leaves the pass timing out):
 
@@ -88,7 +88,7 @@ Read the GPU numbers as shares, not as an unprofiled frame's time, and never tak
   `wait_main_ms`;
 - the game's main thread in the frame: on the CPU (`main_cpu_ms`), blocked (`main_blocked_ms`), waiting for a virtual
   core (`main_vcore_ms`); the rest is time runnable but off the CPU;
-- `at_ns` (the present on the host's clock) and `ab_side` ([an A/B within one run](../developing.md#an-ab-within-one-run)).
+- `at_ns` (the present on the host's clock) and `ab_side` (an A/B within one run).
 
 Texture step columns `create_ms`, `reuse_ms`, `astc_stage_ms`, `astc_record_ms`, `astc_view_ms`, and `astc_flush_ms` are CPU wall-time deltas in milliseconds since the preceding present; `astc_flushes` and `create_n` are count deltas. View and flush time are excluded from record time. Pool columns `pool_reused` (exact images), `pool_resized` (new images on pooled memory), `pool_new` (new allocations for pool-eligible images), `pool_put`, `pool_idle`, and `pool_destroyed` are count deltas. `pool_holds` and `dead_waiting` are image-count snapshots, and `compact_pass` is a 0/1 snapshot.
 
@@ -149,7 +149,7 @@ The client listens on 127.0.0.1 only, announces nothing, sends no machine code, 
 
 ### Build and capture
 
-How to build a Tracy game and capture a run: [developing](../developing.md#tracy).
+How to build a Tracy game and capture a run: see `HOS_TRACY_GAME` below.
 
 On Linux, Tracy's sampler runs at 10 kHz; `TRACY_SAMPLING_HZ=<n>` sets the rate, `TRACY_NO_SAMPLING=1` turns it off.
 

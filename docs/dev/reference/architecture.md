@@ -6,7 +6,7 @@ game's GPU work is replayed on Vulkan. Nothing is emulated at run time.
 
 This page covers how the parts fit together, how a build becomes a game folder, how a frame moves through the parts,
 how the renderer accounts for memory and decides per PC, and the rules the code keeps. To build and run it, see
-[setup](../setup.md) and [the build](build.md). For switches, see [switches](switches.md). For timing tools, see
+[the build](build.md). For switches, see [switches](switches.md). For timing tools, see
 [profiling](profiling.md).
 
 ## The parts
@@ -524,7 +524,7 @@ frame rate. `tests/test_framegen_fixed_pace.py` runs the timing functions throug
 
 ## Rules for resources and presentation
 
-Each line below is enforced by a game-free check under `tests/` ([run the checks](../developing.md#run-the-checks)).
+Each line below is enforced by a game-free check under `tests/`.
 
 - **CPU reads of GPU-written mapped memory** take three steps: a copy-to-host-read barrier
   (`capture_host_read_barrier`), a wait on the owning fence or timeline value, and `invalidate_mapped` before the read.
@@ -620,8 +620,7 @@ custom rows it still draws itself (Custom output size's text field, the Controls
 panel: `Custom` items in the model, `bespoke_row`); the Mods tab's lines are drawn by `draw_mods`. Checks:
 `tests/test_menu_modules.py` builds every module (no game) and fails on a missing anchor, a cycle or a doubled key; a
 check that reads rows uses `tests/menu_model_fixture.py` (`menu_text()`, `built_menu()`, and `game_rows()` for the
-game's), and `tests/test_settings_table.py` compares the menu as built with the settings table in
-[graphics and controls](../../user/graphics-and-controls.md).
+game's).
 
 ## Tools
 

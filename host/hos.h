@@ -128,7 +128,7 @@ static inline void hos_guest_copy(uint64_t a, const void *src, uint64_t n) {
 #define HOS_TICK_HZ 31250000ULL   /* (mkw-recomp: the Switch 2 counter; the SDK checks it at init) */
 
 /* ---- logging: HOS_TRACE=1 logs every HLE call that uses HOS_TRACE_CALL. hos_log is info; hos_log_at gives a line another level,
-   written after the thread's tag ("[hos host] [trace] vk: ..."), for the launcher's log to show or leave out (docs/dev/developing.md, "Read the log") */
+   written after the thread's tag ("[hos host] [trace] vk: ..."), for the launcher's log to show or leave out */
 enum { HOS_LOG_ERROR, HOS_LOG_WARN, HOS_LOG_INFO, HOS_LOG_DEBUG, HOS_LOG_TRACE };
 extern int hos_trace;
 void hos_log(const char *fmt, ...);

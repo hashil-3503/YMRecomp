@@ -43,8 +43,7 @@ holds too much or leaves the machine too little, the next game going on from the
 with a MemoryMax); merged (--compare-to <list>: what the merged list lacks of an older one); --publish writes the repository's
 tour list from them (scripts/pipeline_states.py tour, with the GPU, build, settings and route the runs logged).
 
---vk-profile <dir> (run and tour): the renderer's play profile recorded on the tour's route (docs/dev/developing.md, "Record
-the renderer's play profile"). The game folder's renderer must be an RX_VK_PGO=gen one (a counting pack: RX_VK_PGO=gen python -I
+--vk-profile <dir> (run and tour): the renderer's play profile recorded on the tour's route. The game folder's renderer must be an RX_VK_PGO=gen one (a counting pack: RX_VK_PGO=gen python -I
 scripts/dev.py packs pack <base> vk-count): it is refused otherwise. Each game runs with RX_VK_PGO_FILE set; once it has control
 of Link the counters are cleared (<file>.reset: the loading, the prepare and the title left out), and at its end, failed or not,
 they are written (<file>.dump) and moved to <dir>/<run name>.profraw, with <run name>.json saying where they were recorded. A

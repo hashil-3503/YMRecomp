@@ -3,7 +3,7 @@
 The game draws its 3D scene smaller than the output and upscales it with its own network. YM can replace that one
 dispatch with a temporal upscaler (DLSS, FSR 3.1, FSR 4, XeSS), with a plain stretch (Off), or leave the network to run.
 Separately, frame generation makes frames between the game's at the present. This page covers what each part is given and
-the rules it keeps. Player settings are in [Settings](../../user/graphics-and-controls.md). How frame generation's sets
+the rules it keeps. Player settings are in the Settings menu. How frame generation's sets
 are paced and presented is in [architecture](architecture.md#frame-generations-presents).
 
 ## The engines
@@ -40,8 +40,7 @@ otherwise). Each file comes from its vendor at one pinned release, is checked ag
 builder's cache (`<cache>/runtimes/`) for every later build (`builder/crates/build-driver/src/runtimes.rs`). The accepted
 licenses are kept in the profile's `profile.json` (`licenses`, each for its pin), so its updates need no new answer
 until a pin moves. `scripts/fetch.py` downloads the same
-files for a developer ([setup](../setup.md#upscaler-sdks-optional)). How players turn them on is in
-[advanced setup](../../user/advanced.md#optional-upscalers).
+files for a developer.
 
 | Engine | `--upscaler` | What the build puts in the game folder | The game looks in, in order |
 |---|---|---|---|
@@ -317,7 +316,7 @@ All switches are in [`switches.def`](../../../gpu/vk/switches.def) and [switches
 | File | What it is |
 |---|---|
 | `scripts/shaders.py fsr3` | Compiles FSR 3.1's upscaler and interpolation passes into `gpu/vk/shaders` |
-| `scripts/fetch.py dlss\|fsr\|xess` | Fetch NVIDIA's, AMD's and Intel's SDK files for a local build ([setup](../setup.md#upscaler-sdks-optional)) |
+| `scripts/fetch.py dlss\|fsr\|xess` | Fetch NVIDIA's, AMD's and Intel's SDK files for a local build |
 | `tests/test_temporal_history.py` | Reprojection, reset rules and every engine's reset assignment |
 | `tests/test_temporal_jitter.py` | Jitter publication, freshness and the host's per-frame cache |
 | `tests/test_dlss_feature_size.py` | DLSS creation size, input range and reuse |
@@ -326,5 +325,4 @@ All switches are in [`switches.def`](../../../gpu/vk/switches.def) and [switches
 | `tests/test_framegen_resources.py` | Frame generation setup failures and resize |
 | `tests/test_fsr3fi_hud_*.py`, `tests/test_fsr3fi_hudless_colour.py` | The HUD copy, mark and HUD-less source |
 
-These checks run without a GPU or game. They do not prove image quality or GPU behaviour; test those in the game (see
-[developing](../developing.md#run-the-game-for-a-test)).
+These checks run without a GPU or game. They do not prove image quality or GPU behaviour; test those in the game.

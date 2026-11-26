@@ -11,7 +11,7 @@ proven to change nothing a player could see by playing one fixed scripted run on
     python -I scripts/parity_gates.py plan
 
 ab: the whole check, main against a branch: A, then B, then A again (--no-aa: not again), each one game through the PC's job
-queue in --mode shared (scripts/dev.py queue; docs/dev/developing.md, *Share a PC*), one after the other, in folders
+queue in --mode shared (scripts/dev.py queue), one after the other, in folders
 a1-<label>, b-<label> and a2-<label>. The two runs of A measure what differs between two runs of one build (noise), and the
 second reads the flags B saw change, so a flag only B changed has a value from A too; B is compared with the first A within
 that noise, capped; gate 5 is checked on every run. It prints each gate's verdict with its differences, and writes them to

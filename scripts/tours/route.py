@@ -115,7 +115,7 @@ def items_unlock(a):
 
 
 # ---- the route ----
-# Presses: <seconds>:<button>[+<button>][/<ms>] (docs/dev/developing.md, "Scripted input"), in game time: the bridge's
+# Presses: <seconds>:<button>[+<button>][/<ms>], in game time: the bridge's
 # sequence with "units": "hos" (docs/dev/reference/control-bridge.md).
 # The buttons as the remake has them: B the sword (held: the spin attack), R the shield, ZL a target, A a roll, ZR the item on the
 # item button; PLUS the pause menu, whose pages ZL and ZR turn (Collection, Equipment, Items, System) and B closes; on its Items

@@ -6,8 +6,7 @@ does with it unset and what setting it does. That file is the full reference; th
 lists the ones developers use.
 
 Build switches (read by `YM-builder`, not the game) are in [the build](build.md#build-switches). Profiling
-switches are in [profiling](profiling.md). When to add a switch and how to choose its default is in
-[standards](../standards.md#switches).
+switches are in [profiling](profiling.md). How to choose a switch's default is in the mechanics below.
 
 ## How the game reads them
 
@@ -68,7 +67,7 @@ The comment where a switch is read says how it works in detail.
 
 ## Adding or removing a switch
 
-The rules (when, which default, when to remove) are in [standards](../standards.md#switches). The mechanics:
+The mechanics:
 
 1. **Add a row** to `switches.def` for every new `RX_`, `HOS_` or `YM_` name the game reads, sorted by name, with
    its kind. A default that depends on the PC is read in [device policy](architecture.md#device-policy).
@@ -104,7 +103,7 @@ folder's own file, where `YM-builder --compile-shaders` writes it.
 - On/off rows are `0` and `1`. A value outside a row's range is clamped when read.
 - Also `options_version=6`, `memory_budget=`, device choices by ID (`gpu_device_id=`, `audio_output_device_id=`,
   `microphone_device=`, `fullscreen_monitor_id=`), and the controls (`pad_<button>`, `key_<button>`, `toggle_<button>`;
-  the settings page's [Controls](../../user/graphics-and-controls.md#controls)).
+  the settings page's Controls tab).
 
 Keys whose numbers are not obvious from the row:
 
@@ -117,17 +116,14 @@ Keys whose numbers are not obvious from the row:
 | `walk_mode` | 0 Hold, 1 Toggle |
 | `threaded_rendering` | The Debug tab's Threaded rendering row (`gpu/vk/threaded_rendering.h`): 0 Auto (default), 1 On (`RX_VK_ASYNC=1` and `RX_VK_RECORDER=thread`), 2 Off. Auto goes by the physical cores the process may run on (`usable_cores` in `gpu/vk/vk_progcache.cpp`): 4 or more cores, the render thread and the recorder thread, as On; fewer, Off. Where only buffer-pool mirrors are absent (integrated GPUs where `!f.discrete()`, or `RX_VK_MIRROR=0`), Auto keeps the render thread off and runs the recorder thread alone with 6 or more physical cores (`kAutoRecorderOnlyCores`), and Off with fewer. Auto is also Off, whatever the cores, where the mode is not safe on the run (the capture off, `RX_VK_LOW_SPEC`, a frame dump, a benchmark replay). `threaded::kAutoEnabled` turned off makes Auto Off on every PC |
 
-A new row on the Graphics, Audio, Gameplay, Controls or NFC tab needs its line in the settings table of
-[docs/user/graphics-and-controls.md](../../user/graphics-and-controls.md#every-setting), in the menu's order
-(`tests/test_settings_table.py`; the website builds its settings page from that table). Saved keys are names, independent of the option IDs in `gpu/vk/vk_api.h`, so
+Saved keys are names, independent of the option IDs in `gpu/vk/vk_api.h`, so
 renumbering an option doesn't break a player's file.
 
 ## Switches developers use
 
 The switches players are pointed to (`RX_VK_ASTC_RGBA8`, `RX_VK_MESH_NOCULL` on the Steam Deck, `HOS_DAV1D_THREADS`,
-`HOS_OOT_CHEATS`) are explained on the player pages that need them
-([advanced setup](../../user/advanced.md#switches-YM_envtxt), [common problems](../../user/common-issues.md)).
-Scripted input, screenshots, frame dumps and crash switches are in [developing](../developing.md#run-the-game-for-a-test).
+`HOS_OOT_CHEATS`) are explained in the player docs.
+Scripted input, screenshots, frame dumps and crash switches are in the `HOS_*` tables below.
 Upscaler switches are in [upscalers](upscalers.md#switches).
 
 ### Switches for test runs
@@ -318,7 +314,7 @@ The memory budget and its `vk: budget:` lines are in [architecture](architecture
 | `HOS_VCORES=0` | No virtual cores |
 | `HOS_CORES=<1..8>` | The cores the game sees (6) |
 | `HOS_RESERVE_CORE=0/1` | Keep a core for the replay (one is kept with 8 or more logical processors, but none on Windows CPUs whose L3 caches differ, unless `=1`) |
-| `HOS_AB=<switch>=<value>[,<s>[,<warm-up s>]]` | Alternate a switch within one run for an A/B ([developing](../developing.md#an-ab-within-one-run)) |
+| `HOS_AB=<switch>=<value>[,<s>[,<warm-up s>]]` | Alternate a switch within one run for an A/B |
 
 ### Movies
 

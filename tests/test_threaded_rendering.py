@@ -28,7 +28,7 @@ Checked:
  - the source: the gate is the only one and on; the row is Auto by default and takes a restart; the menu resolves the row
    once, from usable_cores, asks the pools' mirrors where Auto picked the threads and logs describe's line; RX_VK_ASYNC is
    read in one place; the host's present poll asks the renderer (HOS_OPT_RENDER_THREAD); the device policy and the facts
-   count cores; the row's help, the settings page, the developer docs and the switch table say the tiers, and nothing names
+   count cores; the row's help, the developer docs and the switch table say the tiers, and nothing names
    the render thread's tier that was taken out;
  - the menu's threaded_choice, compiled from its source on stand-ins and run in made-up environments: Auto is off with the
    capture off, RX_VK_LOW_SPEC, RX_VK_DUMP, RX_VK_BENCH, or pools with no mirrors (asked only where Auto picked the threads),
@@ -468,7 +468,6 @@ def read_sources():
                  recorder=VK / "vk_recorder.h", api=VK / "vk_api.h", progcache=VK / "vk_progcache.cpp",
                  internal=VK / "vk_internal.h", policy=VK / "device_policy.h", main=VK / "vk_main.cpp",
                  switches=VK / "switches.def", native=ROOT / "host" / "nvn_native.c",
-                 settings=ROOT / "docs" / "user" / "graphics-and-controls.md",
                  docs=ROOT / "docs" / "dev" / "reference" / "switches.md")
     s = {k: p.read_text(encoding="utf-8") for k, p in paths.items()}
     s["menu"] = menu_text(ROOT)   # (vk_menu.cpp and its modules, their rows as table lines, #1633: threads.cpp's row)
@@ -491,12 +490,12 @@ def check_sources(s):
     if rec_only_cores is None:
         return ["threaded_rendering.h: no kAutoRecorderOnlyCores, Auto's no-mirror recorder-only threshold"]
     # (the render thread's tier, 4 or 5 cores to 22 Nov 2026, taken out: nothing names it or says it)
-    for key in ("rule", "menu", "menu_h", "replay", "recorder", "policy", "switches", "settings", "docs"):
+    for key in ("rule", "menu", "menu_h", "replay", "recorder", "policy", "switches", "docs"):
         if re.search(r"\b(AutoRenderThread|kAutoRenderCores|kAutoRecorderCores)\b", s[key]):
             bad.append("%s still names the render thread's tier (Why::AutoRenderThread, kAutoRenderCores, kAutoRecorderCores)" % key)
     old_words = re.compile(r"render thread (alone|only) (with|from|on) \d|\d or \d, the render thread alone|"
                            r"recorder thread too from \d|from 6 (physical )?cores")
-    for key in ("rule", "menu", "menu_h", "replay", "recorder", "policy", "switches", "settings", "docs"):
+    for key in ("rule", "menu", "menu_h", "replay", "recorder", "policy", "switches", "docs"):
         text = s[key]
         if key == "rule":   # (the header keeps 18 Nov's table and what it said: the record, not the rule)
             text = text[text.index("#pragma once"):]
@@ -613,19 +612,8 @@ def check_sources(s):
     if not re.search(r'^GONE\(RX_VK_PARALLEL, ', s["switches"], re.M):
         bad.append("switches.def: RX_VK_PARALLEL is not a GONE row")
 
-    # (said where the settings and the switches are)
-    settings, docs = s["settings"], s["docs"]
-    table = [line for line in settings.splitlines() if line.startswith("| | Developer: Threaded rendering | Auto, On, Off")]
-    start = settings.find("- **Threaded rendering:**")
-    para = settings[start:start + 900].replace("\n  ", " ") if start >= 0 else ""
-    if len(table) != 1 or not para:
-        bad.append("docs/user/graphics-and-controls.md: no Threaded rendering line in the settings table, or no paragraph on it")
-    else:
-        for where, text in (("the option table", table[0]), ("the paragraph", para)):
-            if "%d or more" % auto_cores not in text or "Off with fewer" not in text or "12 or more" in text or \
-                    "render thread alone" in text or "%d or more" % rec_only_cores not in text or "mirror" not in text:
-                bad.append("docs/user/graphics-and-controls.md: %s does not say Auto's tiers (%d or more cores, recorder alone at %d or more without mirrors, Off with fewer)"
-                           % (where, auto_cores, rec_only_cores))
+    # (said in the switches table)
+    docs = s["docs"]
     rows = [line for line in docs.splitlines() if line.startswith("| `threaded_rendering` |")]
     if len(rows) != 1 or "threaded::kAutoEnabled" not in rows[0]:
         bad.append("docs/dev/reference/switches.md: no threaded_rendering row in the options file's keys, or it does not name the gate")
@@ -781,8 +769,6 @@ BROKEN = [
      "source"),
     ("the row's help with the render thread's tier", "menu", "for the game, Off with fewer",
      "for the game, the render thread alone with 4 or 5, Off with fewer", "source"),
-    ("the settings page with the render thread's tier", "settings", "both threads with 4 or more, Off with fewer",
-     "both threads with 6 or more, the render thread alone with 4 or 5, Off with fewer", "source"),
     ("the switch table with the render thread's tier", "docs", "4 or more cores, the render thread and the recorder thread, as On; fewer",
      "6 or more cores, the render thread and the recorder thread, as On; 4 or 5, the render thread alone; fewer", "source"),
     ("the recorder's switch with 18 Nov's threshold", "switches", "Auto from 4 physical cores", "Auto from 6 physical cores",

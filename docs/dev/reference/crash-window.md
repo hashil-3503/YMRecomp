@@ -4,8 +4,7 @@ The builder starts the game (`YM-builder play`) and waits for it. When the game 
 `--output user` it shows a window that offers **Report automatically**, **Report manually**, **Open the log folder**,
 **Save diagnostics** and **Close**. Nothing leaves the PC unless the player presses **Send** (or opted in to automatic
 sending, below). The game itself only writes its crash records: it starts no helper and shows no window, and a game
-started without the builder writes its records with no window. Crash records and logs themselves are covered in
-[developing](../developing.md#crash-records).
+started without the builder writes its records with no window.
 
 ## Parts
 

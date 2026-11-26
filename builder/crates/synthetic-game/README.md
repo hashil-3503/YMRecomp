@@ -41,6 +41,6 @@ checkout's tools from `mise run tools`; else `YM_LLVM`, `EMSDK` or the
 PATH). Without them it says so and passes, unless `YM_E2E=1` (as CI sets) makes that a failure.
 `YM_E2E_SCRATCH` names its folder (default: cargo's, on disk beside the target). Linux only. The unit tests
 check the NSO conversion and that the one-instruction change changes the result. On a shared PC, run it through the
-job queue ([share a PC](../../../docs/dev/developing.md#share-a-pc-the-job-queue)).
+job queue.
 
 See [building and checking the builder](../../../docs/dev/reference/builder.md#building-and-checking-the-builder).

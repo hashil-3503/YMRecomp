@@ -46,8 +46,8 @@ bool replay_flush_upload(VkCommandBuffer cur);   // (vk_replay.cpp: submits, wai
 // every queue is synchronized by the host around it
 void device_wait_idle_locked();
 // (longshot) why the swapchain is SDR though the Insert menu's HDR is on (Device::hdr_sdr_why): no VK_EXT_swapchain_colorspace;
-// HDR off in Windows' display settings; HDR on there but the driver lists no HDR10 surface
-// (docs/user/common-issues.md); the display lists none and the system's setting is not known (Linux, or a Windows that doesn't say).
+// HDR off in Windows' display settings; HDR on there but the driver lists no HDR10 surface;
+// the display lists none and the system's setting is not known (Linux, or a Windows that doesn't say).
 // hdr_sdr_count: how many, for the log's and the menu's line for each
 enum HdrSdrWhy : int { hdr_sdr_none, hdr_sdr_no_extension, hdr_sdr_os_off, hdr_sdr_driver, hdr_sdr_unknown, hdr_sdr_count };
 

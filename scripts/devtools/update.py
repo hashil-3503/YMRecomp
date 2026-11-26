@@ -1,7 +1,7 @@
 """`dev.py update`: a game folder you play kept on the newest commit of main (or another branch), built here as soon as it
 lands, without waiting for Nightly; or the folder's commit with only the pull requests you pick of those merged since;
 and open pull requests merged on top of either, to try them before they land.
-Linux and Windows; Python's standard library only (tkinter for the window). docs/dev/developing.md, *Keep a game on main*.
+Linux and Windows; Python's standard library only (tkinter for the window).
 
     dev.py update [--game DIR] [--remote R] [--branch B]   build the branch's newest commit into the game folder, when it
                                                            moved since the folder's last update (--force: even if not)

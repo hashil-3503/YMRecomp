@@ -5,7 +5,7 @@ Mysterious Book. It is not run by the Longshot team, and the Longshot team's cha
 apply here: please don't take questions or reports about YM to them. Issues and pull requests for YM go to this
 repository on GitHub.
 
-Much of [the developer docs](docs/dev/README.md) still describes Longshot's team and its process (its forge, chat,
+Much of [the developer docs](docs/dev/reference/) still describes Longshot's team and its process (its forge, chat,
 CI and review rules); read them for how the code works, not for how to contribute here.
 
 ## The rule with no exceptions

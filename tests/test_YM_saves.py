@@ -1179,7 +1179,7 @@ class RepoSaves(unittest.TestCase):
         self.assertEqual(oot.repo_save_problems(oot.REPO_SAVES), [])
 
 class WindowsDefault(Case):
-    """The Windows default for YM is the launcher's %APPDATA%\\YM\\save (docs/user/saves.md); the old game folder
+    """The Windows default for YM is the launcher's %APPDATA%\\YM\\save; the old game folder
     (%USERPROFILE%\\Games\\YM\\user\\save, the 2.x Builder's and a build started on its own) is still found and said."""
 
     def setUp(self):

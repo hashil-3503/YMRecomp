@@ -547,7 +547,6 @@ def wiring(root, tap, mutation):
     sites = (root / "game" / "oot_sites.c").read_text(encoding="utf-8")
     table = (root / "game" / "sites" / "sites.toml").read_text(encoding="utf-8")   # (the sites' definitions)
     control = (root / "host" / "control.c").read_text(encoding="utf-8")
-    docs = (root / "docs" / "dev" / "developing.md").read_text(encoding="utf-8")
     protocol = (root / "docs" / "dev" / "reference" / "control-bridge.md").read_text(encoding="utf-8")
     lift = block(tools_c, "void hos_oot_lift_player(Ctx *c, uint64_t actor) {")
     if mutation == "hook":
@@ -561,7 +560,6 @@ def wiring(root, tap, mutation):
     check("HOS_CONTROL_MEM" in protocol and "GameDataMgr" in protocol, "flag access boundary is not documented")
     for name in ("game_sample_ask", "game_sample_cancel", "game_sample", "game_watch", "game_poll"):
         check(".%s = %s," % (name, name) in control, "production control callback missing: " + name)
-    check("control-bridge.md" in docs, "docs/dev/developing.md no longer points to the control bridge's page")
     for name in ("oot", "flags", "changes", "every", "game", "frame"):
         check("`%s`" % name in protocol or '"%s"' % name in protocol, "control protocol does not describe " + name)
 

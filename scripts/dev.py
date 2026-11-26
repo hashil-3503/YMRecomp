@@ -1,5 +1,5 @@
 """Development builds and game runs on a PC that several agents and people share. Python's standard library only; Linux and
-Windows. docs/dev/developing.md, *Test a change against a base* and *Share a PC: the job queue*.
+Windows.
 
 This checkout on the PC's shared bases, every step through the queue (scripts/devtools/build.py):
     dev.py base [REV]                       the shared base where this checkout left main (or of REV), built once

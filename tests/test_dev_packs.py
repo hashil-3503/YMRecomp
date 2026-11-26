@@ -51,7 +51,7 @@ def test_route():
               "assets/profiles/guest.profile", "assets/pipeline_states/tour.bin.xz", "assets/prompt_faces/x.png",
               "assets/YM.ico", "assets/addresses.ini", "VERSION"):
         check("%s (read by YM-builder) builds the game" % f, r([f]) == "game")
-    check("docs and tests build nothing", r(["docs/dev/setup.md", "tests/test_a.py", "README.md", "builder/README.md"]) is None)
+    check("docs and tests build nothing", r(["docs/dev/reference/build.md", "tests/test_a.py", "README.md", "builder/README.md"]) is None)
     check("the forge's workflows build nothing", r([".forgejo/workflows/ci.yml", ".forgejo/pull_request_template.md"]) is None)
     check("developer tools and CI's settings build nothing",
           r(["scripts/perf.py", "scripts/profiling/cpu.py", "scripts/dev.py", "scripts/devtools/packs.py", "mise.toml",

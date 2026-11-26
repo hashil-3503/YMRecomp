@@ -1,7 +1,6 @@
 # Saves
 
-Players move saves with the launcher: [moving your saves](../../user/saves.md), and
-[updates and saves](../../user/updates-and-saves.md) for what an update keeps. This page is what a developer needs: the
+Players move saves with the launcher. This page is what a developer needs: the
 files, where they live, how the save script works and how a save gets into the repository.
 
 ## Tools

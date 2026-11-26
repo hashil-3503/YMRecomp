@@ -23,4 +23,4 @@ positions and the camera's angles, all as numbers. No guest memory words and no 
   and the camera put back at every N-th update, 1 by default).
 - `dev.py route list` lists them; the control bridge's `play` command plays one by path, and the Insert menu's Play
   recording page (Debug tab, Input recording) the ones in your folder.
-- In a test, the way it is read: [replay a recording](../../docs/dev/developing.md#replay-a-recording).
+- In a test, the way it is read: replay a recording.

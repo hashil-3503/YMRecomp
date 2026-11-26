@@ -17,7 +17,7 @@ from tours.drive import Failed
 # looks every 500 ms for <file>.reset (the counters cleared) and <file>.dump (the counters written to <file>), deleting each once
 # done. A run with --vk-profile clears them once the new game has given control of Link (the loading, the prepare and the
 # title left out) and writes them at its end, failed or not, as <dir>/<run name>.profraw with <run name>.json (where it was
-# recorded); merge-profile merges them with llvm-profdata (docs/dev/developing.md, "Record the renderer's play profile")
+# recorded); merge-profile merges them with llvm-profdata
 PGO_ENV = "RX_VK_PGO_FILE"
 PGO_MARK = b"RX_VK_PGO_FILE\x00"   # (the counting renderer's getenv: only its copy of pgo_rt.c names it, -DPGO_ENV)
 PGO_RAW_MAGIC = struct.pack("<Q", 0xff6c70726f667281)   # (LLVM's raw profile, host/pgo_rt.c pgo_write: \xfflprofr\x81)

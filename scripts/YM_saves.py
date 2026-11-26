@@ -23,7 +23,7 @@ script made on Linux stay in $XDG_DATA_HOME/oot-save-backups. Close every game f
 scrub makes a save in the repository (assets/saves) from one slot: its picture made mid-grey and its saved date set
 to 2026-01-01 00:00:00 (there is no player's name in these saves); check-repo-saves checks them all.
 docs/dev/reference/saves.md has the rules.
-Standard library only; the guide is docs/user/saves.md.
+Standard library only.
 """
 import argparse
 import collections
@@ -43,7 +43,7 @@ WINDOWS = os.name == "nt"
 
 # ---- Where things are: every folder this script looks in or writes to, per OS ----
 # {data} = $XDG_DATA_HOME or ~/.local/share, {appdata} = %APPDATA%, {localappdata} = %LOCALAPPDATA%, {home} = the home
-# folder; a * at the end matches any folder there. The sources are in docs/user/saves.md.
+# folder; a * at the end matches any folder there.
 # YM: its data folder on Linux. On Windows the launcher's folder, which it starts every build with as --user (saves in
 # its save\<id>), then the game folder of before the launcher, the builder's and a build started on its own (saves in its
 # user\save\<id>)
@@ -214,7 +214,7 @@ def old_folder_note(program, override, used):
     where = os.path.join(launcher, SAVE_DIR)
     if used != launcher:
         return ("note: YM's save is in %s, the old game folder (where YM kept it before the launcher). The launcher "
-                "keeps it in %s and moves an old one in when it opens (docs/user/saves.md)" % (used, where))
+                "keeps it in %s and moves an old one in when it opens" % (used, where))
     if os.path.isdir(old) and find_saves(old):
         return ("note: %s, the old game folder, also holds a save (the launcher moves it into %s when it opens); this uses the "
                 "launcher's. --YM %s uses the old one" % (old, where, old))

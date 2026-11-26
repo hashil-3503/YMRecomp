@@ -1,4 +1,4 @@
-"""Set up a clone for development, the part of docs/dev/setup.md that needs no account: run it as `mise run setup`, which
+"""Set up a clone for development, the part of a development setup that needs no account: run it as `mise run setup`, which
 first installs, on Linux, the headers, glslang and Python packages the game-free checks use.
 Safe to run again: each step does only what is missing, then a summary says what was done and what is left for you.
 
@@ -25,7 +25,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TOOLING_URL = "https://git.magicbean.dev/MagicBeanDev/Tooling.git"
 PLUGIN = "magicbean@magicbean"
-SETUP_DOC = "docs/dev/setup.md"
 
 
 def run(cmd, cwd=None, timeout=300):
@@ -117,14 +116,14 @@ def toolchain(done, todo):
     itself, the ones players' builders use)"""
     cargo = shutil.which("cargo")
     if not cargo:
-        todo.append("Rust: no cargo; `mise install` puts mise.toml's Rust %s on the PATH (%s)" % (RUST, SETUP_DOC))
+        todo.append("Rust: no cargo; `mise install` puts mise.toml's Rust %s on the PATH" % RUST)
         return
     code, out = run([cargo, "--version"], timeout=60)
     version = out.split()[1] if code == 0 and len(out.split()) > 1 else "?"
     if version.startswith(RUST + "."):
         done.append("Rust: cargo %s (YM-builder; dev.py installs tools.lock's build tools)" % version)
     else:
-        todo.append("Rust: cargo %s, not %s: `mise install` (mise.toml pins it) (%s)" % (version, RUST, SETUP_DOC))
+        todo.append("Rust: cargo %s, not %s: `mise install` (mise.toml pins it)" % (version, RUST))
 
 
 def build_tools(done, todo):
@@ -134,7 +133,7 @@ def build_tools(done, todo):
     if installed:
         done.append("build tools: tools.lock's in tools/ (%s)" % ", ".join(installed))
     else:
-        todo.append("build tools: `mise run tools` puts tools.lock's in tools/ (%s)" % SETUP_DOC)
+        todo.append("build tools: `mise run tools` puts tools.lock's in tools/")
 
 
 def main():
@@ -149,8 +148,8 @@ def main():
         print("setup: left for you")
         for line in todo:
             print("  - " + line)
-    print("Sign in once, if you have not: python -I %s login (%s)"
-          % (os.path.relpath(tooling_path() / "scripts" / "forge.py", ROOT), SETUP_DOC))
+    print("Sign in once, if you have not: python -I %s login"
+          % os.path.relpath(tooling_path() / "scripts" / "forge.py", ROOT))
 
 
 if __name__ == "__main__":

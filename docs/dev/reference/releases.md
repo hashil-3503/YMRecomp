@@ -128,7 +128,7 @@ A stable is a tag on a commit of `main` that testers played: normally a nightly'
 the next version is tried). There are no release candidates.
 
 1. **Before a minor's stable**, if the renderer changed much, record the renderer's play profile again and merge it
-   first, so the nightly testers play has it ([recording it](../developing.md#record-the-renderers-play-profile)). An
+   first, so the nightly testers play has it. An
    old profile still builds.
 2. **Preview** on an up-to-date `main`: `release.py next`. Read the notes: a wrong title is a wrong line, and the commit
    on `main` keeps the title it was merged with.
