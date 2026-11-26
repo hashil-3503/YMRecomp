@@ -243,9 +243,9 @@ pub(crate) mod tests {
         }
         for t in &lock {
             // (at tools/<name> in the builder's bundle, where ToolVars finds it; the archive's files at its top; only
-            // YM's store, the edge's copy first)
+            // YM's store, the edge's copy first; this fork adds its GitHub release mirror after them)
             assert_eq!((t.dest.as_str(), t.prefix.as_str()), (format!("tools/{}", t.name).as_str(), "-"), "{}", t.name);
-            assert_eq!(t.urls, t.store_urls(), "{}", t.name);
+            assert_eq!(t.urls[..2], t.store_urls()[..], "{}", t.name);
             assert!(t.urls[0].starts_with(&format!("{CDN}/api/packages/")), "{}", t.name);
         }
         // (no emsdk, no third-party, no Python: llvm, the SDL DLLs from libsdl's releases, the builder in Rust; play
