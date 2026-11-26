@@ -1,4 +1,4 @@
-//! A build reported to the YM team, at YM-api's /telemetry/build: YMLauncher's Core/BuildReports.cs
+//! A build reported to the Longshot team, at Longshot-api's /telemetry/build: LongshotLauncher's Core/BuildReports.cs
 //! and Core/Privacy.cs, ported, the builder now the one that builds and reports. Two ways:
 //!
 //! - **Send** on the error window (only when the player presses it, after the page has shown every field of it): the

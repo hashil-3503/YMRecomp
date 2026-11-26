@@ -1,4 +1,4 @@
-//! A version's program into a version folder (`YM-builder fetch`; the YM Launcher's
+//! A version's program into a version folder (`YM-builder fetch`; the Longshot Launcher's
 //! Toolchains.InstallYMBuildAsync, ChainAsync and ApplyAsync, ported):
 //!
 //! 1. the forge's releases listed; the version asked (a tag, or a channel's newest) found;
@@ -213,7 +213,7 @@ pub fn bases(from: &[PathBuf], platform: &str) -> Vec<Base> {
                 continue;
             }
         }
-        // (a version the YM Launcher installed before it asked the builder: its toolchain.json's file and SHA-256)
+        // (a version the Longshot Launcher installed before it asked the builder: its toolchain.json's file and SHA-256)
         if let Some((tag, sha, path)) = launcher_record(dir) {
             out.push(Base { version: Some(tag), sha256: sha, path });
             continue;
@@ -226,7 +226,7 @@ pub fn bases(from: &[PathBuf], platform: &str) -> Vec<Base> {
     out
 }
 
-/// The YM Launcher's own record of a version it installed (`toolchain.json`: `tag`, `run`, `sha256`), when its
+/// The Longshot Launcher's own record of a version it installed (`toolchain.json`: `tag`, `run`, `sha256`), when its
 /// file is there.
 fn launcher_record(dir: &Path) -> Option<(String, String, PathBuf)> {
     let v: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("toolchain.json")).ok()?).ok()?;

@@ -1,6 +1,6 @@
 # YM-builder
 
-The builder's command: a player's own dump to a game folder. The YM Launcher runs `YM-builder build --output json`;
+The builder's command: a player's own dump to a game folder. The Longshot Launcher runs `YM-builder build --output json`;
 a release ships this program as one self-contained file per platform, carrying the tree and the build tools it builds
 with. It parses the command line and hands the work to `build-driver`.
 

@@ -179,7 +179,7 @@ def main():
     a = p.parse_args()
     replay = (ROOT / "gpu/vk/vk_replay.cpp").read_text(encoding="utf-8")
     loop = block(replay, "void replay(VkCommandBuffer& cmd, NvnState& s, const uint8_t* p, const uint8_t* end")
-    before = between(loop, "// (the part's end maybe_split asked for", "switch (h.op) {")
+    before = between(loop, "// (the part's end maybe_split asked for", "if (op_is_work(h.op)) select_program(")   # (stops before the program selection, which the fixture has no state for)
     after = block(loop, "if (early) {")
     if "early_split(cmd);" not in after:
         raise SystemExit("FAIL: replay() no longer ends a writer's part through early_split")

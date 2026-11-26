@@ -1,5 +1,5 @@
 //! `YM-builder steam-shortcut [--profile <dir>] [--name <text>] [--remove] [--quit-steam]`: YM as a
-//! non-Steam game in the signed-in Steam account's library (the `steam` crate: the YM Launcher's Steam tile,
+//! non-Steam game in the signed-in Steam account's library (the `steam` crate: the Longshot Launcher's Steam tile,
 //! ported), pointing at this program (the version folder's builder, which plays), with `--profile <dir>` in its launch
 //! options when given, and YM's icon. Its tile only: one of that name it did not make is left as it is
 //! (`steam_name_taken`). Steam reads its library when it starts: with Steam running the tile shows after Steam starts
@@ -10,7 +10,7 @@ use build_core::{Error, Result};
 use std::path::Path;
 
 /// YM's icon, the tile's (Steam draws an `.ico` named in the tile's `icon` on the Steam Deck's Gaming mode; a
-/// `.png` there shows the blank default: the YM Launcher's finding).
+/// `.png` there shows the blank default: the Longshot Launcher's finding).
 const ICON: &[u8] = include_bytes!("../../../../assets/YM.ico");
 
 /// What the command was asked.

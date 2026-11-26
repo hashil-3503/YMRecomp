@@ -4,7 +4,7 @@ A profile is one folder holding what a player plays with: which game copy and wh
 its build includes, its settings and its saves. A launcher (or the builder's first run) makes the folder; the builder
 builds the game the profile needs and starts it with the folder (`YM_PROFILE=<folder>`,
 [play](build.md#play-the-version-folder-and-the-profile)); the game plays it. This page is the contract all three
-follow: the C# launcher (YMLauncher's `Core/ProfileStore.cs`) writes what is here, YM's own reader and
+follow: the C# launcher (LongshotLauncher's `Core/ProfileStore.cs`) writes what is here, YM's own reader and
 writer of `profile.json` is [`builder/crates/launcher-profile`](../../../builder/crates/launcher-profile), and the
 game's paths are [`host/YM_profile.h`](../../../host/YM_profile.h).
 

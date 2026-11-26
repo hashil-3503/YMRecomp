@@ -1,4 +1,4 @@
-// The Insert menu's NFC tab (#1633): the NFC tags in the player's folder (host/nn_nfp.c: the YM Launcher's NFC page puts
+// The Insert menu's NFC tab (#1633): the NFC tags in the player's folder (host/nn_nfp.c: the Longshot Launcher's NFC page puts
 // them there), one chosen and held to the game's reader or taken away, and a tag scanned with a Switch 2 Pro Controller's
 // reader into the folder. The list is the host's, asked again each time the menu opens (refresh_nfc, by vk_menu.cpp:
 // menu/nfc.h); the choice is kept in the options file as any row's, by its place in the list, which refresh_nfc keeps
@@ -20,7 +20,7 @@ namespace mkwvk {
 int nfc_choice = 0;   // (the NFC tag row: the chosen tag's place in the host's list)
 
 #ifndef MENU_LAYOUT_ONLY
-// (longshot) the NFC tab: the NFC tags in the player's folder (host/nn_nfp.c: the YM Launcher's NFC page puts them there),
+// (longshot) the NFC tab: the NFC tags in the player's folder (host/nn_nfp.c: the Longshot Launcher's NFC page puts them there),
 // one chosen and held to the game's reader. The list is the host's, asked again each time the menu opens (refresh_nfc)
 constexpr int kMaxNfc = 256;
 int nfc_listed = 0;
@@ -41,7 +41,7 @@ const char* hn_nfc(int, int variant) {
     static int said_for = -1;   // (what a tap said stays until another tag is chosen)
     if (said_for != nfc_choice) said_for = nfc_choice, nfc_said.clear();
     if (!nfc_said.empty()) return nfc_said.c_str();
-    if (!nfc_listed) return "Add tag files on the YM Launcher's NFC page, or put them in the folder yourself.";
+    if (!nfc_listed) return "Put tag files in your NFC folder.";
     if (st & 8) return "The game has read the NFC tag.";
     if (st & 2) return waiting;
     if (st & 4) return "An NFC tag is at the reader: the game reads it when it next asks for one.";
@@ -85,7 +85,7 @@ void nfc_press(bool tap) {
         host->nfc_tap(-1);
         nfc_said = "The NFC tag is off the reader.";
     } else if (!nfc_listed) {
-        nfc_said = "There is no tag to tap: add one on the YM Launcher's NFC page.";
+        nfc_said = "There is no tag to tap: put one in your NFC folder.";
     } else if (!host->nfc_tap(nfc_choice)) {
         nfc_said = std::string("\"") + host->nfc_name(nfc_choice) + "\" is not an NFC tag's dump.";
     } else {
@@ -119,8 +119,8 @@ MENU_MODULE(nfc) {
     menu::tab("nfc")
         .row({.key = "nfc_tag",
               .label = "NFC tag",
-              .help = "Which of your NFC tags to use: the files of your NFC folder, by their names. The YM Launcher's NFC page "
-                      "adds and removes them; dumps of your own figures (.bin, or a Flipper Zero's .nfc).",
+              .help = "Which of your NFC tags to use: the files of your NFC folder, by their names: "
+                      "dumps of your own figures (.bin, or a Flipper Zero's .nfc).",
               .value = &nfc_choice,
               .lo = 0, .hi = 0,
               .preset_exempt = true,

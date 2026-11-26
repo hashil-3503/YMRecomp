@@ -1,4 +1,4 @@
-//! The forge's releases (docs/dev/reference/releases.md; the YM Launcher's Core/Releases.cs, ReleaseManifest.cs
+//! The forge's releases (docs/dev/reference/releases.md; the Longshot Launcher's Core/Releases.cs, ReleaseManifest.cs
 //! and CdnFetcher.cs, ported): the published releases listed, a channel's newest, and a release's files each with the
 //! SHA-256 its signed `SHA256SUMS` gives.
 //!

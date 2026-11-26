@@ -81,8 +81,11 @@ typedef struct { uint64_t x[32]; } Ctx;
 #define HOS_WRITTEN(p, n) ((void)0)
 #define AVERROR(e) (-(e))
 #define AV_INPUT_BUFFER_PADDING_SIZE 64
-static volatile LONG64 submissions;
+static volatile LONG64 submissions, slot_sync_next;
 static LONG64 InterlockedCompareExchange64(volatile LONG64 *p, LONG64 x, LONG64 cmp) { (void)x, (void)cmp; return *p; }
+static LONG64 InterlockedIncrement64(volatile LONG64 *p) { return ++*p; }
+static volatile LONG64 slot_sync_reached;
+static void wake_reached_waiters(void) {}
 static int video_log(void) { return 0; }
 static int64_t movie_totals[5];   /* (nn_video.c's: the performance summary's counts) */
 static void hos_log(const char *f, ...) { (void)f; }
@@ -316,15 +319,16 @@ def main():
     args = parser.parse_args()
     src = args.source.read_text(encoding="utf-8")
     defines = "\n".join(re.findall(r"^#define (?:RESULT_NO_OUTPUT|RESULT_INPUT_FULL|INPUT_LIMIT|POOL_MAGIC|DEC_MAGIC|MAX_SLOTS|"
-                                   r"MAX_QUEUE|SYNC_IDLE_TAG|SYNC_IDLE_MASK)\b.*$", src, re.M))
+                                   r"MAX_QUEUE|SYNC_IDLE_TAG|SYNC_SLOT_TAG|SYNC_IDLE_MASK)\b.*$", src, re.M))
     types = "\n".join((defines,
-                       through(src, "typedef struct {\n    int w, h, format, count;", "} Pool;"),
+                       through(src, "typedef struct {\n    uint32_t id;\n    int w, h, format, count;", "} Pool;"),
                        through(src, "typedef struct { uint8_t *rgba, *nv12;", "} Picture;"),
                        through(src, "typedef struct Pending {", "} Pending;"),
                        through(src, "typedef void (*mf_av1_picture_fn)", "int64_t pts);"),
                        through(src, "typedef struct {\n    const char *name;", "} Av1Decoder;"),
                        through(src, "typedef struct {\n    AVCodecContext *ctx;", "} Dec;")))
-    code = "\n".join((block(src, "static int input_limit(void) {"),
+    code = "\n".join(("static int h264_packet(Dec *d, const uint8_t *b, size_t n, AVPacket *pkt) { (void)d, (void)b, (void)n, (void)pkt; return 0; }",
+                      block(src, "static int input_limit(void) {"),
                       block(src, "static int input_full(int pending, int queued, int limit) {"),
                       block(src, "static void input_room(Dec *d) {"),
                       block(src, "static void pending_free(Dec *d) {"),
@@ -333,6 +337,9 @@ def main():
                       block(src, "static void decode_next(Dec *d) {"),
                       block(src, "static void pending_push(Dec *d, AVPacket *pkt) {"),
                       block(src, "static int submit_refused(Dec *d, int last) {"),
+                      block(src, "static void copy_picture_to_slot(Dec *d, int slot, Picture *p) {"),
+                      block(src, "static uint64_t fill_idle_slots(Dec *d) {"),
+                      block(src, "static void slot_sync_advance(uint64_t seq) {"),
                       block(src, "static void dec_submit(Ctx *c) {"),
                       block(src, "static void dec_flush(Ctx *c, const char *what) {"),
                       block(src, "static void dec_acquire(Ctx *c) {"),

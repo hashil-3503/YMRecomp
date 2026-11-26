@@ -141,7 +141,7 @@ BOOL __wrap_MoveFileExA(LPCSTR a, LPCSTR b, DWORD flags) {
     if (n >= 8 && !strcmp(a + n - 8, ".journal") && test_fail_journal_move) {
         SetLastError(ERROR_ACCESS_DENIED); return FALSE;
     }
-    if (n >= 13 && !strcmp(a + n - 13, ".YM-new")) {
+    if (n >= 7 && !strcmp(a + n - 7, ".YM-new")) {
         if (test_crash_apply && ++test_apply_count == test_crash_apply) _exit(86);
         if (test_fail_renames) { test_fail_renames--; SetLastError(ERROR_ACCESS_DENIED); return FALSE; }
     }

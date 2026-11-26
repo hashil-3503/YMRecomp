@@ -8,7 +8,7 @@
 //  - Windows: the NVIDIA Control Panel's Shader Cache Size, for every program: the current global profile's
 //    PS_SHADERDISKCACHE_MAX_SIZE (MB; 0xFFFFFFFF Unlimited) through nvapi64.dll's driver settings (NvAPI_DRS_*), read only.
 //    Function ids, setting ids and NVDRS_SETTING_V1's layout: NVIDIA's open nvapi headers (nvapi_interface.h,
-//    NvApiDriverSettings.h, nvapi.h). The launcher raises a small one (YMLauncher's DriverSettings.RaiseShaderCache).
+//    NvApiDriverSettings.h, nvapi.h). The launcher raises a small one (LongshotLauncher's DriverSettings.RaiseShaderCache).
 // Standard library (and Windows) only: tests/test_pcache_load.py builds the Linux part.
 #pragma once
 #include <cstdint>

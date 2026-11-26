@@ -1,7 +1,7 @@
 //! A commit's source: Forgejo's archive of that exact commit (`<repository's API>/archive/<40 hex>.tar.gz`: git archive's
 //! tar, gzipped, one folder holding the tracked files, the commit in its pax global header's `comment`), downloaded by
-//! its full hash with a size cap, or a file given, then checked and unpacked by the rules the YM Launcher read a
-//! pull request's source by (YMLauncher's Core/PullRequestSource.cs, `Files`): the archive must name the commit
+//! its full hash with a size cap, or a file given, then checked and unpacked by the rules the Longshot Launcher read a
+//! pull request's source by (LongshotLauncher's Core/PullRequestSource.cs, `Files`): the archive must name the commit
 //! asked for; plain files and folders only (a link, a device, anything else refused); each path, its top folder taken
 //! off, relative and inside the folder (no `..`, `.` or empty part, no `\`, no drive). On top of those: no path twice,
 //! and no more than [`MAX_UNPACKED`] bytes unpacked.
@@ -11,9 +11,9 @@ use build_driver::tools::archive::Reader;
 use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 
-/// YM's repository on the forge, as its API names it: `--url`'s default (`<it>/archive/<commit>.tar.gz` is the
-/// archive; the web page's own `/archive/` is not served for a commit).
-pub const DEFAULT_URL: &str = "https://git.magicbean.dev/api/v1/repos/MagicBeanDev/YM";
+/// This fork's repository on GitHub: `--url`'s default (`<it>/archive/<commit>.tar.gz` is GitHub's git archive of the
+/// commit, the same form as Forgejo's API gave: one top folder, the commit in the pax header's `comment`).
+pub const DEFAULT_URL: &str = "https://github.com/hashil-3503/YMRecomp";
 /// The largest archive taken (the launcher's cap; YM's is about 20 MB).
 pub const MAX_ARCHIVE: u64 = 128 << 20;
 /// The most an archive may unpack to (a gzip bomb stops here; YM's tree is about 150 MB).

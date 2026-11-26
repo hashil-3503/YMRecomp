@@ -1,6 +1,6 @@
 //! The builder's windows, under `--output user`: a build's progress, an error, the crash window and its pages, and the
 //! first run's picker of the game's .nup. Slint with only its winit back end and its software renderer (no Qt, no GPU:
-//! a crash may have been the GPU's), two embedded fonts (Inter, and Noto Sans Black for headings), drawn in the YM Launcher's brand look (ui/windows.slint).
+//! a crash may have been the GPU's), two embedded fonts (Inter, and Noto Sans Black for headings), drawn in the Longshot Launcher's brand look (ui/windows.slint).
 //!
 //! The windows live on a thread of their own, which runs Slint's event loop (Slint's winit back end lets it run off the
 //! main thread on Linux and Windows); [`Ui`] is a handle any thread calls. Nothing opens until a window is needed:

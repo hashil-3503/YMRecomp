@@ -1,4 +1,4 @@
-//! YM's store, the server's generic package registry (docs/dev/reference/releases.md, "tools.lock"): a tool's
+//! Longshot's store, the server's generic package registry (docs/dev/reference/releases.md, "tools.lock"): a tool's
 //! archive downloaded, asked after and uploaded, with curl (as the builder's other downloads: crate::runtimes). Also the
 //! server's release API, read the same way ([`json`], [`download_checked`]: `YM-builder dev release fetch-bases`).
 //! Anyone downloads with no account; an upload takes a token with write access to the organization's packages

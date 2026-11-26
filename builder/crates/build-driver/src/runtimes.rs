@@ -7,7 +7,7 @@
 //! terms [`Vendor::notice`] names). A build for a profile keeps what was accepted in its profile.json (`"licenses"`:
 //! each vendor's name and the pin it was accepted for, crate::play::Profile); a build for no profile takes them for
 //! that run only. A pin that moves asks again. The pins are the ones the launchers show the licenses of
-//! (YMLauncher's SettingsStepViewModel.cs names the same commits).
+//! (LongshotLauncher's SettingsStepViewModel.cs names the same commits).
 //!
 //! A developer's `YM_NGX_SDK` is used as it is, and nothing of NVIDIA's is downloaded. FSR 4 on Linux needs no
 //! download: the player's own Vulkan FSR 4 library is loaded (gpu/vk/vk_fsr4.cpp); Intel publishes no XeSS library for

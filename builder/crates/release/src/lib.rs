@@ -1,5 +1,5 @@
-//! YM's releases as a player's builder installs them (docs/dev/reference/releases.md): `YM-builder fetch`
-//! and `self-update`. The YM Launcher did this in C# (Core/YMBuildRelease.cs, Releases.cs,
+//! Longshot's releases as a player's builder installs them (docs/dev/reference/releases.md): `YM-builder fetch`
+//! and `self-update`. The Longshot Launcher did this in C# (Core/LongshotBuildRelease.cs, Releases.cs,
 //! ReleaseTrust.cs, CdnFetcher.cs, SelfUpdate.cs, App/ZstdPatcher.cs); it now asks the builder.
 //!
 //! - [`versions`]: the channels and the version order.
@@ -23,6 +23,12 @@ pub mod trust;
 pub mod versions;
 
 pub use versions::Channel;
+
+/// This fork publishes no releases, so nothing asks the original team's forge for one (`fetch`, `self-update`, play's
+/// daily check). Set false to bring the forge client back.
+pub const PUBLISHES_NO_RELEASES: bool = true;
+/// What `fetch` and `self-update` say while [`PUBLISHES_NO_RELEASES`].
+pub const NO_RELEASES_TEXT: &str = "this fork publishes no releases: build from source, see README";
 
 use std::path::Path;
 use std::sync::Arc;

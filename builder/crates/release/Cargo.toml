@@ -1,6 +1,6 @@
 [package]
 name = "release"
-description = "YM's releases as a player's builder installs them: the forge's list, the signed SHA256SUMS, the manifest, deltas and chains of them (the YM Launcher's YMBuildRelease, Releases and ZstdPatcher, ported)"
+description = "Longshot's releases as a player's builder installs them: the forge's list, the signed SHA256SUMS, the manifest, deltas and chains of them (the Longshot Launcher's LongshotBuildRelease, Releases and ZstdPatcher, ported)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

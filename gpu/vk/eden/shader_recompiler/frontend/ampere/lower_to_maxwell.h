@@ -1650,7 +1650,7 @@ inline LoweredProgram LowerToMaxwellWith(std::span<const Instruction> code, u32 
             // (longshot) A warp stores to shared memory (STS) and reads it back (LDS) with no barrier between: the Switch runs a
             // warp's shared memory accesses in order, Vulkan orders another lane's store and this lane's load only through a
             // barrier, and the driver's compiler may move them past each other (OoT's 4/3 gameplay network on NVIDIA's cooperative
-            // matrix path: 16x2 bright bars, YM issue 2455). As for LDSM: a subgroup barrier before the first LDS after an
+            // matrix path: 16x2 bright bars, Longshot issue 2455). As for LDSM: a subgroup barrier before the first LDS after an
             // STS, only where the LDS is not predicated (every lane of the warp reaches it)
             if (opcode == 0x388) {
                 shared_store_pending = true;

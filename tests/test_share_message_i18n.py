@@ -25,7 +25,7 @@ from test_menu_i18n import tables  # noqa: E402
 NAME, PIPELINES, DIR = "YM-pipelines-2026-11-16.zip", 1234, "C:\\Users\\someone\\Downloads\\"
 WHERE = ("", "your home folder", "the game folder")   # (share_downloads' words: none for the Downloads folder)
 REPORT = ("The report is in the zip. ", "The report is copied. ")
-ISSUE = ("Open git.magicbean.dev/MagicBeanDev/YM/issues/14 and attach", "Issue 14 is open in your browser: attach")
+ISSUE = ("Open github.com/hashil-3503/YMRecomp/issues and attach", "Issue 14 is open in your browser: attach")
 TAIL = " the zip to a comment, then paste the report and say where you played."
 PIECES = ("Saved ", " pipelines) in ", "The zip could not be written in ", TAIL) + WHERE[1:] + REPORT + ISSUE
 

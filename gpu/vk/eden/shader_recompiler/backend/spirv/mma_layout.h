@@ -39,7 +39,7 @@ inline uint32_t mma_wmma16_shared_limit = 0;
 inline bool mma_wmma16_full_subgroups = false;
 inline uint32_t mma_wmma16_max_subgroups = 0;
 // (amd-fix) float colour outputs carry no NaN or infinity to their target (EmitSetFragColor): one NaN texel spreads
-// through bloom/blur/downsample averages into glowing blocks (OoT's flowers on AMD, YM issue 606). On for every
+// through bloom/blur/downsample averages into glowing blocks (OoT's flowers on AMD, Longshot issue 606). On for every
 // card since v2.0.6 (vk_coopmat.cpp coopmat_init); RX_VK_NAN_GUARD=0 turns it off. Idea from NX2navi patch 0027.
 inline bool frag_nan_guard = false;
 // (amd-fix) gl_Position decorated Invariant (vertex and mesh outputs): the game draws a depth pre-pass, then the colour

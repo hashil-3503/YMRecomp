@@ -31,7 +31,7 @@ static double sent(const pr::PositionSample& s, const char* key) {
     const std::string j = pr::sample_json(s), k = std::string("\"") + key + "\":";
     return std::strtod(j.c_str() + j.find(k) + k.size(), nullptr);
 }
-/// The relay's cell for a position (YM-api's telemetry/perf/totals.go addPosition: math.Round(v / 100) * 100, a half
+/// The relay's cell for a position (Longshot-api's telemetry/perf/totals.go addPosition: math.Round(v / 100) * 100, a half
 /// away from zero), written here from its public rule and not from the header under test
 static double nearest_100(double v) { return std::round(v / 100) * 100; }
 

@@ -875,7 +875,7 @@ PROGRESS = PROGRESS[:NAME_AT] + b"PLAYER\0\0" + PROGRESS[NAME_AT + 8:]
 
 
 class BackupFolder(Case):
-    """Where a copy's backup goes with no --backup-dir: the launcher's backups folder (YMLauncher issue 188). On Linux
+    """Where a copy's backup goes with no --backup-dir: the launcher's backups folder (LongshotLauncher issue 188). On Linux
     that is YM/save-backup in the data folder, beside the saves; the script's backups from before stay where they are."""
 
     def run_default(self, *args):

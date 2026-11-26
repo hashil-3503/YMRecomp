@@ -2,11 +2,11 @@
 //! where reports go and whether they are offered, the server's answer, the issue form's link, the box after Report.
 //! Ported from host/hos_crash_dialog.h.
 
-/// The game-problem form, as the Insert menu's Bug report links it (gpu/vk/vk_bug_report.cpp kForm).
+/// The new-issue form, as the Insert menu's Bug report links it (gpu/vk/vk_bug_report.cpp kForm).
 pub const ISSUE_FORM: &str =
-    "https://git.magicbean.dev/MagicBeanDev/YM/issues/new?template=.forgejo/ISSUE_TEMPLATE/1-game-problem.yml";
-/// The issue chooser.
-pub const ISSUES: &str = "https://git.magicbean.dev/MagicBeanDev/YM/issues/new/choose";
+    "https://github.com/hashil-3503/YMRecomp/issues/new?labels=bug";
+/// The new-issue page.
+pub const ISSUES: &str = "https://github.com/hashil-3503/YMRecomp/issues/new";
 /// The longest link the sign-in page's redirect keeps.
 pub const LINK_MAX: usize = 2000;
 
@@ -250,7 +250,7 @@ pub fn ready_text(copied: Copied, opened: bool, saved: Option<&str>) -> String {
     if opened {
         s.push_str("In the issue form that opened in your browser, paste it into the YM_log.txt box, say what you were doing, and fill in the rest.");
     } else {
-        s.push_str(&format!("Open {ISSUES}, choose Game problem, and paste it into the YM_log.txt box."));
+        s.push_str(&format!("Open {ISSUES} and paste it into the YM_log.txt box."));
     }
     if let Some(path) = saved {
         s.push_str(&format!("\n\nIt is saved as {path}."));

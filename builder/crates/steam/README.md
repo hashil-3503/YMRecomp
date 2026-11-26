@@ -1,8 +1,8 @@
 # steam
 
 YM as a non-Steam game in Steam's library, for `YM-builder steam-shortcut`
-([build.md, Steam](../../../docs/dev/reference/build.md#steam)): the YM Launcher's Steam tile
-(`Core/SteamShortcuts.cs` in the YMLauncher repository), ported.
+([build.md, Steam](../../../docs/dev/reference/build.md#steam)): the Longshot Launcher's Steam tile
+(`Core/SteamShortcuts.cs` in the LongshotLauncher repository), ported.
 
 ## Main parts
 

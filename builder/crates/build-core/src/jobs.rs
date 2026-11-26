@@ -2,7 +2,7 @@
 //!
 //! A count given (`--jobs`, `YM_JOBS`) is a ceiling for every step that works side by side: the lift, the
 //! discovery's walks, the prompts' textures, the compile, the shader preparation. A launcher's "Build workers" choice
-//! reaches all of them, not the compile alone (YMLauncher issues 148 and 163: the PC unusable while it built).
+//! reaches all of them, not the compile alone (LongshotLauncher issues 148 and 163: the PC unusable while it built).
 //! Unset, the compile takes one worker per CPU thread but one; the memory gate ([`crate::memory`]) holds back the big
 //! ones either way.
 

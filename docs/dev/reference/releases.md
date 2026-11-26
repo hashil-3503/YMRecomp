@@ -4,8 +4,8 @@ How YM is versioned, released and delivered to players. A release is made by pus
 number, builds `YM-builder` for each platform, signs and publishes. There are no release pull requests, no release branches and no
 changelog file.
 
-The YM Launcher is released the same way from its own repository,
-[MagicBeanDev/YMLauncher](https://git.magicbean.dev/MagicBeanDev/YMLauncher), with its own numbers (from
+The Longshot Launcher is released the same way from its own repository,
+[MagicBeanDev/LongshotLauncher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher), with its own numbers (from
 `v1.0.0`) and the same `release.py`. This page covers YM.
 
 `release.py` is Tooling's ([scripts/release.py](https://git.magicbean.dev/MagicBeanDev/Tooling/src/branch/main/scripts/release.py)):
@@ -29,10 +29,10 @@ A release carries no game and no Vulkan back end: the player's own build compile
 their PC. A release's files never change: a fix is the next version. Never put game files, keys, builds or anything
 made from a dump in a release ([CONTRIBUTING.md](../../../CONTRIBUTING.md#the-rule-with-no-exceptions)).
 
-Players build through the YM Launcher only. It follows a channel and installs a new `YM-builder` by asking
+Players build through the Longshot Launcher only. It follows a channel and installs a new `YM-builder` by asking
 the builder it has: [`YM-builder fetch`](build.md#fetch-a-version) checks the signature, then applies a delta from
 a version the launcher keeps when the manifest lists one (or a chain of them, below), checking the result against the
-full file's SHA-256, or else downloads the full file. The launcher updates itself. YM's release pages therefore open with links to the launcher of the same channel and tell players
+full file's SHA-256, or else downloads the full file. The launcher updates itself. Longshot's release pages therefore open with links to the launcher of the same channel and tell players
 not to download the files below.
 
 ## Versions
@@ -89,7 +89,7 @@ tells two builds of one version apart.
 
 | Job | What it does | Run by |
 |---|---|---|
-| The version | names the version: a tag is checked; a push gets the nightly name, after waiting for more merges and only when it brings something for the notes; a tag of a commit released already names that release. Then, only when there is a version, checks `tools.lock` has every tool the packs carry and every line's archive is in YM's store with its size and SHA-256: a release uploads no tool, and stops on a line whose archive isn't there ([bumping a tool](#bumping-a-tool)) | `release.py check-tag`, `released-as`, `nightly-age`, `nightly-news`, `nightly-name`, then `YM-builder dev tools check`, `dev tools check --require` (a builder built first) |
+| The version | names the version: a tag is checked; a push gets the nightly name, after waiting for more merges and only when it brings something for the notes; a tag of a commit released already names that release. Then, only when there is a version, checks `tools.lock` has every tool the packs carry and every line's archive is in Longshot's store with its size and SHA-256: a release uploads no tool, and stops on a line whose archive isn't there ([bumping a tool](#bumping-a-tool)) | `release.py check-tag`, `released-as`, `nightly-age`, `nightly-news`, `nightly-name`, then `YM-builder dev tools check`, `dev tools check --require` (a builder built first) |
 | YM-builder (Linux) | builds a YM-builder for the runner, installs `tools.lock`'s linux-x64 tools with it, builds the third-party objects and RenHDrum, packs the sources, objects and tools (`dev release sources`), builds the program (linked against glibc 2.35, tools.lock's sysroot) with the pack inside, starts a player's build's dry run from it, makes the stamps, the deltas from the channel's last 5 releases and a nightly's from the latest stable (their full files through `RELEASE_UPLOAD_API` when the runner reaches it; fewer than 5 while more releases have the platform's files is a warning, and so is the latest stable's file that could not be had, though no stable with it yet is not) and the manifest, zips RecompLauncher's file, uploads all of it, then compiles the Vulkan back end to check it (with and without AMD FSR 4). No cache is restored | `build-linux.yml`: `scripts/YM_builder.py build`, then that builder's `dev tools install`, `dev release sources`, `build --sources`, `dev release dry-run`, `dev release files` (which runs `fetch-bases`, then `deltas`), `dev release recomplauncher` |
 | YM-builder (Windows) | the same for windows-x64, cross-built on Linux with llvm-mingw's Linux build, checked under Wine; the back end's build check is a job of its own, which restores no cache and uploads nothing | `build-windows.yml`: `scripts/YM_builder.py llvm-mingw`, `build`, `check`; the runner's builder's `dev release sources`, `unpack`, `dry-run`, `files`, `recomplauncher` |
 | Sign and publish | on the deploy runner, which compiles nothing: checks every platform's files are there (RecompLauncher's zips too), writes and signs `SHA256SUMS`, checks the signature with the key the launcher trusts, writes the notes, uploads everything to a draft and publishes it; a nightly also deletes the nightlies past the newest 20 that are 5 days old or more | `release.py sums`, `sign`, `verify`, `notes`, `publish`, `prune` |
@@ -246,7 +246,7 @@ tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
 ```
 
 `system` is `windows-x64` or `linux-x64`; `dest` is where the tool is unpacked under the builder's tree (`tools/<name>`);
-`prefix` the archive's folder that is the tool (`-`: the whole archive); the URLs are YM's store, a file
+`prefix` the archive's folder that is the tool (`-`: the whole archive); the URLs are Longshot's store, a file
 `<sha256>-<name>.tar.zst` of the organization's generic package `<name>-<system>`, version `<version>`, from
 `git-cdn.magicbean.dev` (Cloudflare's edge), then `git.magicbean.dev`. A package version's files never change and are
 never pruned.
@@ -316,7 +316,7 @@ be that line's bytes (`make.sh` and `ci_tools_publish.py` refuse another), so a 
 new version (its `*_TRIM`). Every line's first two URLs must be the store's (`dev tools check` refuses any other), and
 before any build the release checks every line's archive is there with its size and SHA-256 (`dev tools check
 --require`, in the version job): a release only downloads tools. A line whose archive is not there stops it with "a
-tools.lock line's archive is not in YM's store": run the Make tools workflow for it. Every one of these is the
+tools.lock line's archive is not in Longshot's store": run the Make tools workflow for it. Every one of these is the
 builder's (`YM-builder dev tools`, the one reader of `tools.lock`: build-driver's `tools/`); each job that runs
 one builds a `YM-builder` first, which needs none of the tools to be built. In an emergency an archive can be
 uploaded by hand: `dev tools add` without `--no-upload`, with `RELEASE_TOKEN` (`write:package`) and, past 100 MB,
@@ -342,7 +342,7 @@ A draft is on no channel, and so is an old `vX.Y.Z-rc.N`. Each build in the laun
 launcher updates itself from a channel of its own (*Settings*). It never moves a build or itself to a lower version;
 going down is the player's choice. The launcher installs each `YM-builder` with
 [`YM-builder fetch`](build.md#fetch-a-version) and starts it with `--no-self-update`; how it updates itself is
-documented in [YMLauncher](https://git.magicbean.dev/MagicBeanDev/YMLauncher). A copy of `YM-builder`
+documented in [LongshotLauncher](https://git.magicbean.dev/MagicBeanDev/LongshotLauncher). A copy of `YM-builder`
 no launcher manages (RecompLauncher's zip, a version folder of its own) updates itself on its channel, after asking the
 player once ([self-update](build.md#self-update)). The game doesn't look for updates.
 
@@ -502,7 +502,7 @@ What a repository needs before its first release (the organization's secret is s
 | *Publish*: HTTP 401/403 | the run isn't a push to this repository: release from a tag or push here only |
 | "is already published" | a re-run of a released version: nothing to do |
 | *The version*: "tools.lock is missing" | [bump the tool](#bumping-a-tool) |
-| *The version*: "a tools.lock line's archive is not in YM's store" | run the Make tools workflow on `main` for that tool, or fix the line ([bumping a tool](#bumping-a-tool)) |
+| *The version*: "a tools.lock line's archive is not in Longshot's store" | run the Make tools workflow on `main` for that tool, or fix the line ([bumping a tool](#bumping-a-tool)) |
 | *Make tools*: "is not made the same twice" or "A package version's files never change" | the recipe's output depends on something unpinned (a time stamp, a path, the system's own tool), or its files changed under a version already in the store: fix the recipe, or give it a new version (its `*_TRIM`) |
 | Too many nightlies | the prune failed on a protected `nightly-*` tag: unprotect it, or `RELEASE_TOKEN=<token> release.py prune` |
 | `next` or `notes`: "git-cliff is needed" | `export GIT_CLIFF=$(python -I ../Tooling/scripts/release.py git-cliff <folder>)` |

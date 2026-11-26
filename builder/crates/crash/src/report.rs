@@ -1,4 +1,4 @@
-//! The reports: the one Report automatically posts ([`Shown::build_report`]: YM-api's telemetry/crash, every
+//! The reports: the one Report automatically posts ([`Shown::build_report`]: Longshot-api's telemetry/crash, every
 //! field cleaned and capped) and the text Report manually copies ([`Shown::manual_text`]). Ported from
 //! host/hos_crash_dialog.c.
 

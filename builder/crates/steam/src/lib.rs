@@ -1,5 +1,5 @@
 //! YM as a non-Steam game in Steam's library: the tile Steam's own "Add a Non-Steam Game" writes, in the
-//! signed-in account's `userdata/<id>/config/shortcuts.vdf` (the binary VDF, [`vdf`]). The YM Launcher's
+//! signed-in account's `userdata/<id>/config/shortcuts.vdf` (the binary VDF, [`vdf`]). The Longshot Launcher's
 //! `Core/SteamShortcuts.cs`, ported (docs/dev/reference/build.md, "Steam"):
 //!
 //! - **Where**: Steam's folder ([`homes`]: Linux `$XDG_DATA_HOME/Steam`, `~/.steam/steam`, Flatpak's and Snap's;
@@ -9,7 +9,7 @@
 //!   controller layout and play time key off it, so a tile made here and one made by hand behave alike.
 //! - **Ours only**: a tile is this program's when its id is the one its Exe and name make and it still points at that
 //!   Exe, or it is the one the note beside the library ([`NOTE`]) names (a moved version folder keeps its tile and its
-//!   id). Another tile of the same name (the player's, the YM Launcher's) is never touched: [`Done::NameTaken`].
+//!   id). Another tile of the same name (the player's, the Longshot Launcher's) is never touched: [`Done::NameTaken`].
 //! - **Never lost**: a library that doesn't read whole is refused, not rewritten ([`vdf`]); the library as it was
 //!   before the first change is kept once beside it (`shortcuts.vdf.bak-YM`); a library that is a link is
 //!   written through it; each write is whole or not at all.

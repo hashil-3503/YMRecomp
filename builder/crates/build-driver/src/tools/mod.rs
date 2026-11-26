@@ -1,7 +1,7 @@
 //! The build tools a build compiles with: tools.lock's compiler, sysroot and libraries, which the builder carries in its
 //! bundle, each unpacked at its line's dest (`<root>/tools/<name>`: `YM-builder dev tools install`, the release's
 //! bundle), and the stamps a launcher keys shader caches by (`YM-builder stamps`). The lock itself ([`lock`]), the
-//! tools' archives ([`archive`]) and YM's store ([`store`]): `YM-builder dev tools`.
+//! tools' archives ([`archive`]) and Longshot's store ([`store`]): `YM-builder dev tools`.
 //!
 //! The compile reads them as the variables of the table below ([`TOOLS`]), set to the bundle's folders: a player's PC's
 //! own `RX_CPM`, `YM_MINGW`, ... never stand in for the builder's tools. A developer chooses their own with

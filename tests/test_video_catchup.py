@@ -61,6 +61,7 @@ typedef struct { uint64_t x[32]; } Ctx;
 #define G32(a) (*(uint32_t *)GP(a))
 #define HOS_WRITTEN(p, n) ((void)0)
 static LONG64 InterlockedCompareExchange64(volatile LONG64 *p, LONG64 x, LONG64 cmp) { (void)x, (void)cmp; return *p; }
+static LONG64 InterlockedIncrement64(volatile LONG64 *p) { return ++*p; }
 static int video_log(void) { return 0; }
 static void hos_log(const char *f, ...) { (void)f; }
 static int64_t clock_ns = 0;
@@ -175,16 +176,18 @@ def main():
     args = parser.parse_args()
     src = args.source.read_text(encoding="utf-8")
     defines = "\n".join(re.findall(r"^#define (?:RESULT_NO_OUTPUT|POOL_MAGIC|DEC_MAGIC|MAX_SLOTS|MAX_QUEUE|SYNC_IDLE_TAG|"
-                                   r"SYNC_IDLE_MASK)\b.*$", src, re.M))
+                                   r"SYNC_SLOT_TAG|SYNC_IDLE_MASK)\b.*$", src, re.M))
     types = "\n".join((defines,
-                       through(src, "typedef struct {\n    int w, h, format, count;", "} Pool;"),
+                       through(src, "typedef struct {\n    uint32_t id;\n    int w, h, format, count;", "} Pool;"),
                        through(src, "typedef struct { uint8_t *rgba, *nv12;", "} Picture;"),
                        through(src, "typedef struct Pending {", "} Pending;"),
                        through(src, "typedef void (*mf_av1_picture_fn)", "int64_t pts);"),
                        through(src, "typedef struct {\n    const char *name;", "} Av1Decoder;"),
                        through(src, "typedef struct {\n    AVCodecContext *ctx;", "} Dec;"),
-                       "static volatile LONG64 submissions;"))
-    fixture = HARNESS.replace("@TYPES@", types).replace("@ACQUIRE@", block(src, "static void dec_acquire(Ctx *c) {"))
+                       "static volatile LONG64 submissions, slot_sync_next;"))
+    acquire = block(src, "static void copy_picture_to_slot(Dec *d, int slot, Picture *p) {") + "\n" + \
+        block(src, "static void dec_acquire(Ctx *c) {")
+    fixture = HARNESS.replace("@TYPES@", types).replace("@ACQUIRE@", acquire)
     compiler = shutil.which(args.cxx)
     if not compiler:
         raise SystemExit("C++ compiler not found: " + args.cxx)

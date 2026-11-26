@@ -106,7 +106,7 @@ constexpr uint64_t kMB = 1ull << 20, kGB = 1ull << 30;
 /// NVIDIA's driver; AMD's Windows driver on Radeon 860M/840M (0x1114) from 0x8001a0 (Adrenalin 26.10.1); Intel's Windows
 /// driver on Meteor Lake and Arrow Lake (0x7Dxx) from 101.9175, Battlemage (0xE2xx) from
 /// 101.9154, Panther Lake (0xB0xx) from 101.9150 and Lunar Lake (0x64xx: 0x6420, 0x64A0, 0x64B0) from 101.8991 (with the loop
-/// Arc 140Vs lost the device, at 499dbfd0 among other programs: YM issues 844, 878, 1027 and 1225). Intel's Windows driverVersion is
+/// Arc 140Vs lost the device, at 499dbfd0 among other programs: Longshot issues 844, 878, 1027 and 1225). Intel's Windows driverVersion is
 /// 101 << 14 | build on every family; Mesa's Intel driver numbers its versions otherwise and is never listed
 inline bool native_fadd_listed(VkDriverId driver, uint32_t device, uint32_t version, bool windows) {
     if (driver == VK_DRIVER_ID_NVIDIA_PROPRIETARY) return true;

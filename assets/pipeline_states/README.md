@@ -47,7 +47,7 @@ a pipeline again, the merge keeps it once.
 
 ## Contributing a list
 
-Players without a clone send their list to the [Submit your pipelines](https://git.magicbean.dev/MagicBeanDev/YM/issues/14)
+Players without a clone send their list to the [Submit your pipelines](https://github.com/hashil-3503/YMRecomp/issues)
 issue: **Save my pipeline list** (the game's menu, Debug tab, or the builders' launcher page; readme, *Send your
 pipeline list*) zips the game folder's `YM_pipeline_states.bin` with a filled-in report
 (`YM_pipeline_report.txt`: the version, OS, GPU and driver, settings and mods), and nothing else. A maintainer then

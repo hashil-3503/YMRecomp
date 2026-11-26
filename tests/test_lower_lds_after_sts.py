@@ -4,7 +4,7 @@ The Switch runs a warp's shared memory accesses in order, so OoT's programs stor
 other lanes' words too, with no BAR between. Vulkan orders another lane's store and this lane's load only through a
 barrier, and the driver's compiler may move them past each other. OoT's 4/3 gameplay network (fd029a317a9a4b94) does
 that at its end (8 STS, then 16 LDS): on NVIDIA's cooperative matrix path the picture got flickering bright bars, 16 px
-wide and 2 rows tall (YM issue 2455). As for LDSM: a subgroup barrier (MEMBAR, bit 20) before the first LDS after
+wide and 2 rows tall (Longshot issue 2455). As for LDSM: a subgroup barrier (MEMBAR, bit 20) before the first LDS after
 an STS, only where the LDS is not predicated (every lane of the warp reaches it); none after a BAR.SYNC.
 
 python -I -B tests/test_lower_lds_after_sts.py [--cxx clang++]

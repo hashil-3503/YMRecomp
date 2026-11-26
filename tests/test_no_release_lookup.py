@@ -1,4 +1,4 @@
-"""The builder does not update itself (docs/dev/reference/releases.md): the YM Launcher reads YM's signed releases, and
+"""The builder does not update itself (docs/dev/reference/releases.md): the Longshot Launcher reads YM's signed releases, and
 installs and updates each version's YM-builder. Nothing in it or the game asks a server for a release: no GitHub link,
 no release lookup, no game update check (host/hos_update.c is gone), and none of the old self-update's hooks."""
 import os

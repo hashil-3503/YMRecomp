@@ -1,4 +1,4 @@
-//! The channels and the version order (docs/dev/reference/releases.md, "Versions"; the YM Launcher's
+//! The channels and the version order (docs/dev/reference/releases.md, "Versions"; the Longshot Launcher's
 //! Core/Versions.cs, ported): a stable is `vX.Y.Z` from `v3.0.0` on, a nightly `nightly-<commit count>-<commit>`.
 //! A nightly and a stable are never ordered against each other; a name that is neither is on no channel.
 

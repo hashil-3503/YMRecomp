@@ -1,7 +1,7 @@
 //! A delta applied: `zstd -d --long=30 --patch-from=<base> <delta>`, as the zstd program does it, with the base as
 //! the frame's prefix (a raw-content dictionary: its bytes before the frame's own, the repeat offsets zstd's defaults).
 //! ruzstd decodes it (pure Rust, the zstd the builder already has: its pack and the game's `.zs` files), so it works the
-//! same on Windows and Linux with no zstd program (the YM Launcher's App/ZstdPatcher.cs, ported).
+//! same on Windows and Linux with no zstd program (the Longshot Launcher's App/ZstdPatcher.cs, ported).
 //!
 //! A delta is one zstd frame, of no dictionary id, whose window is at most 2^[`WINDOW_LOG`] (dev/release_deltas.rs's
 //! `LONG`, the launcher's `DeltaWindowLog`): anything else is refused before it is decoded. The base and the result

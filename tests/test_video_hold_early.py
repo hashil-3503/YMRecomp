@@ -150,16 +150,18 @@ def main():
     harness = harness.replace(HOST_OF_OLD, HOST_OF_NEW)
     defines = "\n".join(l for l in src.splitlines() if l.startswith(("#define RESULT_NO_OUTPUT", "#define POOL_MAGIC",
                         "#define DEC_MAGIC", "#define MAX_SLOTS", "#define MAX_QUEUE", "#define SYNC_IDLE_TAG",
-                        "#define SYNC_IDLE_MASK")))
+                        "#define SYNC_SLOT_TAG", "#define SYNC_IDLE_MASK")))
     types = "\n".join((defines,
-                       catchup.through(src, "typedef struct {\n    int w, h, format, count;", "} Pool;"),
+                       catchup.through(src, "typedef struct {\n    uint32_t id;\n    int w, h, format, count;", "} Pool;"),
                        catchup.through(src, "typedef struct { uint8_t *rgba, *nv12;", "} Picture;"),
                        catchup.through(src, "typedef struct Pending {", "} Pending;"),
                        catchup.through(src, "typedef void (*mf_av1_picture_fn)", "int64_t pts);"),
                        catchup.through(src, "typedef struct {\n    const char *name;", "} Av1Decoder;"),
                        catchup.through(src, "typedef struct {\n    AVCodecContext *ctx;", "} Dec;"),
-                       "static volatile LONG64 submissions;"))
-    fixture = (harness.replace("@TYPES@", types).replace("@ACQUIRE@", catchup.block(src, "static void dec_acquire(Ctx *c) {"))
+                       "static volatile LONG64 submissions, slot_sync_next;"))
+    acquire = catchup.block(src, "static void copy_picture_to_slot(Dec *d, int slot, Picture *p) {") + "\n" + \
+        catchup.block(src, "static void dec_acquire(Ctx *c) {")
+    fixture = (harness.replace("@TYPES@", types).replace("@ACQUIRE@", acquire)
                + MAIN)
     compiler = shutil.which(args.cxx)
     if not compiler:

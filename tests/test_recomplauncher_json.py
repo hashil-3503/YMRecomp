@@ -201,7 +201,7 @@ class RecompLauncherJsonTests(unittest.TestCase):
         self.assertNotIn("timeout", prepare)
 
     def test_no_repository_it_cannot_read(self):
-        # (RecompLauncher's "repo" is a GitHub owner/name, and YM's releases are on git.magicbean.dev: none is named)
+        # (RecompLauncher's "repo" is a GitHub owner/name, and Longshot's releases are on git.magicbean.dev: none is named)
         manifest = json.loads((ROOT / "recomplauncher.json").read_text(encoding="utf-8"))
         self.assertNotIn("repo", manifest)
 

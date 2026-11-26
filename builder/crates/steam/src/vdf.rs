@@ -1,6 +1,6 @@
 //! Steam's binary VDF, the layout of its own `shortcuts.vdf`: a map's items one after another, each a type byte, a
 //! NUL-ended name and its value (0 a map, ended by a lone 0x08; 1 a NUL-ended UTF-8 string; 2 a little-endian i32; 3 a
-//! little-endian f32), the root ended by its own 0x08. Read and written back byte for byte (the YM Launcher
+//! little-endian f32), the root ended by its own 0x08. Read and written back byte for byte (the Longshot Launcher
 //! checked its reader so against the file Steam wrote on a Steam Deck), the items in their order.
 //!
 //! A file that rewrites the library must never lose what it can't read: one that stops before its last 0x08 (a write

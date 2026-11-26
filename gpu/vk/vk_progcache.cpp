@@ -173,7 +173,7 @@ void idx_write(const std::string& path, uint64_t stamp, const std::vector<std::p
 // last preparation of this translator made (program_cache_publish), the start of a game folder that has none of its own
 // (disk_init), so that a new folder, or a new build of an unchanged translator, translates nothing again. Named under the
 // store's own files (spirv.pack.*, spirv.idx.*) so that the launcher's Free up space and its count of the store take them
-// with it (YMLauncher ShaderCaches.StoreFiles), and a store made again leaves no copy naming its old blobs: a copy of
+// with it (LongshotLauncher ShaderCaches.StoreFiles), and a store made again leaves no copy naming its old blobs: a copy of
 // another store is dropped by disk_init's own check of the file's head anyway. A copy is written beside its place and put
 // there whole (rename): a YM reading the old one keeps it, and the folder's own file is never shared between two
 // YMs (its lock below)

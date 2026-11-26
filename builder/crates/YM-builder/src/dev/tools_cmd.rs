@@ -3,7 +3,7 @@
 //!
 //! ```text
 //! check [--require [<name> ...]]   the lock read and checked, and a lock without a tool a builder needs refused;
-//!                                  --require: also each line's copy in YM's store with its size and SHA-256 (the
+//!                                  --require: also each line's copy in Longshot's store with its size and SHA-256 (the
 //!                                  release, which uploads none: the Make tools workflow does); --require <name>...: also
 //!                                  those tools named
 //! install <folder> [--system <s>] [--cache <folder>] [--only <name> ...]
@@ -137,7 +137,7 @@ fn check(tools: &[Tool], require: Option<&[String]>) -> bool {
         .collect();
     if !gone.is_empty() {
         eprintln!(
-            "error: not in YM's store as tools.lock names them: {}; the Make tools workflow (.forgejo/workflows/\
+            "error: not in Longshot's store as tools.lock names them: {}; the Make tools workflow (.forgejo/workflows/\
              tools.yml) uploads them, docs/dev/reference/releases.md, Bumping a tool",
             gone.join("; ")
         );

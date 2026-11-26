@@ -32,7 +32,7 @@ pub const DELTA: &str = "YM-builder-{from}-to-{v}-{p}.zst-patch";
 pub const MANIFEST: &str = "YM-builder-{v}-{p}.json";
 /// How many earlier releases of the channel a release has deltas from.
 pub const KEEP: usize = 5;
-/// The delta's window log: 1 GB, past any full file (YMLauncher's YMBuildRelease.DeltaWindowLog).
+/// The delta's window log: 1 GB, past any full file (LongshotLauncher's LongshotBuildRelease.DeltaWindowLog).
 pub const LONG: u32 = 30;
 /// The platforms and their full file's extension.
 pub const PLATFORMS: [(&str, &str); 2] = [("linux-x64", ""), ("windows-x64", ".exe")];

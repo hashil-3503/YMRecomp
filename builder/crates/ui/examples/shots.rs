@@ -74,7 +74,7 @@ fn main() {
         "send" => ui
             .page(&Page {
                 title: "YM: send to the team",
-                text: "This is what goes to the YM team, and nothing else; only the team can read it. Show all of it opens \
+                text: "This is what goes to the Longshot team, and nothing else; only the team can read it. Show all of it opens \
                        the report as it is sent, every line of it.",
                 block: Some(report),
                 buttons: &["Send", "Show all of it", "Cancel"],

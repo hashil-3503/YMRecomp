@@ -1,6 +1,6 @@
-"""The performance summary's bucket lists come from YM-api's schema, not copies in the game (no game required):
+"""The performance summary's bucket lists come from Longshot-api's schema, not copies in the game (no game required):
 perf_report.h includes the generated header and no longer declares those lists itself, and that header carries the
-three histograms the relay parses. Regenerated with YM-api's `go run ./cmd/gen-game-schema`.
+three histograms the relay parses. Regenerated with Longshot-api's `go run ./cmd/gen-game-schema`.
 
 python -I -B tests/test_perf_schema.py
 """

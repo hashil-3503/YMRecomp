@@ -50,7 +50,7 @@ namespace ps = pipeline_share;
 std::string share_said;    // (the help box's line after a save: where the zip went and what to do, or why there is none)
 std::string share_value;   // (the row's value after a save: Saved, or Not saved)
 constexpr const char* kShareSaidLongest = "Saved YM-pipelines-2026-12-31.zip (123456 pipelines) in Downloads. The report "
-    "is in the zip. Open git.magicbean.dev/MagicBeanDev/YM/issues/14 and attach the zip to a comment, then paste the report and say "
+    "is in the zip. Open github.com/hashil-3503/YMRecomp/issues and attach the zip to a comment, then paste the report and say "
     "where you played.";   // (measure_help: the help box's room)
 std::string share_saved;   // (the first sentence: the zip's name, its pipelines and its folder)
 std::atomic<bool> share_busy{false};   // (the worker is copying and opening: presses wait for it)
@@ -71,7 +71,7 @@ std::string share_saved_line(const std::string& name, long long n, const std::st
 /// The rest of it, once the worker has answered (share_result: 1 copied, 2 the issue opened)
 std::string share_done_line(int r) {
     return std::string(i18n::tr((r & 1) ? "The report is copied. " : "The report is in the zip. ")) +
-           i18n::tr((r & 2) ? "Issue 14 is open in your browser: attach" : "Open git.magicbean.dev/MagicBeanDev/YM/issues/14 and attach") +
+           i18n::tr((r & 2) ? "Issue 14 is open in your browser: attach" : "Open github.com/hashil-3503/YMRecomp/issues and attach") +
            i18n::tr(" the zip to a comment, then paste the report and say where you played.");
 }
 /// The help box's line when the zip could not be written in that folder (share_folder_name)

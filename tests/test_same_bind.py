@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -36,7 +38,8 @@ def main():
     before(source, "case NOP_BIND_TEX:", "case NOP_STENCIL:", "handles_unchanged(", "s.bind_gen++")
     before(source, "case NOP_BIND_UBO:", "case NOP_BIND_TEX:", "buf_unchanged(", "s.bind_gen++")
     before(source, "case NOP_BIND_BUFS:", "case NOP_BIND_UBO:", "buf_unchanged(", "s.bind_gen++")
-    before(source, "case NOP_BIND_PROGRAM:", "case NOP_BIND_STATE:", "std::memcmp(&s.prog", "s.bind_gen++")
+    # (the program's compare moved from the NOP_BIND_PROGRAM case into select_program, which the draw or dispatch calls)
+    before(source, "void select_program(", "s.has_prog = made.nstage > 0;", "std::memcmp(&s.prog", "s.bind_gen++")
     fixture = f'''#include <cstdint>
 #include <cstdio>
 #include <cstdlib>

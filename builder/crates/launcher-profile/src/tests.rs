@@ -11,7 +11,7 @@ fn scratch(name: &str) -> PathBuf {
     d
 }
 
-/// The launcher's own check file's profile (YMLauncher's ProfileModelChecks), with a key of the builder's and
+/// The launcher's own check file's profile (LongshotLauncher's ProfileModelChecks), with a key of the builder's and
 /// the Mod API's `"mods"` (a key this crate keeps without reading).
 const ANA: &str = r##"{ "v": 1, "name": "Ana", "builder_note": {"kept": [1, 2], "z": 0, "a": 1}, "mods": [ {"id": "local/a", "on": false, "granted": ["network"]}, {"id": "b"} ],
   "upscalers": ["dlss", "xess"], "game": "/games/oot.nup", "start_slot": "slot_02" }"##;

@@ -109,7 +109,7 @@ first play asks for the license again.
 
 | `--output` | stdout | Windows |
 |---|---|---|
-| `json` | the [events](build-events.md) as JSON Lines and nothing else (a launcher: the YM Launcher, the Test Farm) | never |
+| `json` | the [events](build-events.md) as JSON Lines and nothing else (a launcher: the Longshot Launcher, the Test Farm) | never |
 | `recomplauncher` | `progress <0..1> <the step>` and `error <text>`, the rest as text ([RecompLauncher](releases.md#recomplauncher)'s `prepare`) | never |
 | `text` | text for a person; play's own lines on stderr | never |
 | `user` | as `text` | a person's view of the build (`UserUi`), and a message box for an error |
@@ -277,7 +277,7 @@ Launcher's Steam tile (`Core/SteamShortcuts.cs`), ported to `builder/crates/stea
   the art, the controller layout and the play time key off it.
 - **Its tile only**: the tile whose id its Exe and name make and that still points there, or the one the note beside
   the library names (`shortcuts.vdf.YM-builder`: a version folder that moved keeps its tile and id). A tile of
-  that name it did not make (the player's, the YM Launcher's, whose note is `shortcuts.vdf.YM`) is left as
+  that name it did not make (the player's, the Longshot Launcher's, whose note is `shortcuts.vdf.YM`) is left as
   it is: `steam_name_taken`. Run again, it adds nothing twice (`unchanged`), or changes its tile in place (`updated`).
 - **Never lost**: a library that doesn't read whole (a write cut short, a type it can't write back) is refused and left
   byte for byte (`steam_library_unreadable`); the library as it was before the first change is kept once
@@ -286,7 +286,7 @@ Launcher's Steam tile (`Core/SteamShortcuts.cs`), ported to `builder/crates/stea
   library as `<id>_icon.ico` (and under the 64-bit id the old Big Picture reads), only where that slot is empty; the
   tile's `icon` names it (Gaming mode draws an `.ico` there, and the blank default for a `.png`: the launcher's finding
   on a Deck). The launcher's capsule art (the landscape and portrait capsules, the hero, the logo) lives in the
-  YMLauncher repository alone (`App/Assets/steam/`), so the builder writes none: Steam shows its default capsule.
+  LongshotLauncher repository alone (`App/Assets/steam/`), so the builder writes none: Steam shows its default capsule.
   A tile removed keeps its art (the grid folder is the player's library).
 - **Steam running** (`steam`, `steam.exe`, `steamrt`, `gamescope`) holds its library in memory and reads the file at
   its start: as the launcher does, the tile is written anyway and a `steam_running` warning says it shows once Steam
@@ -484,7 +484,7 @@ default profile used. A game folder with no builder two folders up (a developer'
 ## A builder from source
 
 `YM-builder from-source` makes a version folder on this PC from any commit's source: a pull request's head or
-main's newest commit, which have no release. The YM Launcher runs the newest nightly's builder for it (the
+main's newest commit, which have no release. The Longshot Launcher runs the newest nightly's builder for it (the
 player's PC compiles, not CI); what it makes is a version folder like a release's, so play, profiles, Steam and the
 rest work as they do for one.
 
@@ -507,7 +507,7 @@ It goes as the release's workflows do (`.forgejo/workflows/build-linux.yml`, `bu
 `scripts/YM_builder.py`, `scripts/renhdrum.py`), with what the source pins (`builder/crates/YM-builder/src/from_source/`):
 
 1. **The source** (`stage` `source`): the archive downloaded (at most 128 MB, curl), or the file given, then read by
-   the YM Launcher's rules for a pull request's source (its `Core/PullRequestSource.cs`): its pax `comment` names
+   the Longshot Launcher's rules for a pull request's source (its `Core/PullRequestSource.cs`): its pax `comment` names
    the commit asked for; plain files and folders only (a link refused); every path, its top folder taken off,
    relative and inside the folder; no path twice, and at most 2 GB unpacked. It is unpacked into the cache through a
    `.part` folder. A commit without `builder/crates/YM-builder` (older than the Rust builder)
@@ -606,12 +606,12 @@ carries them), cargo's target folder 2 GB, the tree 0.6 GB. The program is about
 
 This compiles code nobody reviewed and runs it with the player's rights: the builder that compiles it is the source's
 own (its `build.rs` files and proc macros run while it compiles, and the program is what the player then starts), so a
-pull request can do anything the player can. The YM Launcher says so before it starts one. What
+pull request can do anything the player can. The Longshot Launcher says so before it starts one. What
 `from-source` checks is that it builds what was asked: the archive is fetched by the commit's full hash over https and
 must name that commit; Rust's parts and the tools are checked by SHA-256, and the crates by Cargo.lock's, **but every
 one of those pins is the source's own**: a pull request that changes `scripts/renhdrum.py`, `tools.lock` or
 `Cargo.lock` gets what it pins (from the same hosts: the URLs are built, not read, for Rust and the archive; tools.lock's
-first two URLs must be YM's store). The result is not signed (`source.json`'s `signed: false`); nothing in it is
+first two URLs must be Longshot's store). The result is not signed (`source.json`'s `signed: false`); nothing in it is
 checked against a release.
 
 ## What builds again
@@ -781,7 +781,7 @@ What the player owns is in their profile, never in the cache: the licenses they 
 Linux with its links resolved), so a launcher's `--out` through a link and `play` from the folder itself are one folder
 with one work folder.
 
-A launcher gives `--cache` a folder of its own (the YM Launcher: `YM-builder` in its build files
+A launcher gives `--cache` a folder of its own (the Longshot Launcher: `YM-builder` in its build files
 folder), so its Storage page covers the builder's files too.
 
 The layout and what each holds: [the builder](builder.md#the-stores-and-the-work-folder). A first build writes about

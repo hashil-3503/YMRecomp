@@ -33,16 +33,17 @@ struct Texture {
     uint64_t gpu=0x1000, view_failed_frame=0; bool astc=false, bc=false, cube=false;
     ViewMap views;
 };
-struct nvn_texdesc { unsigned swizzle_r=0, swizzle_g=1, swizzle_b=2, swizzle_a=3; int format=42; };
+struct nvn_texdesc { unsigned swizzle_r=0, swizzle_g=1, swizzle_b=2, swizzle_a=3; int format=42; bool stencil=false; };
 struct nvn_tex { nvn_texdesc d; };
 struct nvn_view {
-    bool set_levels=false, set_layers=false, set_swizzle=false;
+    bool set_levels=false, set_layers=false, set_swizzle=false, set_stencil=false, stencil=false;
     uint32_t base_level=0, nlevels=0, min_layer=0, nlayers=0; unsigned swz[4]{0,1,2,3};
 };
 enum class ViewUse { Sample, Attachment, Storage };
 struct { VkDevice device{}; bool view_2d_of_3d=true; } dev;
 uint64_t frame_no=1;
 uint64_t mix(uint64_t a, uint64_t b) { return (a ^ (b + 0x9e3779b97f4a7c15ull + (a << 6) + (a >> 2))); }
+bool view_stencil(const nvn_tex* t, const nvn_view* v) { return v && v->set_stencil ? v->stencil : t->d.stencil; }
 int view_nvn_format(const nvn_tex* t, const nvn_view*) { return t->d.format; }
 struct Format { VkFormat format; };
 Format vk_format(int) { return {VK_FORMAT_R8G8B8A8_UNORM}; }

@@ -5,7 +5,7 @@
 //! tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
 //! ```
 //!
-//! Every tool comes from YM's store first: its first two URLs are the store's copy at the address its name,
+//! Every tool comes from Longshot's store first: its first two URLs are the store's copy at the address its name,
 //! version and SHA-256 give (the edge's, then the store's own); further URLs are mirrors. A line whose first URLs lead
 //! anywhere else is refused: what CI made and published is what a release must carry.
 
@@ -68,7 +68,7 @@ impl Tool {
         if self.prefix == "-" { String::new() } else { format!("{}/", self.prefix.trim_end_matches('/')) }
     }
 
-    /// Its copy in YM's store, at `server` (the address the store is reached by): the generic package
+    /// Its copy in Longshot's store, at `server` (the address the store is reached by): the generic package
     /// `<name>-<system>`, its version the tool's, the file `<sha256>-<name>.tar.zst`. A package version's files never
     /// change (the store refuses a second upload of a name) and nothing prunes them.
     pub fn store_url(&self, server: &str) -> String {
@@ -151,7 +151,7 @@ pub fn parse(text: &str) -> Result<Vec<Tool>, String> {
         };
         if t.urls.get(..2) != Some(&t.store_urls()[..]) {
             return Err(format!(
-                "tools.lock line {n} ({}): its first URLs are not YM's store's, {}",
+                "tools.lock line {n} ({}): its first URLs are not Longshot's store's, {}",
                 t.name,
                 t.store_urls().join(" ")
             ));
@@ -243,7 +243,7 @@ pub(crate) mod tests {
         }
         for t in &lock {
             // (at tools/<name> in the builder's bundle, where ToolVars finds it; the archive's files at its top; only
-            // YM's store, the edge's copy first; this fork adds its GitHub release mirror after them)
+            // Longshot's store, the edge's copy first; this fork adds its GitHub release mirror after them)
             assert_eq!((t.dest.as_str(), t.prefix.as_str()), (format!("tools/{}", t.name).as_str(), "-"), "{}", t.name);
             assert_eq!(t.urls[..2], t.store_urls()[..], "{}", t.name);
             assert!(t.urls[0].starts_with(&format!("{CDN}/api/packages/")), "{}", t.name);

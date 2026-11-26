@@ -1,5 +1,5 @@
-//! A chain of deltas, when no single delta of a release fits a file this PC keeps (the YM Launcher's
-//! Toolchains.ChainAsync and YMBuildRelease.LookBack, ported).
+//! A chain of deltas, when no single delta of a release fits a file this PC keeps (the Longshot Launcher's
+//! Toolchains.ChainAsync and LongshotBuildRelease.LookBack, ported).
 //!
 //! Each release has deltas from its channel's last [`DELTAS_FROM`] releases (a nightly's from the latest stable too).
 //! A chain walks back from the target's manifest a level of hops at a time, through the earlier releases its deltas

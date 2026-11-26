@@ -14,7 +14,7 @@ extension asked for only when wanted, only that feature on, the profile and the 
 global-address fallback are checked in the source. Whether it is wanted (native_fadd_wanted, vk_main.cpp) is compiled
 alone against a table: unset, NVIDIA's driver, and Intel's Windows driver on the Meteor Lake and Arrow Lake iGPUs (PCI
 device 0x7Dxx) from driver 101.9175 on, Battlemage (Arc B-series, 0xE2xx) from 101.9154 on, the Panther Lake iGPUs
-(0xB0xx) from 101.9150 on and the Lunar Lake iGPUs (0x64xx) from 101.8991 on, the families and drivers it was run on (YM issue 618: Panther Lake's loop lost the adds
+(0xB0xx) from 101.9150 on and the Lunar Lake iGPUs (0x64xx) from 101.8991 on, the families and drivers it was run on (Longshot issue 618: Panther Lake's loop lost the adds
 of the game's exposure, a milky white haze) (not Intel's other GPUs, older drivers, RADV,
 AMD's, Mesa's Intel driver or NVK); set, RX_VK_NATIVE_FADD by #2042's rule on any driver, so =on is on and =off, =false,
 =no and empty are off. Nothing runs on a GPU.

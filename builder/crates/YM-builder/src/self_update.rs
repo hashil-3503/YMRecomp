@@ -204,6 +204,10 @@ fn me() -> PathBuf {
 
 /// `YM-builder self-update ...` by the program carrying `own` (None: a developer's build): its exit status.
 pub fn run(args: &[String], own: Option<&str>) -> ExitCode {
+    if release::PUBLISHES_NO_RELEASES {
+        eprintln!("{}", release::NO_RELEASES_TEXT);
+        return ExitCode::FAILURE;
+    }
     let mut args = args.to_vec();
     let asked = match crate::output::take(&mut args) {
         Ok(a) => a,
@@ -292,7 +296,7 @@ pub fn wait_swap() {
 /// then, at most once a day, checks on a thread of its own and, on the player's yes, updates this copy for the next
 /// start. Never delays the game but for that one question.
 pub fn in_background(exe: &Path, own: Option<&str>, args: &mut Vec<String>) {
-    if take_flag(args) || build_driver::env(OFF_VARIABLE).is_some_and(|v| v.trim() == "1") {
+    if take_flag(args) || release::PUBLISHES_NO_RELEASES || build_driver::env(OFF_VARIABLE).is_some_and(|v| v.trim() == "1") {
         return;
     }
     let Some(own) = own.map(str::to_string) else { return };

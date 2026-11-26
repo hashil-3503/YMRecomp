@@ -43,8 +43,8 @@ namespace {
 // (a log is copied whole up to 10 MB, well within what the issue tracker takes; a longer one keeps its first MB, where the start, the
 // device and the options are, and its last 9 MB, where the problem usually is: an hour of play logs about 10 MB)
 constexpr uint64_t kLogCap = 10ull << 20, kLogHead = 1ull << 20;
-constexpr const char* kIssues = "https://git.magicbean.dev/MagicBeanDev/YM/issues/new/choose";
-constexpr const char* kForm = "https://git.magicbean.dev/MagicBeanDev/YM/issues/new?template=.forgejo/ISSUE_TEMPLATE/1-game-problem.yml";
+constexpr const char* kIssues = "https://github.com/hashil-3503/YMRecomp/issues/new";
+constexpr const char* kForm = "https://github.com/hashil-3503/YMRecomp/issues/new?labels=bug";
 // (the link's longest: a player who is not signed in is sent to the sign-in page, and the address waits for them in a cookie,
 // about 4 KB at most; GitHub's sign-in page, where the form lived first, failed from links of 3500 characters of escaped text
 // on. 2000 passes both, and every browser and chat program takes it)
@@ -509,7 +509,7 @@ std::string write(const Inputs& in) {
     // (the link fills in the form's one-line answers and, while the whole link stays within kLinkMax, the options changed, the
     // rows that depend on this PC and the switches' names: never a switch's value, which only report.txt has. When they do not
     // fit, the options, those rows and how many switches there are; then the options and how many of each; else only the counts)
-    // (Forgejo fills a form's field from the query's field:<its id>: routers/web/repo/issue.go, setTemplateIfExists)
+    // (the field:<id> parts are Forgejo's; GitHub's plain new-issue page ignores them and the report.txt has the answers)
     std::string link = std::string(kForm) + "&field:version=" + url_part(in.version) +
                        (now.map.empty() ? "" : "&field:where=" + url_part(now.map)) + "&field:gpu=" + url_part(gpu) +
                        "&field:system=" + url_part(in.system);
@@ -535,7 +535,7 @@ std::string write(const Inputs& in) {
 
     std::string text;
     text += "YM bug report, made by the Insert menu's Bug report on " + when(in.now, "%Y-%m-%d at %H:%M") + ".\n\n";
-    text += std::string("To send it: open ") + kIssues + " and choose Game problem (or the link at the end of this file, which "
+    text += std::string("To send it: open ") + kIssues + " (or the link at the end of this file, which "
             "fills in the answers below), copy the answers below into the fields of the same names, say what happened, and drag "
             "the files of this folder, this one too, into the issue.\n\n";
     text += "### YM version\n\n" + in.version + "\n\n";

@@ -14,7 +14,7 @@ files, and, on Windows, over the reader of a Switch 2 Pro Controller plugged in 
 | Linux | `$XDG_DATA_HOME/YM/nfc` (`~/.local/share/YM/nfc`) |
 | Any | `YM_NFC_DIR=<folder>` instead |
 
-Every build and the YM Launcher share it. One file per tag, directly in the folder. The file name without its
+Every build and the Longshot Launcher share it. One file per tag, directly in the folder. The file name without its
 extension is the tag's name in the menu. Names are listed in order, ignoring case, and only the first 256 are kept.
 Files starting with `key_` are skipped.
 

@@ -177,7 +177,7 @@ def toolchain(tree=ROOT):
 
 
 def game_roots():
-    """The folders whose game folders may hold the game: ~/Games; on Windows also ~/Games/YM, the YM Launcher's
+    """The folders whose game folders may hold the game: ~/Games; on Windows also ~/Games/YM, the Longshot Launcher's
     builds folder (LauncherSettings.DefaultBuildsFolder)"""
     games = os.path.expanduser(os.path.join("~", "Games"))
     return [games, os.path.join(games, "YM")] if common.WINDOWS else [games]

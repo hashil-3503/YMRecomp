@@ -274,7 +274,7 @@ pub enum Event {
         /// What happened and why.
         text: String,
     },
-    /// A failed build's report, as Send would post it to YM-api's telemetry/build (crash::build_report): for a
+    /// A failed build's report, as Send would post it to Longshot-api's telemetry/build (crash::build_report): for a
     /// launcher to show the player and send itself. Nothing is sent by the builder for it.
     BuildReport {
         /// The report's JSON, exactly as it would be sent.

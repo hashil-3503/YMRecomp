@@ -41,7 +41,7 @@ fn theirs(lib: &Library, name: &str) {
 
 #[test]
 fn the_id_is_steam_s_own() {
-    // (the id Steam itself wrote on a Steam Deck for this tile: the YM Launcher's fixture)
+    // (the id Steam itself wrote on a Steam Deck for this tile: the Longshot Launcher's fixture)
     let exe = "\"/home/deck/Emulation/tools/EmulationStation-DE-x64_SteamDeck.AppImage\"";
     assert_eq!(app_id(exe, "EmulationStation-DE-x64_SteamDeck"), -1467123759);
     assert_eq!(grid_id64(-1467123759), (u64::from((-1467123759i32) as u32) << 32) | 0x0200_0000);

@@ -6,7 +6,7 @@ src/perf.rs, its tests there):
 
   - the sizes: each biggest-case summary the C++ test writes is re-encoded the way the sender does and is no bigger
     than its MAX_BODY (perf.rs);
-  - the relay's rules (a short statement of YM-api's telemetry/perf, its public source linked at relay_cell): for
+  - the relay's rules (a short statement of Longshot-api's telemetry/perf, its public source linked at relay_cell): for
     each exact place and view the C++ test makes, the sent sample is one the relay takes (|yaw| <= pi, |pitch| <= pi/2:
     one sample past that and it refuses the whole summary) and it files it under the cell and view it files the exact
     place under, so the game's rounding costs the relay's totals nothing;
@@ -107,7 +107,7 @@ def relay_round(v):
 
 
 def relay_cell(s):
-    """The cell the relay files a sample's place under (YM-api telemetry/perf/totals.go addPosition at eadbca4,
+    """The cell the relay files a sample's place under (Longshot-api telemetry/perf/totals.go addPosition at eadbca4,
     https://git.magicbean.dev/MagicBeanDev/DataServicesAPI/src/commit/eadbca4c0bb47a9e128f4c314cf2a9c9916fec15/telemetry/perf/totals.go#L205):
     each axis's nearest multiple of 100, math.Round(v / 100) * 100"""
     return tuple(relay_round(s[k] / 100) * 100 for k in ("x", "y", "z"))

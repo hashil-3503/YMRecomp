@@ -289,8 +289,8 @@ static void call_guest(Ctx *c, uint64_t addr, uint64_t sp, const char *what) {
 }
 
 /* (longshot) Saves live outside the game folder, so a rebuilt or updated game folder still finds them: on Linux in
-   $XDG_DATA_HOME/YM (~/.local/share/YM); on Windows in %APPDATA%\YM, the folder the YM Launcher gives
-   every build as --user (YMLauncher Core/Saves.cs YMRoot), so a game started by itself (RecompLauncher, a shortcut)
+   $XDG_DATA_HOME/YM (~/.local/share/YM); on Windows in %APPDATA%\YM, the folder the Longshot Launcher gives
+   every build as --user (LongshotLauncher Core/Saves.cs YMRoot), so a game started by itself (RecompLauncher, a shortcut)
    keeps the same saves. The settings stay where options_path.c puts them (the game folder's YM_options.ini, which
    RecompLauncher writes, when there is no --user).
    A user/ folder beside the executable from before is moved there the first time, entry by entry: each copied whole into the
@@ -990,7 +990,7 @@ static int game_main(int argc, char **argv) {
     game_init();   /* (the game's own start: its switches, game/game.h) */
 #ifdef _WIN32
     {   // (the whole process, not only the window's thread: the renderer asks the window's size from its own, and on a 4K screen at 150%
-        // Windows answered such a thread 2560 x 1440: the picture was that size, in the corner of the window. YM issues 15, 18, 20)
+        // Windows answered such a thread 2560 x 1440: the picture was that size, in the corner of the window. Longshot issues 15, 18, 20)
         typedef BOOL(WINAPI * SetAware)(void *);
         SetAware set = (SetAware)(void *)GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDpiAwarenessContext");
         if (set && !env_on("HOS_DPI_UNAWARE")) set((void *)(intptr_t)-4);
@@ -1359,7 +1359,7 @@ static DWORD WINAPI game_thread(void *p) {
    it to the limit (1026 MB) and the pipelines it dropped were compiled again in play. Mesa's (RADV, ANV) has the same 1 GiB default.
    Raised for this process only, before anything loads Vulkan; a value the player set (or YM_env.txt) is kept. Windows: the
    NVIDIA driver takes its size from the control panel's Shader Cache Size alone (no environment variable), for every program;
-   the launcher raises it through NVIDIA's driver settings (YMLauncher's DriverSettings.RaiseShaderCache), and the game
+   the launcher raises it through NVIDIA's driver settings (LongshotLauncher's DriverSettings.RaiseShaderCache), and the game
    reads it for the log and the pipeline cache file's rule (gpu/vk/nvidia_cache_limit.h) */
 static void driver_cache_room(void) {
     setenv("__GL_SHADER_DISK_CACHE_SIZE", "10737418240", 0);   /* (10 GiB, bytes) */

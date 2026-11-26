@@ -1,6 +1,6 @@
 [package]
 name = "steam"
-description = "YM as a non-Steam game in Steam's library: the binary shortcuts.vdf, the tile's id and artwork, finding Steam's library (the YM Launcher's SteamShortcuts, ported)"
+description = "YM as a non-Steam game in Steam's library: the binary shortcuts.vdf, the tile's id and artwork, finding Steam's library (the Longshot Launcher's SteamShortcuts, ported)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

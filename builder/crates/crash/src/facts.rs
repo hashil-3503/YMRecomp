@@ -595,7 +595,7 @@ impl Cause {
     pub fn text(self) -> &'static str {
         match self {
             Cause::Files => {
-                "YM's game files are missing or don't match each other. Build the game again with the YM Launcher."
+                "YM's game files are missing or don't match each other. Build the game again."
             }
             Cause::Vulkan => {
                 "Vulkan didn't start on your graphics card. Update your graphics driver: YM needs a graphics card and \

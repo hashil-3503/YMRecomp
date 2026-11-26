@@ -148,6 +148,10 @@ pub fn fetched_event(f: &Fetched) -> Event {
 
 /// `YM-builder fetch ...`: its exit status.
 pub fn run(args: &[String]) -> ExitCode {
+    if release::PUBLISHES_NO_RELEASES {
+        eprintln!("{}", release::NO_RELEASES_TEXT);
+        return ExitCode::FAILURE;
+    }
     let mut args = args.to_vec();
     let asked = match crate::output::take(&mut args) {
         Ok(a) => a,

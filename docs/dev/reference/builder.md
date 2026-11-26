@@ -6,7 +6,7 @@ gen/ folder, the runtime, the guest profile and the caches. How to run it, its s
 
 The builder is one Rust workspace, [`builder/`](../../../builder), and one command, `YM-builder`. A release ships it as
 one self-contained file per platform, which carries everything it builds with ([below](#what-a-release-carries)).
-Players build through the YM Launcher, which runs `YM-builder build --output json`; no player needs Python. It reads the .nup, lays out the game's image, lifts every guest function to LLVM IR through a typed SSA
+Players build through the Longshot Launcher, which runs `YM-builder build --output json`; no player needs Python. It reads the .nup, lays out the game's image, lifts every guest function to LLVM IR through a typed SSA
 mid IR (where its analyses and the [hook sites](hooks.md) live), compiles that IR and the host with the pinned clang,
 and writes the game folder and its assets.
 
@@ -31,8 +31,8 @@ and writes the game folder and its assets.
 | `crates/build-compile` | The compile: every unit and its flags, keys by content, the object store, the scheduler under the memory gate, the links ([below](#the-compile)) |
 | `crates/build-assets` | The finish's assets, from the romfs (the index or a folder): the texts reworded for a PC, the button prompts (the icon font, the textures in ASTC and BC4, the ring and hint places), the shader list, the shipped pipeline lists, the window's icon and the exe's name, the pipeline list's zip for `share`; each output cached by exactly its inputs |
 | `crates/build-driver` | The driver: the stages in order with their caches, the work folder and the stores, the game folder's files ([below](#a-build)) |
-| `crates/steam` | YM as a non-Steam game in Steam's library (`YM-builder steam-shortcut`, [Steam](build.md#steam)): the binary `shortcuts.vdf`, Steam's id rule, the signed-in account's library, the tile's art; the YM Launcher's, ported |
-| `crates/release` | YM's releases as a builder installs them (`fetch`, `self-update`: [fetch](build.md#fetch-a-version)): the forge's list through Cloudflare's edge, the signed `SHA256SUMS` (ECDSA P-256, `scripts/release_keys.json`), the manifest, a delta or a chain of up to 5 applied by ruzstd, the program swapped in while it runs; the YM Launcher's, ported |
+| `crates/steam` | YM as a non-Steam game in Steam's library (`YM-builder steam-shortcut`, [Steam](build.md#steam)): the binary `shortcuts.vdf`, Steam's id rule, the signed-in account's library, the tile's art; the Longshot Launcher's, ported |
+| `crates/release` | Longshot's releases as a builder installs them (`fetch`, `self-update`: [fetch](build.md#fetch-a-version)): the forge's list through Cloudflare's edge, the signed `SHA256SUMS` (ECDSA P-256, `scripts/release_keys.json`), the manifest, a delta or a chain of up to 5 applied by ruzstd, the program swapped in while it runs; the Longshot Launcher's, ported |
 | `crates/YM-builder` | The command the launcher runs; a release's carries the pack (`build.rs` embeds the file `YM_SOURCES` names). `YM-builder dev`, the developers' commands: the lifter's own (`lift`, `discover`, `sites`, `profile`, `site-hooks`, `words`, `decode`), `tools` (`tools.lock`) and `release` (a release's packaging) |
 | `crates/synthetic-game` | The builder end to end on a synthetic game: a small AArch64 program of its own (`game/main.S`) packed as a .nup, built through every stage, run with a test host, and built again after a one-instruction change ([below](#building-and-checking-the-builder)) |
 | `rt/` | The runtime the lifted code and the host share (`a64.h`, `a64_rt.c`, `a64_fp.c`), written into gen/rt/ by the lift ([below](#the-runtime)) |

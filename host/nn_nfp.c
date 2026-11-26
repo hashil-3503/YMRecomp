@@ -2,7 +2,7 @@
  *
  * The game asks for an NFC tag with StartDetection, polls GetDeviceState until a tag is found, mounts it and reads what it
  * wants (GetTagInfo, GetModelInfo, the application area), then StopDetection. Here the reader is a pretended one: the tags
- * are files in the player's NFC folder (hos_nfc_dir: put there by the YM Launcher's NFC page, or by hand), and the
+ * are files in the player's NFC folder (hos_nfc_dir: put there by the Longshot Launcher's NFC page, or by hand), and the
  * Insert menu's NFC tab holds one of them to the reader (hos_nfc_tap), as tapping a figure on the controller does.
  *
  * A file is a dump of an NTAG215 tag: 540 bytes as they are on the tag (".bin", as most tools write them; 532 and 572 byte

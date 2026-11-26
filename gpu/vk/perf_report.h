@@ -1,7 +1,7 @@
 /* (longshot) The performance summary (perf_report.cpp gathers it, the launcher sends it: YM-builder perf-report, builder/crates/build-driver/src/perf.rs): what a
    player who ticked "Send performance statistics" in the launcher sends about their frames, split by the map they were
    on. Frame totals are sampled every second with Link's position and camera view. Every few minutes and at the end the game writes one summary into the game folder's
-   perf_pending folder; the launcher sends them to the perf relay (YM-api's telemetry, /telemetry/perf: telemetry/perf there, whose
+   perf_pending folder; the launcher sends them to the perf relay (Longshot-api's telemetry, /telemetry/perf: telemetry/perf there, whose
    format this is) at its next start, and deletes them.
 
    Plain functions and a summary's data: tests/test_perf_report.cpp checks them. The bucket lists are the relay's
@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "fps_stats.h"
-#include "perf_report_schema.h"   // (generated from YM-api's telemetry/perf/schema.go)
+#include "perf_report_schema.h"   // (generated from Longshot-api's telemetry/perf/schema.go)
 
 namespace mkwvk::perf_report {
 
@@ -214,7 +214,7 @@ inline std::string json_signed_num(double v) {
 inline std::string json_num(double v) { return json_signed_num(std::max(v, 0.0)); }
 
 /// What is sent of a sample's place and view, so the exact position and view never leave the PC and the relay files the sample
-/// where it would have filed the exact one. It files a place under the nearest multiple of 100 on each axis (YM-api's
+/// where it would have filed the exact one. It files a place under the nearest multiple of 100 on each axis (Longshot-api's
 /// telemetry/perf, totals.go: math.Round(v / 100) * 100, a half going away from zero), so that is what is sent: the relay
 /// rounds it onto itself. Not the middle of the 100-unit cell (50, 150, -50): those are the relay's ties, and every one
 /// would land a cell off. Its yaw bin is 45 degrees from -180 (the angle wrapped round) and its pitch bin 30 degrees from

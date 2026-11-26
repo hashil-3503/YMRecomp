@@ -1,4 +1,4 @@
-//! A program replaced by a newer one while it may be running (`YM-builder self-update`; the YM Launcher's
+//! A program replaced by a newer one while it may be running (`YM-builder self-update`; the Longshot Launcher's
 //! Core/SelfUpdate.cs Swap, Recover and WhileHeld, ported), and a Windows program made a windowed one.
 //!
 //! Linux lets a running program's file be replaced: the new one is renamed over it, one rename, so there is never a

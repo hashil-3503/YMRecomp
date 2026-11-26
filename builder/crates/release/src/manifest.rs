@@ -1,5 +1,5 @@
 //! A release's manifest for one platform, `YM-builder-<v>-<platform>.json`, signed in its `SHA256SUMS`
-//! (YM-builder's dev/release_deltas.rs writes it; the YM Launcher's YMBuildRelease.Parse and Choose,
+//! (YM-builder's dev/release_deltas.rs writes it; the Longshot Launcher's LongshotBuildRelease.Parse and Choose,
 //! ported):
 //!
 //! ```text

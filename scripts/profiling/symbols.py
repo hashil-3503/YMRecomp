@@ -51,7 +51,7 @@ def load_map(path, base):
 def demangler():
     """A C++ demangler for the Itanium names of a Windows build's maps (llvm-mingw's, as on Linux): llvm-cxxfilt or c++filt
     on the PATH, else YM_MINGW's, else the llvm-mingw of a build tools folder on this PC (scripts/dev.py's, the
-    YM Launcher's). None: there is none"""
+    Longshot Launcher's). None: there is none"""
     for name in ("llvm-cxxfilt", "c++filt"):
         p = shutil.which(name)
         if p:

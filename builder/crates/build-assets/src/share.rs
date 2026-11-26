@@ -17,7 +17,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 /// The issue the zip goes to.
-pub const ISSUE_URL: &str = "https://git.magicbean.dev/MagicBeanDev/YM/issues/14";
+pub const ISSUE_URL: &str = "https://github.com/hashil-3503/YMRecomp/issues";
 /// The list, in the shader cache folder (the game folder's `cache/`, or the shared one: gpu/vk/vk_paths.h cache_path).
 pub const LIST: &str = "YM_pipeline_states.bin";
 /// The report, in the zip.
@@ -231,7 +231,7 @@ fn version_text(folder: &Path, log: &[String]) -> String {
         if let Some(i) = line.find("YM ")
             && (i == 0 || !line.as_bytes()[i - 1].is_ascii_alphanumeric())
         {
-            let rest = &line[i + 9..];
+            let rest = &line[i + 3..];
             let word: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
             if word.is_empty() {
                 continue;
@@ -471,7 +471,7 @@ pub fn make_zip_in(folder: &Path, cache: Option<&Path>, out_dir: Option<&Path>) 
     let (data, recs) = read_list(&list)?;
     let text = template(&details(folder, &recs));
     let note = format!(
-        "Attach this zip to a comment on {ISSUE_URL} and paste the lines below into it, with where you played filled in.\n\
+        "Attach this zip to a new issue on {ISSUE_URL} and paste the lines below into it, with where you played filled in.\n\
          The zip holds only {LIST} (shader hashes, formats and draw state, and the hashes of the compute programs your \
          play ran: no game code, game data or personal info) and this text.\n"
     );

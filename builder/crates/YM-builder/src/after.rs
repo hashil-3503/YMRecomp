@@ -12,7 +12,7 @@
 //! showed is shown at play's start ([`at_start`]).
 //!
 //! A build that failed: the error window under `user` has Send report (its report shown in full first: crash's
-//! build_report, YM-api's telemetry/build), Open the log folder and Save diagnostics; under `json` a
+//! build_report, Longshot-api's telemetry/build), Open the log folder and Save diagnostics; under `json` a
 //! `build_report` event carries the report for a launcher. With `--send-build-statistics` (a launcher passes the
 //! player's yes; never on by default) every build's end is sent on its own, with no log.
 
@@ -336,7 +336,7 @@ pub fn error_window(text: &str) -> bool {
                     report(br::FAILED, text, release.as_deref(), &builder, false).json(&who.home, &[who.user.as_str()]);
                 let sent = ui.page(&Page {
                     title: "YM: send the report",
-                    text: "This is what goes to the YM team, and nothing else: the build's settings, how far it got, \
+                    text: "This is the report, and nothing else: the build's settings, how far it got, \
                            your PC's system and the end of its log, with your home folder and user name taken out.",
                     block: Some(&json),
                     buttons: &["Send", "Cancel"],

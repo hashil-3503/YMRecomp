@@ -1,5 +1,5 @@
 """The Make tools workflow's publish job (.forgejo/workflows/tools.yml): the archives its make job made, twice and the
-same, uploaded into YM's store and written as their tools.lock lines, on the deploy runner, which builds and runs
+same, uploaded into Longshot's store and written as their tools.lock lines, on the deploy runner, which builds and runs
 no program of the checkout's (this is Python's standard library only, read from the commit the workflow runs on).
 
     python3 -I scripts/ci_tools_publish.py <made> [--lock tools.lock] [--write-lock <file>]
