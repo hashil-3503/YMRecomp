@@ -466,6 +466,10 @@ class OotMenuMouseTests(unittest.TestCase):
             shutil.copy(ROOT / "game" / "oot_menu.c", tmp / "game" / "oot_menu.c")
             shutil.copy(ROOT / "host" / "input_movie.h", tmp / "host" / "input_movie.h")
             (tmp / "host" / "keys.h").write_text(KEYS_H, encoding="utf-8")
+            # (game/oot_menu.c includes host/game_host.h, which pulls in the whole host: the stand-ins it uses are enough)
+            (tmp / "host" / "game_host.h").write_text(
+                '#include "hos.h"\n#include "game_call.h"\n#include "input_movie.h"\n'
+                '#include "../gpu/vk/vk_api.h"\n#include "../gpu/vk/compat/YM_env.h"\n', encoding="utf-8")
             (tmp / "host" / "t.c").write_text(FIXTURE, encoding="utf-8")
             binary = tmp / "t.exe"
             build = subprocess.run([compiler, "-std=gnu11", "-Wall", "-O1", "-g", "-D_WIN32_WINNT=0x0601",

@@ -16,6 +16,8 @@ import tempfile
 from pathlib import Path
 import sys
 
+RUN_ALL_ARGS = ["--cxx", "{cxx}"]
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (python -I leaves the check's own folder off the path)
 from menu_model_fixture import menu_model_prelude, menu_text  # noqa: E402
 

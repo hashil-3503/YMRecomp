@@ -11,6 +11,7 @@ Run with: python -I -B tests/test_hd_rumble.py
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -402,7 +403,7 @@ def build_and_run(test, source, extra=()):
         with open(path, "w", encoding="utf-8") as f:
             f.write(source)
         exe = os.path.join(d, "hd")
-        cc = os.environ.get("CC", "cc")
+        cc = (os.environ.get("CC") or shutil.which("cc") or "clang")
         made = subprocess.run([cc, "-std=c11", "-Wall", "-Wextra", "-Werror", *extra, "-I", str(ROOT / "host"), path,
                                "-o", exe, "-lm"], capture_output=True, text=True)
         test.assertEqual(made.returncode, 0, made.stderr)

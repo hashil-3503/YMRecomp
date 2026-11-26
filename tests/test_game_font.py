@@ -57,7 +57,9 @@ def main():
     p.add_argument("--cxx", default="g++")
     a = p.parse_args()
     # (the C compiler beside the C++ one: g++ -> gcc, clang++ -> clang, x86_64-...-g++ -> x86_64-...-gcc)
-    cc = a.cxx[:-2] if a.cxx.endswith("++") else "cc"
+    exe_suffix = a.cxx[-4:] if a.cxx.lower().endswith(".exe") else ""   # (clang++.exe -> clang.exe)
+    stem = a.cxx[:len(a.cxx) - len(exe_suffix)]
+    cc = stem[:-2] + exe_suffix if stem.endswith("++") else "cc"
     if Path(cc).name == "g" or cc.endswith("-g"):
         cc += "cc"
     flags = ["-O1", "-DZSTD_DISABLE_ASM", "-DZSTD_LEGACY_SUPPORT=0", "-DZSTD_MULTITHREAD=0", "-I" + str(ZSTD),

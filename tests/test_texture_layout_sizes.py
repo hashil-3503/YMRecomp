@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 import sys
+
+RUN_ALL_ARGS = ["--cc", "{cc}", "--cxx", "{cxx}"]
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
 from srccut import block   # noqa: E402
 

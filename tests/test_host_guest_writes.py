@@ -66,7 +66,8 @@ ALLOWED = {
     ],
     "host/nn_audio.c": [
         (["memset(GP(ARG(0)), 0, 256)", '"MainAudioOut"', "memset(GP(ARG(3)), 0, (size_t)bytes)",
-          "memset(GP(ARG(4)), 0, (size_t)bytes)", "memcpy(GP(ARG(1)), a->in", "memcpy(GP(ARG(2)), a->out"], AUDIO),
+          "memset(GP(ARG(4)), 0, (size_t)bytes)", "memcpy(GP(ARG(1)), a->in", "memcpy(GP(ARG(2)), a->out",
+          "memset(dst, 0, (size_t)out_frames * (size_t)ch * 2)"], AUDIO),
     ],
     "host/nn_audio_in.c": [
         (["memset(GP(ARG(0)), 0, 256)", '"MainAudioIn"', "memset(GP(c->x[8]), 0, 16)"], AUDIO),

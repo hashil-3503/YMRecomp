@@ -431,6 +431,7 @@ class Runs(unittest.TestCase):
             pg.stop_signal(15, None)
 
 
+@unittest.skipIf(os.name == "nt", "ab starts game runs, which the gates do on Linux only (pg.main refuses on Windows)")
 class Ab(unittest.TestCase):
     """ab's exit status: from the gates and from its runs' own"""
 
@@ -485,6 +486,7 @@ class Queue(unittest.TestCase):
             code = pg.main(argv)
         return code, out.getvalue(), err.getvalue()
 
+    @unittest.skipIf(os.name == "nt", "the queue message is Linux's: on Windows pg.main refuses a run with its own")
     def test_run_refuses_outside_the_queue(self):
         tmp = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, tmp)

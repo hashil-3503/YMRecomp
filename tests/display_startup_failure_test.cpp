@@ -107,6 +107,7 @@ static void WaitForSingleObject(HANDLE h, unsigned timeout) {
     require(h == &game_token && timeout == INFINITE, "changed game-thread wait");
     ++waited;
 }
+static int bc_claim() { return 0; }   // (host/builder_channel.c: the builder's channel ends kept from what the game starts)
 static void hand_over(int, char**) {}   // (host/hos_main.c: started by itself in a version folder, the builder's to start)
 static void load_YM_env() {}
 static void profile_start_slot() {}   // (host/hos_main.c: the profile's start_slot handed on)

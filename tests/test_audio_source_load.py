@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-RUN_ALL_ARGS = []
+RUN_ALL_ARGS = ["--cc", "{cc}"]
 ROOT = Path(__file__).resolve().parents[1]
 ZSTD = ROOT / "third_party/zstd/lib"
 ZSTD_SOURCES = ["common/entropy_common.c", "common/error_private.c", "common/fse_decompress.c", "common/xxhash.c", "common/zstd_common.c",

@@ -11,6 +11,7 @@ Run with: python -I -B tests/test_rumble_mapping.py
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -198,7 +199,7 @@ class RumbleMappingTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8") as f:
                 f.write(fixture)
             exe = os.path.join(d, "rumble")
-            cc = os.environ.get("CC", "cc")
+            cc = (os.environ.get("CC") or shutil.which("cc") or "clang")
             made = subprocess.run([cc, "-std=c11", "-Wall", "-Wextra", "-Werror", path, "-o", exe, "-lm"],
                                   capture_output=True, text=True)
             self.assertEqual(made.returncode, 0, made.stderr)

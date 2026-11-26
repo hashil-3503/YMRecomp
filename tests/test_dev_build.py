@@ -101,7 +101,7 @@ class Linux(OnSystem):
         self.assertEqual(db.base_dir("0123456789abcdef"), os.path.join("rel/home", "bases", "0123456789ab"))
         self.assertEqual(db.own_dir(), os.path.join(db.ROOT, "build-linux"))
         self.assertEqual(db.renderer_name(), "YM_vk.so")
-        self.assertEqual(db.game_roots(), [os.path.expanduser("~/Games")])
+        self.assertEqual(db.game_roots(), [os.path.join(os.path.expanduser("~"), "Games")])
 
     def test_tools_lock_linux_lines(self):
         self.assertEqual(db.system(), "linux-x64")
@@ -265,6 +265,7 @@ class Linux(OnSystem):
             self.assertEqual(packs.why_direct(env), "inside a job")
             self.assertEqual(env.get("YM_JOB_NAME"), "grsp-v1")
 
+    @unittest.skipIf(os.name == "nt", "this class runs the Linux route (common.WINDOWS off), which reads /proc for the job above")
     def test_a_job_above_with_no_marker_left(self):
         """packs' builds inside a job whose markers are gone (`env -i`, a caller's own environment) still run directly: a
         running job's ticket, any version's (as main's runner writes it), whose runner is above this process says so"""

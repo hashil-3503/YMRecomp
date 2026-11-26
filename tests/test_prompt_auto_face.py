@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+RUN_ALL_ARGS = ["--cc", "{cc}"]
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # (the controller's name as SDL gives it, the SDL loaded (3, 2), its type in that SDL's numbers (0 unknown), the face Auto picks)

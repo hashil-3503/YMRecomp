@@ -31,6 +31,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+RUN_ALL_ARGS = ["--cc", "{cc}"]
+
 ROOT = Path(__file__).resolve().parents[1]
 # (HOS_COLLECT_VECTOR follows the switches' one rule, env_value_off in gpu/vk/compat/YM_env.h: unset is on, the words
 #  below, any case and with spaces around them, are off, anything else is on. HOS_COLLECT_WIDE, main's own switch, reads only

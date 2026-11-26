@@ -274,8 +274,9 @@ def bases_held(bases_dir):
                     busy = os.path.join(d, n, packs.BUSY)
                     try:
                         with open(busy, encoding="utf-8") as f:
-                            if f.read().strip() == token:
-                                os.remove(busy)
+                            mine = f.read().strip() == token
+                        if mine:   # (closed first: Windows can't remove a file that is open)
+                            os.remove(busy)
                     except OSError:
                         pass
 

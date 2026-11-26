@@ -15,6 +15,8 @@ import subprocess
 import sys
 import tempfile
 
+RUN_ALL_ARGS = ["--cc", "{cc}"]
+
 # (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/YM_env.h)
 ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "YM_env.h")
 

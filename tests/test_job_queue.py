@@ -275,6 +275,8 @@ class InsideAJob(unittest.TestCase):
     def test_a_pid_used_again_or_another_namespace_is_not_it(self):
         self.ticket(start=21)
         self.assertIsNone(q.job_above(self.q, self.CHAIN))
+        if not procs.pidns():   # (Windows has no pid namespaces: a ticket's can't differ from this process's)
+            return
         shutil.rmtree(self.q)
         self.ticket(ns="pid:[1]" if procs.pidns() != "pid:[1]" else "pid:[2]")
         self.assertIsNone(q.job_above(self.q, self.CHAIN))

@@ -177,7 +177,7 @@ MODS_LOADED = re.compile(r"\bmods: (\d+ mods from |.+ <- |.+: \d+ RomFS files)")
 RESERVED_LOG = re.compile(r"(?:^|\] |: )(script runtime|mod runtime|modcache|merged files|broker|texture packs): ", re.I)
 CACHE_NAMES = ("modcache",)
 RESERVED_THREADS = ("lsmod",)
-RESERVED_PROCESSES = ("YM-broker", "lsmod")
+RESERVED_PROCESSES = ("ym-broker", "lsmod")   # (lower case: names are lowered before the match)
 CACHE_WALK_SKIP = ("romfs", "exefs")   # (the game's own files: large, read-only, never a cache)
 
 

@@ -31,9 +31,9 @@ class CloneLlvmMingw(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             (tmp / "tests").mkdir()
-            (tmp / "llvm-mingw" / "bin").mkdir(parents=True)
+            (tmp / "tools" / "llvm-mingw" / "bin").mkdir(parents=True)   # (mise run tools puts it there)
             if compiler:
-                (tmp / "llvm-mingw" / "bin" / CLANG).write_bytes(b"")
+                (tmp / "tools" / "llvm-mingw" / "bin" / CLANG).write_bytes(b"")
             shutil.copy(ROOT / "tests" / "run_all.py", tmp / "tests" / "run_all.py")
             shutil.copy(ROOT / "tests" / "compiler_command.py", tmp / "tests" / "compiler_command.py")   # (run_all.py imports it)
             (tmp / "tests" / "test_probe.py").write_text(PROBE, encoding="utf-8")
@@ -45,7 +45,7 @@ class CloneLlvmMingw(unittest.TestCase):
                                 "--exact", "tests/test_probe.py"],
                                cwd=tmp, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
             self.assertEqual(r.returncode, 0, r.stdout.decode("utf-8", "replace"))
-            return out.read_text(encoding="utf-8"), str(tmp / "llvm-mingw")
+            return out.read_text(encoding="utf-8"), str(tmp / "tools" / "llvm-mingw")
 
     def test_the_clone_folder_when_the_variable_is_unset(self):
         seen, folder = self.seen({})

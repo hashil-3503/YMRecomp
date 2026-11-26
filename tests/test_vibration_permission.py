@@ -4,6 +4,7 @@ Run with: python -I -B tests/test_vibration_permission.py
 """
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -102,7 +103,7 @@ class VibrationPermissionTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8") as f:
                 f.write(fixture)
             exe = os.path.join(d, "permission")
-            made = subprocess.run([os.environ.get("CC", "cc"), "-std=c11", "-Wall", "-Wextra", "-Werror",
+            made = subprocess.run([(os.environ.get("CC") or shutil.which("cc") or "clang"), "-std=c11", "-Wall", "-Wextra", "-Werror",
                                    path, "-o", exe, "-lm"], capture_output=True, text=True)
             self.assertEqual(made.returncode, 0, made.stderr)
             ran = subprocess.run([exe], capture_output=True, text=True)
