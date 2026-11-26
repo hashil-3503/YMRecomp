@@ -1,0 +1,187 @@
+"""The Insert menu's Speaker layout (Auto, Stereo, 5.1, Mono) reaches the speakers the game is told about (host/nn_audio.c).
+
+The real au_speakers and au_menu_output from host/nn_audio.c and the menu's ini_key, tx_audio_output and hn_audio_output
+from gpu/vk/vk_menu.cpp are compiled together: the fixture saves the row's choice under the key the menu would write, then
+asks the host. No device or game is opened: the default output's channel count is a parameter of each case.
+
+python -I -B tests/test_audio_output_menu.py [--cxx clang++]
+"""
+import argparse
+import os
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # (python -I leaves the check's own folder off the path)
+from menu_model_fixture import menu_model_prelude, menu_model_member, menu_text, output_engine  # noqa: E402
+import re
+import subprocess
+import tempfile
+
+RUN_ALL_ARGS = ["--cxx", "g++"]
+
+ROOT = Path(__file__).resolve().parents[1]
+
+HINT_HELPERS = r"""
+/// A row's hints from a table, the value lo first (nullptr: none for that value)
+const char* hint_in(const char* const* t, int n, int lo, int v, int variant) {
+    return variant <= 0 && v - lo >= 0 && v - lo < n ? t[v - lo] : nullptr;
+}
+#define MENU_HINTS(fn, lo, ...)                                                                                              \
+    const char* fn(int v, int variant) {                                                                                     \
+        static const char* const t[] = {__VA_ARGS__};                                                                        \
+        return hint_in(t, (int)(sizeof t / sizeof t[0]), lo, v, variant);                                                    \
+    }
+"""
+
+FIXTURE = r"""
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cstdint>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iterator>
+#include "host/hos_wide_size.h"
+#include "gpu/vk/display_modes.h"
+using namespace mkwvk;
+std::vector<display_modes::Size> screen_modes() { return {}; }
+bool screen_size(uint32_t*, uint32_t*) { return false; }
+bool host_screen_size(uint32_t*, uint32_t*) { return false; }
+
+using DWORD = unsigned long;
+static const char *hos_options_file() { return "./YM_options.ini"; }   // (host/options_path.c: the user folder's)
+static char logged[256];
+static void hos_log(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    vsnprintf(logged, sizeof logged, format, args);
+    va_end(args);
+}
+static void au_lock(void) {}
+static void au_unlock(void) {}
+static int device_channels, device_asked;
+static int au_device_channels(void) { device_asked++; return device_channels; }
+HOST
+struct Row { int tab; const char* name; int* value; MODEL_MEMBER};
+struct { int output_res, vsync, resolution, fps_cap, upscale, dlss, dlss_pre_bloom, handheld, ultrawide, audio_output, vibration, rumble; } opts;   // (ultrawide: the Aspect ratio row's key; vibration, rumble: the Vibration rows' keys)
+int monitor_pick; // Unexercised fullscreen selector referenced by the real ini_key().
+MENU
+int main(int argc, char **argv) {
+    assert(argc == 7);
+    static mkwvk::menu::Setting speaker;   /* (the row as its module describes it, gpu/vk/menu/audio.cpp: #1633) */
+    speaker.key = "audio_output";
+    speaker.restart_value = speaker_restart_value;
+    Row output_row = {1, "Speaker layout", &opts.audio_output};
+    output_row.setting = &speaker;
+    for (int v = 0; v <= 3; v++) {
+        opts.audio_output = v;
+        assert(row_restart_value(output_row) == (v == 3 ? 1 : v));
+    }
+    const Row other_row = {1, "VSync", &opts.vsync};
+    opts.vsync = 3;
+    assert(row_restart_value(other_row) == 3);   /* no other row's restart tracking changes */
+    const char *saved = argv[2];
+    device_channels = atoi(argv[3]);
+    const int want = atoi(argv[4]), want_asked = atoi(argv[5]);
+    /* (plain values: the menu adds " (after restart)" to a restart row's label itself) */
+    assert(!strcmp(tx_audio_output(0), "Auto") && !strcmp(tx_audio_output(1), "Stereo"));
+    assert(!strcmp(tx_audio_output(2), "5.1") && !strcmp(tx_audio_output(3), "Mono") && !strcmp(tx_audio_output(4), "Auto"));
+    assert(!strcmp(tx_audio_output(-1), "Auto"));
+    for (int v = 0; v <= 3; v++) assert(hn_audio_output(v, -1) && hn_audio_output(v, 0) && !hn_audio_output(v, 1));
+    if (strcmp(saved, "-")) {   /* (the lines as the menu's save writes them: the row's key, around others) */
+        const Row row = {1, argv[1], &opts.audio_output};
+        FILE *f = fopen("YM_options.ini", "w");
+        assert(f);
+        fprintf(f, "output_res=1\nmicrophone=1\noptions_version=3\n");
+        if (strcmp(saved, "missing")) fprintf(f, "%s=%s\n", ini_key(row), saved);
+        fclose(f);
+    }
+    const int n = au_speakers();
+    assert(au_speakers() == n);   /* (asked once: the second answer is the first) */
+    if (n != want || device_asked != want_asked || !strstr(logged, argv[6])) {
+        fprintf(stderr, "FAIL: saved %s, device %d: %d speakers (want %d), device asked %d (want %d), log \"%s\" (want \"%s\")\n",
+                saved, device_channels, n, want, device_asked, want_asked, logged, argv[6]);
+        return 1;
+    }
+    return 0;
+}
+"""
+
+# (saved audio_output or "-" for no YM_options.ini, HOS_AUDIO_CHANNELS or None, the default output's channels,
+#  the speakers the game is told, whether the device was asked, what the log says)
+CASES = (
+    ("-", None, 6, 6, 1, "the selected/default output has 6 channels"),
+    ("-", None, 2, 2, 1, "the selected/default output has 2 channels"),
+    ("0", None, 8, 6, 1, "the selected/default output has 8 channels"),
+    ("0", None, 2, 2, 1, "the selected/default output has 2 channels"),
+    ("1", None, 6, 2, 0, "stereo for the game (the Insert menu's Speaker layout)"),
+    ("2", None, 2, 6, 0, "5.1 for the game (the Insert menu's Speaker layout)"),
+    ("3", None, 6, 2, 0, "stereo for the game (the Insert menu's Speaker layout)"),
+    ("4", None, 6, 2, 0, "stereo for the game (the Insert menu's Speaker layout)"),   # clamped to Mono
+    ("3", "6", 2, 6, 0, "5.1 for the game (HOS_AUDIO_CHANNELS)"),
+    ("missing", None, 6, 6, 1, "the selected/default output has 6 channels"),
+    ("-1", None, 6, 6, 1, "the selected/default output has 6 channels"),
+    ("2", "2", 6, 2, 0, "stereo for the game (HOS_AUDIO_CHANNELS)"),
+    ("1", "6", 2, 6, 0, "5.1 for the game (HOS_AUDIO_CHANNELS)"),
+    ("-", "6", 2, 6, 0, "5.1 for the game (HOS_AUDIO_CHANNELS)"),
+)
+
+
+def between(text, start, end):
+    i = text.index(start)
+    return text[i:text.index(end, i)]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cxx", default="g++")
+    args = parser.parse_args()
+
+    audio = (ROOT / "host/nn_audio.c").read_text(encoding="utf-8")
+    menu = (ROOT / "gpu/vk/vk_menu.cpp").read_text(encoding="utf-8")
+    # (the Audio tab's rows and their code: gpu/vk/menu/audio.cpp's, #1633; the rows as table lines, menu_text)
+    module = (ROOT / "gpu/vk/menu/audio.cpp").read_text(encoding="utf-8")
+    # (tab, name, value, lo, hi, step, text, help, then hint, restart: read once at the start, preset_exempt)
+    row = re.search(r'\{TAB_(\w+), "([^"]+)", &opts\.audio_output, (-?\d+), (-?\d+), (\d+), (\w+),\s*"[^{}]*?", '
+                    r'(\w+), (true|false), (true|false)\},', menu_text(ROOT))
+    assert row, "the Insert menu has no Speaker layout row"
+    tab, name, lo, hi, step, text, hint, restart, exempt = row.groups()
+    assert (tab, lo, hi, step, text, hint, restart, exempt) == \
+        ("AUDIO", "0", "3", "1", "tx_audio_output", "hn_audio_output", "true", "true"), row.groups()
+    host = between(audio, "/* (YM) The Insert menu's Audio output", "/* The device's format,")
+    hints = re.search(r'MODULE_HINTS\(hn_audio_output,.*?\)\n(?=\S)', module, re.S)
+    assert hints, "no MODULE_HINTS(hn_audio_output, ...)"
+    restart = re.search(r'^int speaker_restart_value\(int v\) \{.*\}\n', module, re.M)
+    assert restart, "gpu/vk/menu/audio.cpp: no speaker_restart_value"
+    # (the module's hints by a MENU_HINTS of the fixture's own, the same table as menu_module.h's MODULE_HINTS)
+    menu_part = HINT_HELPERS + \
+        hints.group(0).replace("MODULE_HINTS(", "MENU_HINTS(") + restart.group(0) + \
+        between(module, "const char* tx_audio_output(int v) {", "void refresh_outputs() {") + \
+        between(menu, "const char* ini_key(const Row& r) {", "// (YM) the controls, kept by the host")
+    menu_part += output_engine(ROOT, "/// The choice of size w x h:")   # (the output module's, #1633)
+    menu_part += between(menu, "int row_restart_value(const Row& r) {", "void restart_init() {")
+    assert "restart_state.add(row_restart_value(rows[i]))" in menu
+    assert "now[restart_slot[i]] = row_restart_value(rows[i]);" in menu
+    with tempfile.TemporaryDirectory(prefix="audio-output-menu-") as tmp:
+        work = Path(tmp)
+        source, exe = work / "fixture.cpp", work / "fixture.exe"
+        source.write_text(menu_model_prelude() + FIXTURE.replace("MODEL_MEMBER", menu_model_member()).replace("HOST", host)
+                          .replace("MENU", menu_part), encoding="utf-8")
+        subprocess.run([args.cxx, "-std=c++17", "-Wall", "-Wextra", "-Werror", "-I" + str(ROOT), str(source), "-o", str(exe)], check=True)
+        for saved, env_channels, device, want, asked, log in CASES:
+            ini = work / "YM_options.ini"
+            if ini.exists():
+                ini.unlink()
+            env = os.environ.copy()
+            env.pop("HOS_AUDIO_CHANNELS", None)
+            if env_channels is not None:
+                env["HOS_AUDIO_CHANNELS"] = env_channels
+            subprocess.run([str(exe), name, saved, str(device), str(want), str(asked), log], cwd=work, env=env, check=True)
+    print("PASS: Speaker layout: a restart row; Auto follows the device, Stereo/Mono use two speakers, 5.1 uses six, HOS_AUDIO_CHANNELS "
+          "over them")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,17 @@
+[package]
+name = "release"
+description = "YM's releases as a player's builder installs them: the forge's list, the signed SHA256SUMS, the manifest, deltas and chains of them (the YM Launcher's YMBuildRelease, Releases and ZstdPatcher, ported)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+build-core.workspace = true
+p256.workspace = true
+ruzstd.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

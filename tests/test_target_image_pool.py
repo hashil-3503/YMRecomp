@@ -1,0 +1,142 @@
+"""A render target's image whose texture is gone waits in a pool by its create info, and a new texture of that create info
+takes it, instead of each of OoT's shifting transient targets being a new image made and destroyed.
+
+OoT makes a frame's transient targets in a scratch heap whose offsets shift with what came before them in the frame, so each
+shifted one is a texture of its own (vk_texture.cpp's dead targets). Every 60 presents the sweep let go of the dead ones,
+300-700 at once, and the next present destroyed them all: 20-65 ms on the replaying thread, about once a second while the
+camera moves. These checks keep the pool's rules: what is pooled, that a pooled image is still put into GENERAL from UNDEFINED
+and cleared as a new one is, that the dead list pools before it destroys, and that the pool is bounded and can be turned off.
+
+python -I -B tests/test_target_image_pool.py
+"""
+from pathlib import Path
+import re
+import unittest
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # (tests/srccut.py: python -I leaves this folder off the path)
+from srccut import block   # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class TargetImagePoolTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tex = (ROOT / "gpu" / "vk" / "vk_texture.cpp").read_text(encoding="utf-8")
+        cls.hdr = (ROOT / "gpu" / "vk" / "vk_texture.h").read_text(encoding="utf-8")
+
+    def test_the_key_is_the_whole_create_info(self):
+        key = block(self.tex, "uint64_t pool_key_of(const VkImageCreateInfo& ci)")
+        for field in ("ci.flags", "ci.imageType", "ci.format", "ci.extent.width", "ci.extent.height", "ci.extent.depth",
+                      "ci.mipLevels", "ci.arrayLayers", "ci.samples", "ci.usage", "ci.tiling"):
+            self.assertIn(field, key, field)
+        self.assertIn("| 1", key)   # (never 0: 0 is "not pooled")
+
+    def test_only_uncompressed_render_targets_are_pooled_and_zero_turns_it_off(self):
+        make = block(self.tex, "Texture* create(const Key& key")
+        rule = make[make.index("const uint64_t pool_key ="):make.index("x.pool_key = pool_key;")]
+        for part in ("as_target", "!x.sparse", "pool_cap()", "!is_bc(x.format)", "!is_astc(x.format)",
+                     "VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", "VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT"):
+            self.assertIn(part, rule, part)
+        cap = block(self.tex, "uint64_t pool_cap()")
+        self.assertIn('getenv("RX_VK_TARGET_POOL_MB")', cap)
+        self.assertIn("target_pool::default_mb(vram_usage(&used, &allowed) ? allowed : 0)", cap)
+        self.assertIn("uint64_t pool_key = 0;", self.hdr)
+
+    def test_a_texture_made_for_a_target_is_one_and_its_image_comes_from_the_targets_blocks(self):
+        get = block(self.tex, "Texture* texture_get(const nvn_tex* t, bool for_sampling)")
+        self.assertIn("create(k, t, fi.format, fi.astc, bw, bh, bpb, !for_sampling)", get)
+        make = block(self.tex, "Texture* create(const Key& key")
+        self.assertIn("create_image(ci, x.image, x.allocation, false, as_target && !is_bc(x.format) && !is_astc(x.format), false, "
+                      "&need)", make)
+        vma = (ROOT / "gpu" / "vk" / "vk_vma.cpp").read_text(encoding="utf-8")
+        image = block(vma, "bool create_image(const VkImageCreateInfo& ci")
+        self.assertIn("target && target_images_pool() ? target_images_pool() : images_pool()", image)
+        pool = block(vma, "VmaPool target_images_pool()")
+        self.assertIn("pi.blockSize = block_size;", pool)
+        self.assertIn("std::min<uint64_t>(kImageBlock, 16ull << 20)", pool)
+        self.assertIn("void vma_log_image_blocks()", vma)
+
+    def test_the_dead_targets_are_swept_every_present_after_one_unused(self):
+        frame = block(self.tex, "void texture_frame(uint64_t completed)")
+        every = block(self.tex, "uint64_t dead_every_presents()")
+        self.assertIn('getenv("RX_VK_DEAD_EVERY")', every)
+        self.assertIn(": 1;", every[every.index('getenv("RX_VK_DEAD_EVERY")'):])
+        self.assertIn("(sweep && frame_no % dead_every)", frame)
+        unused = block(self.tex, "uint64_t dead_min_unused_presents()")
+        self.assertIn(": 1;", unused[unused.index('getenv("RX_VK_DEAD_MIN_UNUSED")'):])
+        # (and the pass that reads them is not the only one that looks: it runs at every tenth present, and on the presents
+        # between the sweep does. tests/test_dead_targets_sweep.py has the presents)
+        self.assertIn("dead_targets_sweep(completed);", frame)
+
+    def test_a_pooled_image_is_taken_before_one_is_made_and_still_cleared_from_undefined(self):
+        make = block(self.tex, "Texture* create(const Key& key")
+        take = make.index("pool_take(pool_key, x.image, x.allocation, x.views)")
+        self.assertLess(take, make.index("!create_image(ci, x.image, x.allocation, false, as_target"))
+        after = make[take:]
+        self.assertIn("b.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;", after)
+        self.assertIn("vkCmdClearColorImage", after)
+        self.assertIn("vkCmdClearDepthStencilImage", after)
+
+    def test_a_gone_render_targets_views_go_to_the_pool_with_its_image(self):
+        later = block(self.tex, "void destroy_later(Texture& tex, uint64_t completed)")
+        self.assertRegex(later, r"if \(tex\.pool_key && tex\.allocation && tex\.sparse_chunks\.empty\(\) && pool_cap\(\)\)")
+        self.assertIn("d.view_map = std::move(tex.views)", later)
+        self.assertIn("d.views.push_back(kv.second)", later)   # (the others' views destroyed, as before)
+
+    def test_the_dead_list_pools_before_it_destroys_and_the_pool_is_trimmed_each_present(self):
+        frame = block(self.tex, "void texture_frame(uint64_t completed)")
+        loop = frame[frame.index("for (auto it = dead.begin(); it != dead.end();) {"):]
+        # (the dead images go to the reaper's thread, vk_vma.cpp destroy_image_later, with their views, buffer and memory)
+        gone = "destroy_image_later(it->image, it->allocation, std::move(it->views), it->buffer, it->buffer_alloc, std::move(it->memory));"
+        self.assertLess(loop.index("if (it->pool_key) {"), loop.index(gone))
+        self.assertIn("pool_put(*it);", loop[:loop.index("destroy_image_later(")])
+        trim = frame.index("pool_trim();")
+        self.assertLess(trim, frame.index("if (!dead_targets::pass_due(frame_no)) {"))   # (every present, not every tenth)
+        # (the pool's pressure is the arbiter's level, from the lines this read before: pressure past 90% of the allowance, 1,
+        # and the count past 97% of it, 2 (mem_account.h, tests/test_mem_account.py). #637 made the one "pressed" these two)
+        self.assertIn("const mem_account::Ask asked = arbiter.look(pressure, used, known ? allowed : 0);", frame)
+        self.assertIn("pool_pressure = (uint8_t)asked.level;", frame)
+
+    def test_the_trim_is_bounded_a_present_and_gives_back_idle_and_excess_images(self):
+        trim = block(self.tex, "size_t pool_trim()")
+        self.assertIn("(pool_pressure >= 2) ? 0 : (pool_pressure == 1) ? (full_cap / 2) : full_cap", trim)
+        self.assertIn("(pool_pressure > 0) ? 64 : 16", trim)
+        self.assertIn("!target_pool::idle_out(frame_no, oldest.since, idle)", trim)   # (RX_VK_POOL_IDLE, 8 presents: target_pool.h)
+        self.assertIn("pool_bytes <= cap", trim)
+        self.assertIn("pool_destroy(oldest);", trim)
+        destroy = block(self.tex, "void pool_destroy(Pooled& p)")
+        # (its views with it, on the reaper's thread: vk_vma.cpp destroy_image_later)
+        self.assertIn("if (kv.second) views.push_back(kv.second);", destroy)
+        self.assertIn("destroy_image_later(p.image, p.allocation, std::move(views));", destroy)
+
+    def test_a_target_goes_in_the_targets_pool_only_if_it_can_use_its_memory_type(self):
+        # (the targets' VMA pool is of one memory type, and VMA does not check a pool's type against an image's memoryTypeBits: a
+        # driver whose depth or multisampled images exclude it would get an image bound to memory it cannot use)
+        vma = (ROOT / "gpu" / "vk" / "vk_vma.cpp").read_text(encoding="utf-8")
+        self.assertIn("target_image_pool_type = type;", block(vma, "VmaPool target_images_pool()"))
+        image = block(vma, "bool create_image(const VkImageCreateInfo& ci")
+        self.assertIn("(pool != target_image_pool || target_pool_takes(ci, need)) && vmaCreateImage(vma, &ci, &pai, &image, "
+                      "&allocation,", image)
+        takes = block(vma, "bool target_pool_takes(const VkImageCreateInfo& ci, ImageNeed* need)")
+        self.assertIn("mr->memoryTypeBits >> target_image_pool_type & 1", takes)
+        self.assertIn("return !mr ||", takes)   # (not known: as before)
+        # (the requirements without making an image, Vulkan 1.3's query, loaded with the optional functions; asked once a texture:
+        # create's ImageNeed, which create_image reads)
+        need = block(vma, "bool image_requirements(const VkImageCreateInfo& ci, VkMemoryRequirements* mr)")
+        self.assertIn("if (!vkGetDeviceImageMemoryRequirements) return false;", need)
+        self.assertIn("VkMemoryDedicatedRequirements", need)
+        self.assertIn("requiresDedicatedAllocation", need)
+        loader = (ROOT / "gpu" / "vk" / "vk_loader.h").read_text(encoding="utf-8")
+        self.assertIn("X(vkGetDeviceImageMemoryRequirements)", loader[loader.index("#define VKX_DEVICE3(X)"):])
+        self.assertIn("need ? need->get() :", takes)
+        make = block(self.tex, "Texture* create(const Key& key")
+        self.assertLess(make.index("ImageNeed need{&ci};"), make.index("&need)"))
+        self.assertIn("struct ImageNeed {", (ROOT / "gpu" / "vk" / "vk_internal.h").read_text(encoding="utf-8"))
+
+    def test_the_pools_numbers_are_logged(self):
+        self.assertIn("render target images: %llu reused from the pool, %llu made new, %llu destroyed from it", self.tex)
+
+
+if __name__ == "__main__":
+    unittest.main()

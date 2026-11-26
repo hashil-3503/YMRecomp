@@ -1,0 +1,41 @@
+// AMD FSR 4, one of the temporal upscaler's engines (vk_temporal.h; vk_fsr4.cpp), through the AMD FSR API. Only the API's MIT
+// headers are built in (third_party/fidelityfx), and only in a build with YM_FSR (YM-builder --upscaler fsr4, which also puts
+// the camera jitter into the game: the hook sites jitter.view*). AMD's signed amd_fidelityfx_loader_vk.dll and
+// amd_fidelityfx_upscaler_vk.dll are loaded from the user's PC at run time; none ship with YM. Linux: a Vulkan FSR 4
+// library (such as fsr4-vk's amd_fidelityfx_upscaler_vk.so) in their place.
+#pragma once
+
+namespace mkwvk {
+
+struct TemporalEngine;
+
+/// FSR 4's network model: Auto lets AMD pick (the default), Lite forces ffxProvider_FSR4Lite_Int8
+enum Fsr4Model { FSR4_MODEL_AUTO = 0, FSR4_MODEL_LITE = 1 };
+/// The model the engine asks for next: the env switch when set, else the menu's live value
+Fsr4Model fsr4_model();
+/// RX_VK_FSR4_MODEL as parsed: -1 unset, else FSR4_MODEL_AUTO/LITE (an invalid value logs once and is Auto)
+int fsr4_model_env();
+/// Whether this GPU/library has a Lite provider and its vtables are hooked (the menu row)
+bool fsr4_lite_available();
+/// The menu's live value; the env switch still wins for the run
+void fsr4_set_model(Fsr4Model model);
+
+/// Whether this build has FSR in it (YM_FSR)
+bool fsr4_built();
+/// Why FSR 4 cannot be chosen here (the Upscaler row says it), FSR_OK when it can or is not known yet
+enum FsrWhy { FSR_OK, FSR_NOT_BUILT, FSR_ENV_OFF, FSR_NO_LIBRARY, FSR_NO_MODEL, FSR_WHY_COUNT };
+FsrWhy fsr4_why();
+/// Loads AMD's library once and asks it for an FSR 4 upscaler for this device, so fsr4_why knows before the first upscale
+/// (the menu, when it opens). Nothing in a build without FSR, or before the device is made
+void fsr4_probe();
+/// Prepare the supported FSR 4 pipeline variants during --prepare-shaders, using an offscreen frame.
+void fsr4_prepare_shaders();
+/// The window closing (mkwvk_close_asked, before the pipeline cache's save): the tuned layers' background builds stopped,
+/// the one in the driver waited for (10 s at most). Nothing in a build without FSR
+void fsr4_close();
+/// (linux) a Vulkan FSR 4 library is there and records with descriptor buffers: the device has to enable them
+bool fsr4_wants_descriptor_buffer();
+/// FSR 4 as the temporal upscaler's engine (FSR 4 and its native AA on the Upscaler row); nullptr in a build without it
+const TemporalEngine* fsr4_engine();
+
+}  // namespace mkwvk

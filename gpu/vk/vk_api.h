@@ -1,0 +1,512 @@
+/* The Vulkan back end (YM_vk.dll, YM_vk.so on Linux) and the game executable: what each gives the other.
+
+   The executable records the game's NVN command buffers (host/nvn_native.c) and calls a renderer through the rx_*
+   functions (gpu/render/rx_nvn.h). host/rx_backend.c loads it, the only renderer, hands it the host functions below
+   and routes the rx_* calls to the table it returns (without it they go to stand-ins that draw nothing). The DLL
+   carries Eden's shader recompiler (gpu/vk/eden, SPIR-V back end) and sirit. */
+#pragma once
+
+#include <stdint.h>
+
+#include "../render/rx_nvn.h"   /* (the NVN objects and command records: C) */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define MKWVK_API_VERSION 48   /* (45: Windows Vulkan loader resolver; 46: romfs_read; 47: no romfs_dir; 48: game_menu_rows) */
+
+enum { OUTPUT_TRIAL_EXPIRED, OUTPUT_TRIAL_PREPARING, OUTPUT_TRIAL_READY, OUTPUT_TRIAL_ACTIVE, OUTPUT_TRIAL_SHOWN };
+enum { HOS_MONITOR_CURRENT = 1, HOS_MONITOR_PRIMARY = 2 };
+/* (version 42) what an input recording does now (MkwVkHost.input_status; host/input_movie.h's HosInputMovieStatus) */
+typedef struct MkwVkInputStatus {
+    int mode;   /* 0 nothing, 1 recording, 2 playing */
+    int started, held, diverged;
+    uint32_t frame, end, link_apart, syncs;
+    float largest;   /* metres: Link's largest correction */
+    char path[512];  /* the file recorded or played; with nothing, the last recording made ("" none) */
+    char why[128];   /* why the last playback was given up before its start ("" none) */
+} MkwVkInputStatus;
+typedef struct MkwVkMonitor {
+    char id[512];             /* opaque persistent preference; never a runtime handle or list index */
+    char name[256];           /* UTF-8 label, may collide: the UI also shows dimensions */
+    int width, height;        /* desktop pixels, not DPI-scaled window coordinates */
+    int flags;                /* HOS_MONITOR_* */
+} MkwVkMonitor;
+/* The option ids of the game's own features (Field of view, Damage taken, the cheats, the HUD's layout...) are the game's:
+   game/options.h. The ones here are the renderer's and the host's. Every id is answered by the one option callback. */
+#include "../../game/options.h"
+/* (YM) the Motion page's rows (host/pad_sdl.c reads them, vk_replay.cpp's option answers them): Motion controls on
+   or off, the horizontal's and the vertical's sensitivity in percent, each turned around, and the deadzone (0 to 2) */
+enum { HOS_OPT_GYRO = 18, HOS_OPT_GYRO_SENS_X, HOS_OPT_GYRO_INV_X, HOS_OPT_GYRO_INV_Y, HOS_OPT_GYRO_SENS_Y, HOS_OPT_GYRO_DEADZONE };
+/* (YM) NVIDIA DLSS's camera jitter (host/rx_backend.c, gpu/vk/vk_dlss.cpp): the scene's width and height while DLSS
+   draws, 0 when there is to be no jitter, and the jitter sequence's length. 24 on: 18 to 23 are the motion rows' */
+enum { HOS_OPT_DLSS_JITTER_W = 24, HOS_OPT_DLSS_JITTER_H, HOS_OPT_DLSS_JITTER_PHASES };
+/* (YM) the Audio tab's rows (host/nn_audio.c reads them every 100 ms): the volume in percent, and no sound while
+   another window has the focus */
+enum { HOS_OPT_VOLUME = 27, HOS_OPT_MUTE_BACKGROUND };
+/* (YM) the Controls tab's Walk mode and Walk speed (host/nn_hid.c: the Walk control, HOS_KEY_WALK): 0 Link walks
+   while its key is held, 1 one press walks and the next runs again; how far the movement keys then tilt the left stick, in
+   percent of the way (15 to 90) */
+enum { HOS_OPT_WALK_MODE = 49, HOS_OPT_WALK_SPEED };
+/* (YM) the Insert menu's HDR set to Native (host/nn_vi.c QueryDisplayHdrStatus and QueryDisplayHdrPaperWhite): whether
+   the game is told its display is HDR10 (the swapchain is one), and the peak and paper white it is told, in nits */
+enum { HOS_OPT_HDR_NATIVE = 40, HOS_OPT_HDR_PEAK, HOS_OPT_HDR_WHITE };   /* (43 and 44 are the game's: game/options.h) */
+/* (HOS_OPT_DISABLE_CAMERA_CENTERING, 45: Controls' movement-follow yaw, host/mouse_native.c: 0 stock, 1 disabled) */
+enum { HOS_OPT_DISABLE_CAMERA_CENTERING = 45 };
+/* (YM) the Insert menu's Camera speed: the right stick's camera turn in percent of the game's, 50 to 400 (host/nn_vi.c
+   hos_camera_scale, the hook sites camera.*Speed*). 48: after the HDR and Discord rows' 40 to 43, Skip title's 44 and camera centering's 45 */
+enum { HOS_OPT_CAMERA_SPEED = 48 };
+/* (HOS_OPT_PROMPTS, 46: the Button prompts row, host/prompts.c: 0 Auto, else HOS_PROMPT_* + 1; a change shows at once) */
+enum { HOS_OPT_PROMPTS = 46 };
+/* (HOS_OPT_HDR_TONEMAP, 47: HDR set to Native with its Tone mapper row on PsychoV35, vk_menu.cpp scene_tonemap_on; host/nn_vi.c
+   makes the scene buffer RGBA16F only then, so Native HDR with the row on Vanilla keeps the game's R11G11B10F and the
+   temporal upscalers, which take only that scene) */
+enum { HOS_OPT_HDR_TONEMAP = 47 };
+/* (HOS_OPT_FPS_CAP, 53: the Game frame rate cap row, host/nn_vi.c fps_refresh reads it at each present: 0 the console's 60, then
+   90, 120, 144, 165, 240, 6 Uncapped; a change applies in play) */
+enum { HOS_OPT_FPS_CAP = 53 };
+/* Hold-to-toggle's enabled Switch buttons, 1 << HOS_SW_*. Off (zero) by default; the existing option callback. */
+enum { HOS_OPT_HOLD_TOGGLE = 54 };
+/* Audio output: 0 Auto, 1 Stereo, 2 5.1, 3 Mono. Only Mono averages final stereo output live. */
+enum { HOS_OPT_AUDIO_OUTPUT = 57 };
+/* (HOS_OPT_SPRINT, 97: the Controls tab's Sprint row, game/oot_sprint.c: 1 on, 0 Sprint's key and button do
+   nothing) */
+enum { HOS_OPT_SPRINT = 97 };
+/* (HOS_OPT_SPRINT_TOGGLE, 98: the Controls page's Toggle for Sprint, toggle_sprint=: 1, a press of Sprint's key or button
+   turns it on and the next or Link's state turns it off (game/oot_sprint.c); 0, the default: Sprint while held) */
+enum { HOS_OPT_SPRINT_TOGGLE = 98 };
+/* (HOS_OPT_RENDER_THREAD, 58: whether the render thread runs on this run, 1 or 0, as the renderer resolved it once at the
+   start (gpu/vk/vk_replay.cpp async_on: RX_VK_ASYNC=1, or unset and the Insert menu's Threaded rendering On, or its Auto's
+   choice). host/nvn_native.c answers the game's present poll at once with it. The existing option callback: no new member.) */
+enum { HOS_OPT_RENDER_THREAD = 58 };
+/* (HOS_OPT_MOUSE_INVERT_X, 61: Controls' Invert mouse horizontal, 1 on: the mouse's left and right swapped, as option
+   8, Invert mouse vertical, swaps its up and down. host/mouse_native.c (the camera's yaw) and host/nn_hid.c (the mouse
+   as the right stick) read it by its number, as they read 8. The existing option callback: no new member. 59 is the
+   transition autosave's and 60 stays the item wheel's.) */
+enum { HOS_OPT_MOUSE_INVERT_X = 61 };
+/* (YM) Vibration: 0 Auto, 1 Basic, 2 Off (host/vibration.h). Auto plays the best each controller can do (a
+   DualSense on a cable its voice coils through RenHDrum, a Switch controller its own HD rumble, the others their motors),
+   Basic every controller's motors, Off nothing. The strength is option 9, every backend's. 63 and 64: 58 is the render
+   thread's, 59 transition autosave, 60 reserved for the item wheel, 61 mouse invert X, 65 native zstd's default; 62 and 66 are free */
+enum { HOS_OPT_VIBRATION = 63 };
+/* (YM) What plays the controller used last, written back by the host each poll (host/pad_sdl.c): its kind times 16
+   plus what it says (host/vibration.h's VIB_PAD_*, VIB_SAY_*); Test vibration's cell and help read it. */
+enum { HOS_OPT_VIBRATION_STATUS = 64 };
+/* (HOS_OPT_NATIVE_ZSTD, 65: an unset HOS_NATIVE_ZSTD on this GPU, host/hos_zstd.c: 1 or 2; 0 until the device is made) */
+enum { HOS_OPT_NATIVE_ZSTD = 65 };
+/* (YM) Controls' DualSense HD Haptics, 1 on (the default): a DualSense that RenHDrum plays (host/rumble_renhdrum.c)
+   taps its speaker and kicks back its held L2/R2 from the game's vibration, the motors' heavy hits a little deeper; 0
+   its voice coils only, as before. host/pad_sdl.c reads it by its number each poll. The existing option callback: no new
+   member. 93: 62 to 70, 80, 88 and 90 are taken by open pull requests */
+enum { HOS_OPT_DS_HD_HAPTICS = 93 };
+/* (YM) the Controller speaker page (host/pad_speaker.c), a block of its own from 140 (the numbers below are taken by
+   main or by open pull requests). HOS_OPT_PAD_SPEAKER_VOLUME, 140: its volume in percent; HOS_OPT_PAD_SPEAKER_CLASS + n,
+   141 to 149: where the n-th kind of sound plays, host/audio_source.h's classes from Navi's voice (class n + 1): 0 Off,
+   1 the controller only, 2 the controller and the TV */
+enum { HOS_OPT_PAD_SPEAKER_VOLUME = 140 };
+enum { HOS_OPT_PAD_SPEAKER_CLASS = 141 };
+/* (HOS_OPT_PAD_SPEAKER_CLASS2 + n, 150 to 152: the classes after the first nine, from the low-health alarm, as above) */
+enum { HOS_OPT_PAD_SPEAKER_CLASS2 = 150 };
+enum { HOS_PAD_SPEAKER_CLASS_OPTIONS = 12 };   /* (141 to 152) */
+/* the option of the n-th class's row, n from 0 (Navi's voice) */
+#define HOS_OPT_PAD_SPEAKER_OF(n) ((n) < 9 ? HOS_OPT_PAD_SPEAKER_CLASS + (n) : HOS_OPT_PAD_SPEAKER_CLASS2 + (n) - 9)
+/* (HOS_OPT_PAD_SPEAKER_SYNC, 153: the Controller speaker page's Controller sync, -100 to 150 ms: above 0 the pad's sound
+   held back by that much more, for a TV that plays later than the pad; below 0 the TV's copy of the Controller + TV
+   sounds held back instead, for a pad that plays later than the TV. host/pad_speaker.c, host/nn_audio.c) */
+enum { HOS_OPT_PAD_SPEAKER_SYNC = 153 };
+/* (HOS_OPT_PAD_SPEAKER_HEADPHONES, 154: Headphones on the controller, 0 Off, 1 the controller's sounds, 2 all sound;
+   HOS_OPT_PAD_SPEAKER_HEADPHONE_VOLUME, 155: their volume in percent. host/pad_speaker.c) */
+enum { HOS_OPT_PAD_SPEAKER_HEADPHONES = 154 };
+enum { HOS_OPT_PAD_SPEAKER_HEADPHONE_VOLUME = 155 };
+
+/* (YM) the controls' names (host/nn_hid.c, host/pad_sdl.c, the pad_ and key_ lines of YM_options.ini):
+   the Switch's buttons in nn::hid's bit order, and a gamepad's inputs by position (the bottom face button first:
+   A on an Xbox pad, cross on a DualSense). Keep the saved position values when adding inputs. */
+enum { HOS_SW_A, HOS_SW_B, HOS_SW_X, HOS_SW_Y, HOS_SW_LS, HOS_SW_RS, HOS_SW_L, HOS_SW_R, HOS_SW_ZL, HOS_SW_ZR,
+       HOS_SW_PLUS, HOS_SW_MINUS, HOS_SW_LEFT, HOS_SW_UP, HOS_SW_RIGHT, HOS_SW_DOWN, HOS_SW_N };
+enum { HOS_PAD_SOUTH, HOS_PAD_EAST, HOS_PAD_WEST, HOS_PAD_NORTH, HOS_PAD_BACK, HOS_PAD_GUIDE, HOS_PAD_START,
+       HOS_PAD_LSTICK, HOS_PAD_RSTICK, HOS_PAD_LSHOULDER, HOS_PAD_RSHOULDER, HOS_PAD_UP, HOS_PAD_DOWN, HOS_PAD_LEFT,
+       HOS_PAD_RIGHT, HOS_PAD_LTRIGGER, HOS_PAD_RTRIGGER, HOS_PAD_RPADDLE1, HOS_PAD_LPADDLE1,
+       HOS_PAD_RPADDLE2, HOS_PAD_LPADDLE2, HOS_PAD_N };
+/* (YM) the inputs that have prompt artwork (host/prompts.c, builder/crates/build-assets/src/prompts's PADS): the prompt font's code
+   points go by this count, so the paddles past it show their Switch button's default icon */
+enum { HOS_PAD_ART_N = HOS_PAD_RTRIGGER + 1 };
+/* (YM) a DualShock 4's or DualSense's touchpad click, which opens the Insert menu as F1 does (host/pad_sdl.c,
+   gpu/vk/vk_menu.cpp): its own bit past HOS_PAD_N, so it is not one of the inputs the Controls page binds */
+enum { HOS_PAD_TOUCHPAD = 31 };
+/* HOS_BIND_SPRINT_AUTO gets/sets the packed provenance of Sprint's automatic bindings (button and slot unused).
+   HOS_BIND_SPRINT_BEGIN starts a layout update, finished by HOS_BIND_SPRINT_ON setting Sprint to 1 or 0.
+   HOS_BIND_SPRINT_TOGGLE publishes the Controls page's toggle mode. Input reads these values and bindings together
+   (button and slot unused). */
+enum { HOS_BIND_PAD, HOS_BIND_KEY, HOS_BIND_SPRINT_AUTO, HOS_BIND_SPRINT_ON, HOS_BIND_SPRINT_BEGIN, HOS_BIND_SPRINT_TOGGLE };
+enum { HOS_SPRINT_AUTO_KEY = 1, HOS_SPRINT_AUTO_B = 2, HOS_SPRINT_AUTO_PAD = 4, HOS_SPRINT_AUTO_LS_SHIFT = 3 };
+/* (YM) the controller faces of the button prompts (host/prompts.c): the Switch, then builder/crates/build-assets/src/prompts/faces.rs FACES' order,
+   then the keyboard's (builder/crates/build-assets/src/prompts/keys.rs: the keys bound, not the pad inputs); the Button prompts row's value is one more (0
+   Auto) */
+enum { HOS_PROMPT_SWITCH, HOS_PROMPT_XBOX, HOS_PROMPT_PS4, HOS_PROMPT_PS5, HOS_PROMPT_STEAMDECK, HOS_PROMPT_KEYBOARD, HOS_PROMPT_N };
+/* (YM) what of the button prompts follows a new face or new controls at once (MkwVkHost.prompts_live, a bit each):
+   the textures (the ocarina's notes, the Talk ring's letters, the System page's controller), the layouts (the Talk ring's
+   places, the ocarina hint's spacing), the icons in texts; the rest at the next start */
+enum { HOS_PROMPTS_LIVE_TEXTURES = 1, HOS_PROMPTS_LIVE_LAYOUTS = 2, HOS_PROMPTS_LIVE_TEXTS = 4, HOS_PROMPTS_LIVE_ALL = 7 };
+/* after the Switch's buttons: the left stick's and the camera's directions, keys only (HOS_BIND_KEY), and Walk (while its
+   key is held, the movement keys tilt the left stick less: host/nn_hid.c walk_held). The ocarina's five note controls
+   take a gamepad input too, and share it: a note's key can be some other control's key at once, host/nn_hid.c has_pad.
+   The HUD shortcut (keys and gamepad inputs, its own: host/nn_hid.c hud_pad_mask). Then Sprint, keys and gamepad inputs,
+   which sets the game's dash input in Link's flags (game/oot_sprint.c: the game's run after a roll) */
+enum { HOS_KEY_MOVE_UP = HOS_SW_N, HOS_KEY_MOVE_DOWN, HOS_KEY_MOVE_LEFT, HOS_KEY_MOVE_RIGHT, HOS_KEY_CAM_UP,
+       HOS_KEY_CAM_DOWN, HOS_KEY_CAM_LEFT, HOS_KEY_CAM_RIGHT, HOS_KEY_OC_NOTE_L, HOS_KEY_OC_NOTE_R,
+       HOS_KEY_OC_NOTE_A, HOS_KEY_OC_NOTE_Y, HOS_KEY_OC_NOTE_X, HOS_KEY_WALK, HOS_KEY_TOGGLE_HUD, HOS_KEY_SPRINT, HOS_KEY_N };
+
+/* (YM) the mouse over the window while it is free (not captured): the Insert menu's (host/display.c,
+   host/posix/display_sdl.c). x and y: the cursor in the window's pixels, of a window width x height pixels (the
+   swapchain's, as a rule); held: the buttons down now, pressed: those pressed since the last read (1 left, 2 right,
+   4 middle); wheel: the wheel's notches since then, away from the player positive */
+enum { HOS_MOUSE_LEFT = 1, HOS_MOUSE_RIGHT = 2, HOS_MOUSE_MIDDLE = 4 };
+typedef struct MkwVkPointer {
+    int32_t x, y, width, height;
+    uint32_t held, pressed;
+    int32_t wheel;
+} MkwVkPointer;
+
+/* (YM) one of the Insert menu's settings, for the control bridge (MkwVkRenderer setting): key is its line in
+   YM_options.ini, name the row's, text how the menu shows the value */
+typedef struct MkwVkSetting {
+    char key[32], name[48], text[64], tab[16];
+    int value, lo, hi, step;
+    int restart, fixed;   /* the change applies at the next start; nothing to choose on this PC (the menu shows it greyed) */
+} MkwVkSetting;
+
+/* (YM, version 22) typed text for the Insert menu's text fields (MkwVkHost.take_text, host/rx_backend.c): a character
+   comes as its Unicode code point, an editing key as HOS_TEXT_KEY | its Windows key code (VK_LEFT, VK_RIGHT, VK_HOME, VK_END,
+   VK_BACK, VK_DELETE, VK_RETURN, VK_ESCAPE). The focus take_text is given: none, a field has the keyboard, or that and a paste
+   asked (the clipboard's first line comes as typed) */
+enum { HOS_TEXT_KEY = 0x40000000 };
+enum { HOS_TEXT_OFF, HOS_TEXT_ON, HOS_TEXT_PASTE };
+
+/* what the executable gives the back end */
+typedef struct MkwVkHost {
+    uint32_t version;   /* MKWVK_API_VERSION */
+    void (*log)(const char *line);
+    /* guest memory: the window, and GPU addresses (pools, below 1 TB the guest address itself) */
+    uint8_t *(*guest_base)(void);
+    uint64_t (*guest_size)(void);
+    uint8_t *(*gpu_ptr)(uint64_t gpu, uint64_t *avail);
+    uint64_t (*gpu_guest)(uint64_t gpu);
+    int (*gpu_read)(uint64_t gpu, void *dst, uint64_t n);
+    int (*gpu_write)(uint64_t gpu, const void *src, uint64_t n);
+    /* guest pages written since the last call (the soft write watch): count, page numbers in *pages (freed with
+       free_pages) */
+    int64_t (*collect_written)(uint32_t **pages);
+    void (*free_pages)(uint32_t *pages);
+    void (*mark_written)(const void *p, uint64_t n);
+    /* clocks: the guest tick (31.25 MHz from the start), host ns */
+    uint64_t (*ticks)(void);
+    int64_t (*now_ns)(void);
+    /* NVN texture layouts (nvn_tex.c) */
+    void (*tex_layout)(const nvn_texdesc *d, nvn_texlayout *o);
+    uint64_t (*tex_level_offset)(const nvn_texdesc *d, unsigned level);
+    int (*fmt_bpb)(int format, int *bw, int *bh);
+    void (*tex_level_tiles)(const nvn_texdesc *d, unsigned level, unsigned *tile_h, unsigned *tile_d);
+    uint32_t (*tex_linear_stride)(const nvn_texdesc *d);
+    int (*depth_minus_w)(void);
+    /* the memory pools ({guest start, size} each; returns the count, at most max) and a number that changes with
+       them (host/nvdrv.c) */
+    int (*gpu_pools)(uint64_t (*out)[2], int max);
+    uint32_t (*maps_generation)(void);
+    /* a number that changes with every mapping of NVN's virtual pools' pages (MapVirtual: sparse textures) */
+    uint32_t (*vmap_generation)(void);
+    /* the logical processors kept from the game's threads, for the replay thread (0: none) */
+    uint64_t (*reserved_cpus)(void);
+    /// The soft write watch's marks within [ranges[i][0], ranges[i][1]) only, read and cleared (free with free_pages)
+    int64_t (*collect_written_in)(const uint64_t (*ranges)[2], int n, uint32_t **pages);
+    /// Zeroed guest memory of the renderer's own (address space above the heap, never freed; 0 when none is left):
+    /// what the NVN driver keeps in GPU memory of its own, such as its constant banks
+    uint64_t (*guest_alloc)(uint64_t size);
+    /// (debugging) CPU writes to [guest, guest + size) logged with the writer's guest call stack (a page watch)
+    void (*watch_guest_writes)(uint64_t guest, uint64_t size);
+    /* (YM) the gamepads' inputs held now (1 << HOS_PAD_*), whatever they are bound to: the Insert menu's
+       (host/nn_hid.c) */
+    uint32_t (*pad_raw)(void);
+    /* (YM) the controls, for the Insert menu's Controls page. button: the Switch's, HOS_SW_*; set HOS_BIND_PAD:
+       the gamepad inputs that press it (HOS_PAD_* positions, -1 none; slots 0 and 1); set HOS_BIND_KEY: the keys that
+       do (Windows key codes, 0 none; slots 0 and 1; a mouse button's too, and HOS_KEY_* past the Switch's buttons).
+       bind with button -1: all back to their defaults.
+       (version 19: HOS_BIND_PAD takes the ocarina's note rows too, HOS_KEY_OC_NOTE_*, which start unset;
+       version 37: and Sprint, HOS_KEY_SPRINT, a key and a gamepad input of its own) */
+    int (*binding)(int set, int button, int slot);
+    void (*bind)(int set, int button, int slot, int code);
+    /// Display aspect of the presented picture, after crop: the camera aspect applied at startup.
+    /// Zero means no override; the renderer then fits the cropped texture's pixel aspect.
+    float (*aspect_ratio)(void);
+    int (*take_key_press)(int key);
+    /* (YM) the free mouse (MkwVkPointer), read and its presses and wheel cleared: 1 when the cursor is over the
+       window and the window has the focus. The Insert menu releases the mouse while it is open: WM_APP + 8 to the
+       window, wParam 1 open, 0 closed (the capture it had then comes back) */
+    int (*pointer)(MkwVkPointer *out);
+    /* (YM) the microphones for the game's input streams (host/nn_audio_in.c), for the Insert menu's Microphone row:
+       how many there are (listing them again), one's name, and the row's choice: mode 0 off, 1 the system's default, 2 the
+       microphone of that name (index: its place in the list, -1 while it is not plugged in) */
+    int (*mic_count)(void);
+    const char *(*mic_name)(int index);
+    void (*mic_select)(int mode, const char *name, int index);
+    /* (YM) the controllers' motion sensors, for the Insert menu's Motion controls row (host/pad_sdl.c): 0 no
+       controller, 1 controllers with no gyroscope, 2 one with a gyroscope */
+    int (*gyro_status)(void);
+    /* (YM) the log lines queued so far written out now (host/hos_thread.c log_queue): before the back end ends
+       the process itself (replay_fatal), so a device lost's report is not lost with it */
+    void (*log_flush)(void);
+    /* (YM) the controller face of the button prompts the game was given at its start (host/prompts.c): HOS_PROMPT_*;
+       -1 none (the game's own icons), or not chosen yet */
+    int (*prompt_face)(void);
+    /* (YM) ultrawide's menus (game/oot_wide_sites.c WIDE_KEEP_*): keep_mask sets which of those screens keep the whole picture
+       (a bit each; HOS_WIDE_KEEP=<hex> over it); returns the margin of the middle 16:9 at either side, a fraction of the
+       picture's width (0: the picture is 16:9) */
+    float (*wide_menus)(uint32_t keep_mask);
+    /* (version 15, YM) the FPS counter's Breakdown (gpu/vk/vk_fps.cpp): time asleep so far, in ns (host/hos_thread.c):
+       [0] OoT's present poll, waiting for its frame's GPU work; [1] the window's acquire pacing the frames (both whichever
+       thread they are on), and the calling thread's other guest sleeps. Asked by the thread that presents, at its present */
+    void (*slept_ns)(int64_t out[2]);
+    /* (version 15, YM) whether the host times those sleeps: 1 while the Breakdown shows, 0 (the default) costs nothing */
+    void (*fps_timing)(int on);
+    /* (version 17, YM) what of the button prompts a change of face or controls reaches at once (host/prompts.c):
+       HOS_PROMPTS_LIVE_* bits; 0 none (a mod's files, built without the prompts, or not loaded yet) */
+    int (*prompts_live)(void);
+    /* (version 20, YM) the main screen's size in pixels, as host/hos_main.c takes its shape at the start (Windows: the
+       primary's; Linux: SDL's primary desktop), for the Insert menu's Aspect ratio and Output resolution rows: 0 when not known */
+    int (*screen_size)(int *width, int *height);
+    /* (version 22, YM) the Insert menu's text fields (21 added the renderer's nvn_program_created).
+       focus HOS_TEXT_OFF while none has the keyboard (the window takes no text then: no input method opens over the game,
+       and what was queued is dropped), HOS_TEXT_ON while one has it,
+       HOS_TEXT_PASTE to paste the clipboard's first line into it; then what was typed since the last call into out, at most
+       max, in order (characters and HOS_TEXT_KEY editing keys, repeats included; Ctrl+V and Shift+Insert paste): the count.
+       host/display.c (WM_CHAR, WM_KEYDOWN) and host/posix/display_sdl.c (SDL's text input and key events) put them in */
+    int (*take_text)(int focus, uint32_t *out, int max);
+    /* (version 23, YM) the player's settings file, YM_options.ini in the user folder (host/options_path.c): the
+       Insert menu's (gpu/vk/vk_menu.cpp ini_path) and the switches its rows read before it loads. "" when none could be chosen:
+       every row at its default, and nothing saved */
+    const char *(*options_path)(void);
+    /* Version 24: playback metadata and requests, appended after version 23's settings path.
+       Only the audio thread changes playback handles.
+       info copies an opaque ID and UTF-8 name. State: 1 default fallback, 2 environment override, 4 no output. */
+    int (*audio_output_count)(void);
+    int (*audio_output_info)(int index, char *id, int id_capacity, char *name, int name_capacity);
+    void (*audio_output_select)(const char *id);
+    int (*audio_output_state)(void);
+    /* Version 25: explicit microphone test; gain 0..400 percent, levels[2] pre/post gain peak permille.
+       Call every menu tick (enabled=0 releases only the test reference). Does not play or save capture.
+       Result: 1 testing, 2 capture open, 4 default fallback, 8 fresh samples, 16 clipping, 32 mic Off. */
+    int (*mic_test)(int enabled, int gain, int *levels);
+    /* (version 26, YM) the performance summary (gpu/vk/perf_report.cpp), asked about once a second while the launcher's
+       Send performance statistics is ticked: the map Link is in and his age ("Kokiri Forest (child)", as the log's map: line;
+       "" before a save is loaded) into map, and the movies' totals so far (host/nn_video.c): [0] pictures shown, [1] skipped to
+       keep up with the sound, [2] shown late (over 50 ms after the one before), [3] decoding time in ns, [4] decoders that did
+       not start (another one took over). Returns the build's version (YM_VERSION).
+       Version 30: and Link's pose, for the one-second samples: pose = {x, y, z} his world position (game units), then the
+       gameplay camera's {yaw, pitch} (radians: yaw 0 toward +z and pi/2 toward +x, in [-pi, pi]; pitch above 0 looking up, in
+       [-pi/2, pi/2]), exact (perf_report.h sends them as cells and bins). *has_pose is 1 only when they are current: 0 unless
+       perf_tracking(1) was called, 0 while Link isn't updating (the title, the file select, a load: nothing set in the last
+       second), while no map is set (map is empty), while an event plays (a cutscene) and from a change of the map until his
+       next update, or when camera zero isn't the gameplay view */
+    const char *(*perf_info)(char *map, int cap, int64_t movie[5], float pose[5], int *has_pose);
+    /* Version 27 (YM): the frame trace's main-thread columns (RX_VK_FRAME_TRACE, gpu/vk/vk_replay.cpp): the game's main
+       thread's (sead::MainThread) time so far, in ns: [0] waiting for a virtual core, [1] blocked in a wait or sleep, both
+       counted while fps_timing is on, [2] its CPU time. 0 before the game names that thread */
+    int (*main_thread_times)(int64_t out[3]);
+    /* Version 28 (YM): a C++ allocation of the renderer's refused for 5 s (its new_handler, gpu/vk/vk_main.cpp
+       new_refused, tried again meanwhile): the host's out-of-memory line and notice, waited for, then the game stops, as for the
+       host's own allocations (host/mkw_glue.c hos_alloc_gave_up). what names it in the log. Does not return */
+    void (*out_of_memory)(const char *what);
+    /* Version 29: named fullscreen output selection. Snapshot metadata is copied; empty ID means the
+       current window's screen. select queues work to the window thread, never moves it here.
+       The saved preference may be unavailable; flags describe the actual current/primary screen. */
+    int (*monitor_count)(void);
+    int (*monitor_info)(int index, struct MkwVkMonitor *out);
+    void (*monitor_select)(const char *id);
+    /* Version 30: the opt-in performance sample is being collected (1, at the first frame with the tick on) or not (0: the
+       tick undone, the exit); the host reads Link's pose only while enabled, and forgets it at 0. */
+    void (*perf_tracking)(int enabled);
+    /* (version 32, YM) a short rumble on the controllers at the Rumble strength as it is now: the Insert menu's row plays it when
+       it is changed (host/pad_sdl.c) */
+    void (*rumble_test)(void);
+    /* (version 33, YM) the NFC tags of the player's folder (host/nn_nfp.c), for the Insert menu's NFC tab: how many there
+       are (listing them again), one's name (its file's, without the ending), one held to the reader (index; -1: taken away;
+       returns 0 when its file is not an NFC tag's), and what the reader is doing (bits: 1 the game uses NFC tags, 2 it waits for
+       one now, 4 one is held to it, 8 the game has read it), and the folder */
+    int (*nfc_count)(void);
+    const char *(*nfc_name)(int index);
+    int (*nfc_tap)(int index);
+    int (*nfc_state)(void);
+    const char *(*nfc_dir)(void);
+    /* (version 33) a tag on the Switch 2 Pro Controller's reader copied into that folder (host/nn_nfp.c, host/pad_switch2.c):
+       start 1 begins a scan; returns 0 none, 1 looking for a tag, 2 saved (nfc_scan_name: its file's name), 3 no tag in ten
+       seconds, 4 the tag is not a figure's, 5 no such controller over USB, 6 it could not be read or written */
+    int (*nfc_scan)(int start);
+    const char *(*nfc_scan_name)(void);
+    /* (version 34, YM): the A/B within one run (host/hos_ab.c, HOS_AB), for the frame trace's ab_side column: the side
+       of the frame from from_ns to to_ns (the host's clock, now_ns; from_ns 0 when not known): -1 outside the A/B (none set,
+       its warm-up), 0 the switch's normal value, 1 the A/B's, 2 or 3 those sides in a transition (a flip inside the frame,
+       or less than 0.3 s before its end), which scripts/perf.py ab leaves out */
+    int (*ab_frame)(int64_t from_ns, int64_t to_ns);
+    /* (version 35: 24 is the audio outputs, 25 the microphone test, 26 the performance summary, 27 the frame trace, 28 the renderer's out of memory note, 29 the monitors, 30 the performance sample's tracking, 31 the renderer's quick invalidate, 32 the rumble test, 33 the NFC tags, 34 the A/B within one run) the Mods tab (game/mods.c, game/cheats.c). mod_info: mod i in the list's order, 0 past the end
+       (name: its folder; detail: what it has; note: what of it is not used and why, "" none); mod_edit: op 0 off, 1 on, 2 up a
+       place, 3 down a place, kept at once and applied at the next start; mods_changed: 0 while the order and the switches are
+       the start's, else a number for them (the restart question). cheat_info: cheat i of the mods that were on at the start,
+       0 past the end (kind: MKWVK_CHEAT_*); cheat_set: a data cheat on or off, at once */
+    int (*mod_info)(int i, const char **name, const char **detail, const char **note, int *enabled);
+    void (*mod_edit)(int i, int op);
+    uint64_t (*mods_changed)(void);
+    int (*cheat_info)(int i, const char **name, const char **mod, const char **note, int *kind, int *on);
+    void (*cheat_set)(int i, int on);
+    /* (version 36, YM) a renderer switch's value under that A/B (host/hos_ab.c hos_ab_value): normal outside the A/B, on
+       side 0 and for any other name; the A/B's value on side 1 when name is its switch. name is a string literal (the host
+       keeps the names it has seen by their address). gpu/vk/vk_draw.cpp asks for RX_VK_MESH_CONV at each recording's start,
+       so HOS_AB=RX_VK_MESH_CONV=<v> measures the indirect mesh draws' conversion one way against the other */
+    int (*ab_value)(const char *name, int normal);
+    /* Version 41: request a live output preview. */
+    int (*output_preview_request)(uint32_t width, uint32_t height);
+    /* (version 42, YM) input recordings (host/input_movie.c), for the Insert menu's Debug tab (gpu/vk/menu/
+       input_recording.cpp). input_record: start 1 a recording to the player's recordings folder from Link's next update, 0 its
+       stop; 1 done, 0 something is recorded or played already. input_play: start 1 the recording at path (NULL: the last
+       made, or the folder's newest), put back at every sync-th update (HOS_INPUT_SYNC's; 0 never), 0 its stop; 1 started,
+       0 busy, -1 none, -2 it starts on a map no teleport goes to. input_status: what is recorded or played now.
+       input_recording: the i-th newest of the recordings folder (its path), 0 past the last */
+    int (*input_record)(int start);
+    int (*input_play)(int start, int sync, const char *path);
+    void (*input_status)(MkwVkInputStatus *out);
+    int (*input_recording)(int i, char *out, size_t cap);
+    /* Version 43: restore one control's default bindings. Returns 0 if another row owns a needed input. */
+    int (*reset_binding)(int button);
+    /* Version 43: apply the Controls menu's rebind only if the conflicting rows match approved.
+       On conflict, return 0 and report a bit per affected HOS_KEY_* or HOS_SW_* row. */
+    int (*rebind_control)(int set, int button, int slot, int code, uint64_t approved, uint64_t *conflicts);
+    /* Version 44: whether the row's bindings match its current reset defaults. */
+    int (*binding_is_default)(int button);
+    /* (version 45) Resolve vkGetInstanceProcAddr through the executable on Windows. */
+    uintptr_t (*vulkan_loader_proc)(void);
+    /* (version 46, YM) a whole file of the game's RomFS (host/romfs.h: the .nup's index, or a romfs folder), by its
+       path there: malloc'd, *n its size; NULL when there is none or it is larger than limit. Freed with romfs_free. The
+       renderer's only way to the game's files (the overlays' menu font: gpu/vk/vk_imgui.cpp) */
+    uint8_t *(*romfs_read)(const char *rel, size_t *n, size_t limit);
+    void (*romfs_free)(void *p);
+    /* (version 48, YM) the game's rows of the Insert menu (game/game.h game_menu_rows, game/menu/): plain data, *count
+       of them, which the menu adds to its own at the start (gpu/vk/menu/game_rows.cpp) */
+    const struct GameMenuRow *(*game_menu_rows)(int *count);
+} MkwVkHost;
+/* (version 35) a cheat's kind: a heading (no opcodes), a data cheat (switched), a master cheat (always on), not supported (note) */
+enum { MKWVK_CHEAT_HEADING, MKWVK_CHEAT_DATA, MKWVK_CHEAT_MASTER, MKWVK_CHEAT_UNSUPPORTED };
+
+/* One completed temporal-upscale sample; all zero while inactive. */
+typedef struct MkwVkJitter {
+    uint32_t width, height, phases;
+} MkwVkJitter;
+
+/* what the back end gives the executable: the rx_* functions (gpu/render/rx_nvn.h, rx_core) */
+typedef struct MkwVkRenderer {
+    uint32_t version;
+    int (*start)(void *hwnd);
+    void (*resize)(int width, int height);
+    const char *(*describe)(void);
+    void (*stats)(int64_t *draws, int64_t *skipped, int64_t *pipelines);
+    void (*nvn_submit)(const uint64_t *handles, int n);
+    uint64_t (*nvn_fence)(void);
+    uint64_t (*nvn_pushed)(void);
+    uint64_t (*nvn_replayed)(void);
+    int (*nvn_wait)(uint64_t fence, uint64_t timeout_ns);
+    void (*wait_writebacks_reading)(const void *p, uint64_t n);
+    void (*nvn_finish)(void);
+    void (*nvn_present)(const nvn_tex *t, const int crop[4]);
+    void (*nvn_register_texture)(int id, const nvn_tex *t, const nvn_view *v);
+    void (*nvn_register_sampler)(int id, const nvn_samp_par *p);
+    void (*nvn_set_texture_pool_size)(int n);
+    void (*nvn_texture_released)(const nvn_tex *t);
+    void (*nvn_program_released)(const nvn_prog *p);
+    void (*nvn_read_texels)(const nvn_tex *t, unsigned level, unsigned layer0, const NVNcopyRegion *r, uint8_t *dst,
+                            uint64_t row_pitch, uint64_t image_pitch);
+    void (*nvn_write_texels)(const nvn_tex *t, unsigned level, unsigned layer0, const NVNcopyRegion *r,
+                             const uint8_t *src, uint64_t row_pitch, uint64_t image_pitch);
+    void (*nvn_invalidate)(uint64_t gpu, uint64_t size);
+    void (*nvn_pool_created)(uint64_t gpu, uint64_t size);   /* a memory pool made (non-virtual): imported early */
+    /* whether the GPU may use guest memory in [lo, hi) through an import (the host keeps such pages committed) */
+    int (*guest_imported)(uint64_t lo, uint64_t hi);
+    /* virtual pages [gpu, gpu + size) mapped now are about to be unmapped or remapped (the old mapping still in place):
+       what the GPU wrote into textures there goes into their memory first */
+    void (*nvn_vmap_changing)(uint64_t gpu, uint64_t size);
+    /* a texture initialized (its storage: whether the CPU's reads of a range may need a texture's texels) */
+    void (*nvn_texture_created)(const nvn_tex *t);
+    /* the CPU set an event's value: in order with the submits (the GPU's waits on it) */
+    void (*nvn_event_signal)(uint64_t gpu, uint32_t value);
+    int (*option)(int id);   /* (YM, the Insert menu) 0: game time follows the clock, 1: the menu is open, 2: dynamic resolution, 3: its fixed scale in percent, 4: the controllers count behind other windows, 5: text speed (0 normal to 3 instant), 6: Mouse camera (host/mouse_native.c; 1 native mouse look, 2 off: the mouse is never captured),
+                                7: the mouse's sensitivity in percent, 8: its up and down swapped (host/nn_hid.c),
+                                18 to 23: the Motion page (HOS_OPT_GYRO*: motion controls from a pad's gyroscope, host/pad_sdl.c;
+                                the horizontal and vertical sensitivity in percent, each turned around, the deadzone),
+                                27: the volume in percent, 28: no sound while another window has the focus (host/nn_audio.c),
+                                48: the camera's turn speed in percent of the game's (host/nn_vi.c) */
+    /* a submit with its queue */
+    void (*nvn_submit_q)(const uint64_t *handles, int n, uint64_t queue);
+    /* (YM) a fence of one queue: the value its own last submission signals (nvnQueueFenceSync) */
+    uint64_t (*nvn_fence_q)(uint64_t queue);
+    /* (YM, the Insert menu) a setting changed from the game's side, kept in the options file: 7 the mouse's sensitivity
+       in percent (the - and = keys, host/nn_hid.c) */
+    void (*option_set)(int id, int value);
+    /* (version 14) one coherent camera-jitter sample, without per-axis queries */
+    void (*jitter_sample)(MkwVkJitter *out);
+    /* (version 16, YM) the control bridge (host/control.c, docs/dev/reference/control-bridge.md) */
+    /* the presents replayed so far, the draws recorded since the start, and the picture's size (the window's swapchain, or
+       the offscreen image's) */
+    void (*frame_info)(int64_t *presents, int64_t *draws, int *width, int *height);
+    /* a PNG of the first present replayed after present `after` (-1: the next one), RX_VK_SHOTS' size, written to
+       path on a thread of its own, which then calls done(ctx, the present, 1 when the file was written). 0: not taken
+       (too many waiting) */
+    int (*shot)(const char *path, int64_t after, void (*done)(void *ctx, int64_t present, int ok), void *ctx);
+    /* the Insert menu's settings rows (shown on this PC; not the headings or the debug tools): the index-th, to list them (0:
+       past the last; an index is no name, rows come and go), and the one whose YM_options.ini key is key set to value
+       as the menu's Left and Right set it, kept in the options file, out the row after it (1 set, 0 no such row, -1 nothing
+       to choose on this PC, -2 no step of a list row reaches value here, left as it was) */
+    int (*setting)(int index, MkwVkSetting *out);
+    int (*setting_set)(const char *key, int value, MkwVkSetting *out);
+    /* (version 21, YM: 20 is the host's screen_size, which main added while this was 20 on its branch) the game gave a program its shaders (nvnProgramSetShaders, nvnProgramInitializeFromBuilder), on the
+       game's thread, before any draw uses it: what the back end kept ready for it can be loaded now (gpu/vk/vk_programs.cpp).
+       Its stages' code and control sections are in the game's memory at this call */
+    void (*nvn_program_created)(const nvn_prog *p);
+    /* (version 31, YM) nvn_invalidate when nothing in [gpu, gpu + size) can make it wait: 1, done (the host keeps the
+       game thread's virtual core for it); 0, call nvn_invalidate (with the core given up, as before). Never waits: no lock
+       but a short one of its own (RX_VK_WB_MAX_KB's table), any thread */
+    int (*nvn_invalidate_quick)(uint64_t gpu, uint64_t size);
+    /* Version 41: live output preview. */
+    int (*output_preview_stage)(const nvn_tex *targets);
+    int (*output_preview_retired)(uint64_t last_serial);
+    int (*output_trial_phase)(uint64_t serial, int cancel);
+    int (*output_trial_publish)(uint64_t serial, void (*apply)(void *state, uint64_t generation), void *state);
+    void (*nvn_present_trial)(const nvn_tex *t, const int crop[4], uint64_t generation);
+} MkwVkRenderer;
+
+/* the DLL's one export: null when Vulkan is not usable (the executable then draws nothing) */
+typedef const MkwVkRenderer *(*mkwvk_init_fn)(const MkwVkHost *host);
+#ifdef MKWVK_BUILDING
+#ifdef _WIN32
+__declspec(dllexport) const MkwVkRenderer *mkwvk_init(const MkwVkHost *host);
+#else
+__attribute__((visibility("default"))) const MkwVkRenderer *mkwvk_init(const MkwVkHost *host);
+#endif
+#endif
+
+#ifndef _WIN32
+/* (linux) what start() is given in place of a window handle (host/posix/display_sdl.c): the window makes the
+   surface (SDL_Vulkan_CreateSurface: X11 or Wayland) and says its size in pixels */
+#define MKWVK_WINDOW_VERSION 3
+typedef struct MkwVkWindow {
+    uint32_t version;   /* MKWVK_WINDOW_VERSION */
+    int (*create_surface)(void *window, void *instance, void *surface_out);   /* (VkInstance, VkSurfaceKHR *): 1 if made */
+    void (*drawable_size)(void *window, int *width, int *height);
+    void *window;
+    /* (version 2) the refresh rate of the display the window is on, in mHz; 0 when not known (frame generation's Auto) */
+    int (*refresh_mhz)(void *window);
+    /* (version 3) the desktop's size in pixels, 0 x 0 when not known (the Quality preset Auto (this PC)) */
+    void (*desktop_size)(void *window, int *width, int *height);
+} MkwVkWindow;
+#endif
+
+#ifdef __cplusplus
+}
+#endif

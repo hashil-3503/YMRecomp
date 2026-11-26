@@ -1,0 +1,31 @@
+# The build tools YM-builder carries, which are not in the repository: linux-x64 for the Linux builder, windows-x64
+# for the Windows one. The release unpacks each at its dest under the builder's bundle (YM-builder dev tools
+# install), where YM-builder takes it (build-driver's tools/): nothing is downloaded on a player's PC. CI and
+# developers install them the same way (mise run tools: tools/<name>), or dev.py does into its tools-store/. A change is
+# a pull request that edits this file (docs/dev/reference/releases.md, "Bumping a tool").
+#
+#   tool <name> <version> <system> <sha256> <size> <dest> <prefix> <url> [<url> ...]
+#
+# Each archive is a .tar.zst of the tool's own files (prefix -), made from pinned sources and releases, the same bytes
+# every time (builder/tools/make.sh: builder/tools/pins.sh's pins, a recipe per tool, packed by `YM-builder dev
+# tools make`): a file of the MagicBeanDev organization's generic package <name>-<system>, version <version> (its
+# Packages tab), from Cloudflare's edge (https://git-cdn.magicbean.dev), then from git.magicbean.dev (the same path). A
+# package version's files never change. The Make tools workflow (.forgejo/workflows/tools.yml, started by hand on main)
+# makes an archive twice, uploads it and gives its line; a release only checks every line's archive is there.
+#
+#   llvm (linux-x64)          LLVM 23.1.5's release trimmed to what the compile uses: clang, lld (as ld.lld), clang's
+#                             headers, the builtins and profile runtimes for x86-64 Linux (builder/tools/linux-x64/llvm.sh)
+#   sysroot (linux-x64)       Ubuntu 22.04's glibc 2.35 and GCC 13's runtime pieces (linux-x64/sysroot.sh)
+#   ffmpeg, sdl2, cpm         FFmpeg 9.0.2 with dav1d 1.5.4, static; SDL 2.32.10; the Vulkan, SPIR-V and VMA headers
+#     (linux-x64)             (linux-x64/ffmpeg.sh, sdl2.sh, cpm.sh)
+#   llvm-mingw (windows-x64)  llvm-mingw 20261104 (UCRT) trimmed to the x86-64 target (windows-x64/llvm-mingw.sh)
+#   cpm (windows-x64)         the headers, dav1d 1.5.4 and FFmpeg 9.0.2 cross-built with llvm-mingw (windows-x64/cpm.sh)
+#   sdl (windows-x64)         SDL3.dll 3.4.20 and SDL2.dll (sdl2-compat 2.32.74), libsdl's releases (windows-x64/sdl.sh)
+tool llvm 23.1.5-x64-1 linux-x64 f5ffa767689ba06b1ecabdaec9d8ef5384f9e7e71af94539dfbd871f34d3b80c 96332318 tools/llvm - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/llvm-linux-x64/23.1.5-x64-1/f5ffa767689ba06b1ecabdaec9d8ef5384f9e7e71af94539dfbd871f34d3b80c-llvm.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/llvm-linux-x64/23.1.5-x64-1/f5ffa767689ba06b1ecabdaec9d8ef5384f9e7e71af94539dfbd871f34d3b80c-llvm.tar.zst
+tool sysroot ubuntu22.04-gcc13-20261113 linux-x64 36e8b3f092d11cd756f83aba7fc789b04a7afd0eec30b034ac27f0ac050e64c1 8162535 tools/sysroot - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/sysroot-linux-x64/ubuntu22.04-gcc13-20261113/36e8b3f092d11cd756f83aba7fc789b04a7afd0eec30b034ac27f0ac050e64c1-sysroot.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/sysroot-linux-x64/ubuntu22.04-gcc13-20261113/36e8b3f092d11cd756f83aba7fc789b04a7afd0eec30b034ac27f0ac050e64c1-sysroot.tar.zst
+tool ffmpeg 9.0.2-dav1d-1.5.4 linux-x64 5fba541ae844134a480b30ab7e0177ff3f714b7dfc57cb272b02719d2607f3ac 6853649 tools/ffmpeg - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/ffmpeg-linux-x64/9.0.2-dav1d-1.5.4/5fba541ae844134a480b30ab7e0177ff3f714b7dfc57cb272b02719d2607f3ac-ffmpeg.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/ffmpeg-linux-x64/9.0.2-dav1d-1.5.4/5fba541ae844134a480b30ab7e0177ff3f714b7dfc57cb272b02719d2607f3ac-ffmpeg.tar.zst
+tool sdl2 2.32.10 linux-x64 09c8eb7a06cc803498c35f2c6700e022f81d84d96668c85f812b1c1f09231cba 775864 tools/sdl2 - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/sdl2-linux-x64/2.32.10/09c8eb7a06cc803498c35f2c6700e022f81d84d96668c85f812b1c1f09231cba-sdl2.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/sdl2-linux-x64/2.32.10/09c8eb7a06cc803498c35f2c6700e022f81d84d96668c85f812b1c1f09231cba-sdl2.tar.zst
+tool cpm v1.4.345-vulkan-sdk-1.4.341.0-v3.3.0 linux-x64 5e930ba18fb34fc4f046d95d8ec874e20e845ef9215fbc14efe4ae61abb630bb 1355730 tools/cpm - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/cpm-linux-x64/v1.4.345-vulkan-sdk-1.4.341.0-v3.3.0/5e930ba18fb34fc4f046d95d8ec874e20e845ef9215fbc14efe4ae61abb630bb-cpm.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/cpm-linux-x64/v1.4.345-vulkan-sdk-1.4.341.0-v3.3.0/5e930ba18fb34fc4f046d95d8ec874e20e845ef9215fbc14efe4ae61abb630bb-cpm.tar.zst
+tool llvm-mingw 20261104-x64-1 windows-x64 146cba66c94e814842bc30428b51ae1dcdf850b1145b48eece2c30653af6ecdc 49839464 tools/llvm-mingw - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/llvm-mingw-windows-x64/20261104-x64-1/146cba66c94e814842bc30428b51ae1dcdf850b1145b48eece2c30653af6ecdc-llvm-mingw.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/llvm-mingw-windows-x64/20261104-x64-1/146cba66c94e814842bc30428b51ae1dcdf850b1145b48eece2c30653af6ecdc-llvm-mingw.tar.zst
+tool sdl 3.4.20-compat-2.32.74 windows-x64 ea35e9e0e648bd1a3d7401f869bc0aca6292df00b40ba78cb49d9aa255e0514a 1085230 tools/sdl - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/sdl-windows-x64/3.4.20-compat-2.32.74/ea35e9e0e648bd1a3d7401f869bc0aca6292df00b40ba78cb49d9aa255e0514a-sdl.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/sdl-windows-x64/3.4.20-compat-2.32.74/ea35e9e0e648bd1a3d7401f869bc0aca6292df00b40ba78cb49d9aa255e0514a-sdl.tar.zst
+tool cpm ffmpeg-9.0.2-dav1d-1.5.4-vk-v1.4.345-mingw windows-x64 1d75aab4c92091d6120294f70166443449ff2d26184fdc2e9b93dfc05cbef7b6 7086885 tools/cpm - https://git-cdn.magicbean.dev/api/packages/MagicBeanDev/generic/cpm-windows-x64/ffmpeg-9.0.2-dav1d-1.5.4-vk-v1.4.345-mingw/1d75aab4c92091d6120294f70166443449ff2d26184fdc2e9b93dfc05cbef7b6-cpm.tar.zst https://git.magicbean.dev/api/packages/MagicBeanDev/generic/cpm-windows-x64/ffmpeg-9.0.2-dav1d-1.5.4-vk-v1.4.345-mingw/1d75aab4c92091d6120294f70166443449ff2d26184fdc2e9b93dfc05cbef7b6-cpm.tar.zst

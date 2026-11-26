@@ -1,0 +1,1476 @@
+/* Horizon OS layer, native host: process start and boot.
+
+   What rtld and nn::init::Start do on hardware (see ports/zelda-totk/PORT.md, "How the game starts"), done here:
+   map the guest window, load the relocated image (nx_image.py already linked it), make this host thread the
+   guest main thread, run every module's DT_INIT in rtld's order (the SDK crt's _init: TLS registration with musl,
+   then the module's constructors), then nninitStartup and nnMain.
+
+   Usage: <game>.exe [image.bin] [--romfs <dir>] [--user <dir>] [--trace] [--prepare-shaders] [--compile-shaders all|most]
+   Environment: HOS_TRACE=1 (log HLE calls), HOS_MEMORY_MB (memory the game is told it has),
+                HOS_NVN_CONTINUE=1 (go on past nvnBootstrapLoader). */
+#include "hos.h"
+#include "romfs.h"
+#include "romfs_index.h"
+#ifdef TRACY_ENABLE
+#include "hos_tracy.h"
+#endif
+#ifdef TRACY_ENABLE
+/* (YM_TRACY: the profiler's client, started by the game's main: host/hos_tracy.h) */
+int hos_tracy_started;
+void hos_tracy_start(void) {
+    ___tracy_startup_profiler();
+    hos_tracy_started = 1;
+}
+#endif
+#ifndef YM_ENV_H   /* (env_on: the switches' one rule) */
+#include "../gpu/vk/compat/YM_env.h"
+#endif
+#include "hos_paths.h"
+#include "../game/game.h"   /* (the game's hooks: its start, its folder's layout, the Discord status, the mods and cheats) */
+#include "options_path.h"
+#include "save_dir.h"       /* (the profile's saves/: the run's save folder, refused at the start when unusable) */
+#include "YM_exit.h"
+#include "builder_channel.h"   /* (the hand-over to a version folder's builder) */
+#include "prepare_args.h"   /* (the supervised --prepare-shaders run's arguments) */
+#include "hos_wide_size.h"   /* (the widescreen picture's size, shared with the Insert menu) */
+#include "ws_floor.h"        /* (the game's memory kept in RAM: HOS_WS_FLOOR_MB) */
+#include "../gpu/vk/vk_api.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+const char *hos_version(void);   /* (host/version.c: the one file builder/crates/build-compile gives the version to) */
+#ifndef YM_VERSION   /* (a test that cuts a piece of this file out may give its own) */
+#define YM_VERSION hos_version()
+#endif
+
+#if defined(_WIN32) || defined(__EMSCRIPTEN__)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <mmsystem.h>
+#else
+#include <windows.h>   /* (linux: host/posix's) */
+#include <sys/mman.h>
+#ifdef __linux__
+#include <sys/prctl.h>
+#include <sys/sysinfo.h>
+#endif
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/stat.h>   /* (hand_over: the builder a regular file) */
+#endif
+#include "hos_atomic_file.h"   /* (the files the saves' move copies, saves-moved.txt and the stand-ins' clean-up: whole or not at all) */
+/* (linux) the separator of the paths the executable's folder is joined with */
+#ifdef _WIN32
+#define SEP 92
+#define SEP_S "\\"
+#else
+#define SEP '/'
+#define SEP_S "/"
+#endif
+
+
+#ifdef A64_MEM_ZERO
+/* web: guest address = wasm address; the guest window is wasm memory below the host's data (-sGLOBAL_BASE) */
+extern char __global_base;
+uint64_t hos_space_end;
+#define GUEST_SPACE (hos_space_end)
+#else
+#define GUEST_SPACE HOS_GUEST_SPACE
+#endif
+#define IMAGE_BASE hos_image_base   /* (the lift's: Eden's layout) */
+
+#ifdef _WIN32
+static void no_power_throttling(void) {
+    if (env_on("HOS_POWER_THROTTLING")) return;
+    typedef BOOL(WINAPI * SetInfo)(HANDLE, int, LPVOID, DWORD);
+    SetInfo set = (SetInfo)(void *)GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetProcessInformation");
+    if (!set) return;
+    struct { ULONG version, control, state; } s = {1, 0x1 | 0x4, 0};
+    if (!set(GetCurrentProcess(), 4, &s, sizeof s)) {
+        s.control = 0x1;
+        set(GetCurrentProcess(), 4, &s, sizeof s);
+    }
+}
+#endif
+
+#ifdef _WIN32
+/* (YM) The game's memory kept in RAM under memory pressure: a soft working-set minimum (host/ws_floor.h, HOS_WS_FLOOR_MB) */
+static void ws_floor(void) {
+    uint64_t mb, ram_mb;
+    unsigned long err;
+    const int r = ws_floor_apply(getenv("HOS_WS_FLOOR_MB"), &mb, &ram_mb, &err);
+    if (r > 0)
+        hos_log("mem: the working set's minimum is %llu MB of the PC's %llu MB: Windows keeps that much of the game in RAM before "
+                "it trims below it (HOS_WS_FLOOR_MB=0: Windows' own)", (unsigned long long)mb, (unsigned long long)ram_mb);
+    else if (!r)
+        hos_log("mem: the working set's minimum is Windows' own (HOS_WS_FLOOR_MB=0)");
+    else
+        hos_log("mem: a working set minimum of %llu MB was refused (error %lu): Windows' own stays", (unsigned long long)mb, err);
+}
+#endif
+
+int hos_game_is_mkw(void) { return !strcmp(hos_main_build_id, "d00e4f399e411d0613aa8d26b1c02fef"); }
+
+/* gen/image.c (the lift) */
+extern const uint64_t hos_main_stack_size;
+extern const int hos_main_priority, hos_main_core, hos_module_count;
+extern const uint64_t hos_module_init[];
+extern const char *const hos_module_name[];
+extern const uint64_t hos_entry_nninitStartup, hos_entry_nnMain;
+extern const uint64_t hos_entry_init_libc0, hos_entry_init_libc1, hos_entry_init_libc2, hos_entry_nnosInitialize,
+    hos_entry_nninitInitializeSdkModule;
+/* nn_fs.c */
+extern const char *hos_romfs_dir, *hos_user_dir;
+
+/* HOS_LARGE_PAGES=1 (experiment): the guest window in 2 MB pages, for fewer TLB misses (the game touches hundreds of MB
+   of scattered heap; 4 KB pages cover only ~12 MB of it in the CPU's TLB). The whole window is then physical memory at
+   once (4 GB, locked), and Windows needs the account to hold "Lock pages in memory" (SeLockMemoryPrivilege, Local
+   Security Policy > User Rights Assignment; log off and on after): without it this logs why and uses normal pages. */
+int hos_large_pages;   /* (hos_mem.c: freed pages are not discarded then) */
+#if defined(_WIN32) && !defined(A64_MEM_ZERO)
+#pragma comment(lib, "advapi32.lib")   /* (the token privilege calls) */
+static void *reserve_large(SIZE_T size) {
+    HANDLE token;
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) return NULL;
+    TOKEN_PRIVILEGES tp = {0};
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    const BOOL looked = LookupPrivilegeValueA(NULL, "SeLockMemoryPrivilege", &tp.Privileges[0].Luid);
+    const BOOL adjusted = looked && AdjustTokenPrivileges(token, FALSE, &tp, 0, NULL, NULL);
+    const DWORD err = GetLastError();
+    CloseHandle(token);
+    if (!adjusted || err == ERROR_NOT_ALL_ASSIGNED) {
+        hos_log("mem: HOS_LARGE_PAGES: this account does not hold SeLockMemoryPrivilege (\"Lock pages in memory\"): "
+                "normal pages");
+        return NULL;
+    }
+    const SIZE_T large = GetLargePageMinimum();
+    if (!large || size % large) return NULL;
+    void *p = VirtualAlloc((void *)A64_HOST_BASE, size, MEM_RESERVE | MEM_COMMIT | MEM_LARGE_PAGES, PAGE_READWRITE);
+    if (!p) hos_log("mem: HOS_LARGE_PAGES: %llu MB of large pages not available (error %lu): normal pages",
+                    (unsigned long long)(size >> 20), GetLastError());
+    return p;
+}
+#endif
+
+#if !defined(_WIN32) && !defined(A64_MEM_ZERO)
+extern int hos_guest_memfd;   /* (below) */
+static int startup_stderr = -1;   /* (keep startup warnings visible if stderr becomes YM_log.txt) */
+#endif
+/* The guest window lives at the constant A64_HOST_BASE (rt/a64.h), so lifted code never loads its base. */
+static int reserve_guest(void) {
+#if defined(A64_MEM_ZERO)
+    hos_space_end = (uint64_t)(uintptr_t)&__global_base & ~0xFFFFULL;
+    return hos_space_end >= (1ULL << 30);
+#elif defined(_WIN32)
+    /* Committed but untouched pages cost no physical memory. Not write-watched: lifted stores and host writes mark
+       their pages themselves (the soft write watch, rt/a64.h A64_MARK), and the renderer reads those marks. */
+    if (env_on("HOS_LARGE_PAGES") && reserve_large(GUEST_SPACE) == (void *)A64_HOST_BASE) {
+        hos_large_pages = 1;
+        hos_log("mem: the guest window is in large pages (%llu MB)", (unsigned long long)(GUEST_SPACE >> 20));
+        return 1;
+    }
+    /* mkw-recomp: 512 GB reserved, committed as the runtime hands memory out (hos_commit) or on first touch */
+    void hos_commit_init(void);
+    hos_commit_init();
+    return VirtualAlloc((void *)A64_HOST_BASE, GUEST_SPACE, MEM_RESERVE, PAGE_NOACCESS) == (void *)A64_HOST_BASE;
+#else
+    /* (linux) the whole window readable and writable at once, its pages made as they are first touched (no commit
+       step: MAP_NORESERVE). Decommitting is madvise (host/posix/win32_posix.c VirtualFree): the pages read as zero. */
+    void hos_commit_init(void);
+    hos_commit_init();   /* (the crash report) */
+    /* The window is a memfd's, shared, so the Vulkan back end can hand the GPU the game's own pages as a dma-buf
+       (udmabuf, gpu/vk/vk_memory.cpp import_dma_buf) instead of a host pointer: amdgpu checks every page of a host-pointer
+       import again at each command submission, 15-45 ms a submission in Kokiri Forest. Pages of a shared mapping are freed
+       with MADV_REMOVE, not MADV_DONTNEED (hos_posix_guest_discard). HOS_GUEST_MEMFD=0: anonymous memory, as before */
+    {
+        /* (only where /dev/udmabuf can be opened: a shared mapping's pages cannot be host-pointer imports (RADV:
+           VK_ERROR_INVALID_EXTERNAL_HANDLE), so a pool udmabuf refused would be no import at all. A pool larger than udmabuf's
+           size_limit_mb (64 MB unless raised) is imported as several dma-bufs bound into one sparse buffer, so no setting is
+           needed. HOS_GUEST_MEMFD=1: the memfd all the same) */
+        const char *e = getenv("HOS_GUEST_MEMFD");
+        int usable = 0;
+        {
+            const int u = open("/dev/udmabuf", O_RDWR | O_CLOEXEC);
+            if (u < 0 && (errno == EACCES || errno == EPERM)) {
+                const int err = errno;
+                static int warned;
+                if (!warned) {
+                    warned = 1;
+                    const char *warning = "WARNING: /dev/udmabuf permission denied; GPU imports may be slower, especially on AMD/RADV. "
+                        "Ask your administrator for access via its device group or a device-specific udev rule "
+                        "(see https://YM.magicbean.dev/settings/advanced/, udmabuf). Do not run the game as root.";
+                    if (startup_stderr >= 0) dprintf(startup_stderr, "%s (%s)\n", warning, strerror(err));
+                    hos_log("%s (%s)", warning, strerror(err));
+                }
+            }
+            if (startup_stderr >= 0) close(startup_stderr), startup_stderr = -1;
+            if (u >= 0) {
+                close(u);
+                /* usable whatever size_limit_mb says: the renderer reads the limit itself and takes udmabuf's
+                   default, 64 MB, when it can't (gpu/vk/vk_memory.cpp import_dma_buf), and a limit too small only makes more
+                   dma-bufs. A Flatpak's or Steam's container shows /dev/udmabuf but not /sys/module */
+                FILE *f = fopen("/sys/module/udmabuf/parameters/size_limit_mb", "r");
+                if (f)
+                    fclose(f);
+                else
+                    hos_log("mem: udmabuf's size_limit_mb cannot be read (in a container?): its default, 64 MB, assumed");
+                usable = 1;
+            }
+            if (!usable && !e)
+                hos_log("mem: guest memory stays host-pointer imports for the GPU (slow submissions on AMD): "
+                        "/dev/udmabuf cannot be opened");
+        }
+        if (e ? !env_value_off(e) : usable) {
+            const int fd = (int)syscall(SYS_memfd_create, "YM-guest", 1u /* MFD_CLOEXEC */ | 2u /* MFD_ALLOW_SEALING */);
+            if (fd >= 0 && ftruncate(fd, (off_t)GUEST_SPACE) == 0) {
+                fcntl(fd, 1033 /* F_ADD_SEALS */, 0x0002 /* F_SEAL_SHRINK */ | 0x0004 /* F_SEAL_GROW */);
+                void *p = mmap((void *)A64_HOST_BASE, GUEST_SPACE, PROT_READ | PROT_WRITE,
+                               MAP_SHARED | MAP_FIXED_NOREPLACE | MAP_NORESERVE, fd, 0);
+                if (p == (void *)A64_HOST_BASE) {
+                    hos_guest_memfd = fd;
+                    hos_log("mem: the guest window is a memfd's (%d), shared with the GPU as dma-bufs", fd);
+                    return 1;
+                }
+                if (p != MAP_FAILED) munmap(p, GUEST_SPACE);
+            }
+            if (fd >= 0) close(fd);
+            hos_log("mem: no memfd for the guest window (errno %d): anonymous memory", errno);
+        }
+    }
+    if (mmap((void *)A64_HOST_BASE, GUEST_SPACE, PROT_READ | PROT_WRITE,
+             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE | MAP_NORESERVE, -1, 0) != (void *)A64_HOST_BASE)
+        return 0;
+    /* no transparent huge pages in the guest window: the renderer imports its pools as userptr memory, and every
+       collapse khugepaged makes in them changes their mappings, which the kernel answers by pinning the pages again at the
+       next submission: ~250 ms a submit on RADV while the GPU sits idle. HOS_THP=1: allowed */
+    if (!env_on("HOS_THP")) madvise((void *)A64_HOST_BASE, GUEST_SPACE, MADV_NOHUGEPAGE);
+#ifdef __linux__
+    /* (HOS_NO_THP=1, experiment: none outside the window either. With THP "always" 400-450 MB of the host heap's and the binary's bss are huge
+       pages, each resident whole when any of its 2 MB is touched) */
+    if (env_on("HOS_NO_THP")) prctl(PR_SET_THP_DISABLE, 1, 0, 0, 0);
+#endif
+    return 1;
+#endif
+}
+
+#if !defined(_WIN32) && !defined(A64_MEM_ZERO)
+/* the guest window's memfd for the Vulkan back end (-1: anonymous memory), and freeing guest pages so that
+   they read as zero again on either kind of mapping */
+int hos_guest_memfd = -1;
+int hos_posix_guest_memfd(void) { return hos_guest_memfd; }
+int hos_posix_guest_discard(void *p, size_t n) {
+    return madvise(p, n, hos_guest_memfd >= 0 ? MADV_REMOVE : MADV_DONTNEED);
+}
+#endif
+
+/* The guest window, for the renderer (MkwVkHost.guest_base and guest_size, host/rx_backend.c). */
+uint8_t *hos_guest_base(void) { return A64_MEM; }
+uint64_t hos_guest_size(void) { return GUEST_SPACE; }
+
+/* Call guest code at `addr` as a fresh call from the top of the main thread's stack, with whatever arguments the
+   caller put in x0-x7 (call_guest clears x0 and x1 first; call_guest_args keeps them). */
+static void call_guest_args(Ctx *c, uint64_t addr, uint64_t sp, const char *what) {
+    A64Fn f = a64_lookup(addr);
+    if (!addr || !f) hos_fatal(c, "%s: no function at %#llx", what, (unsigned long long)addr);
+    hos_log("boot: %s (%#llx)", what, (unsigned long long)addr);
+    c->x[30] = 0;
+    c->x[31] = sp;
+    void hos_mem_checkpoint(const char *what);
+    hos_mem_checkpoint(what);
+    f(c);
+}
+static void call_guest(Ctx *c, uint64_t addr, uint64_t sp, const char *what) {
+    c->x[0] = c->x[1] = 0;
+    call_guest_args(c, addr, sp, what);
+}
+
+/* (YM) Saves live outside the game folder, so a rebuilt or updated game folder still finds them: on Linux in
+   $XDG_DATA_HOME/YM (~/.local/share/YM); on Windows in %APPDATA%\YM, the folder the YM Launcher gives
+   every build as --user (YMLauncher Core/Saves.cs YMRoot), so a game started by itself (RecompLauncher, a shortcut)
+   keeps the same saves. The settings stay where options_path.c puts them (the game folder's YM_options.ini, which
+   RecompLauncher writes, when there is no --user).
+   A user/ folder beside the executable from before is moved there the first time, entry by entry: each copied whole into the
+   new place, then all renamed to their names, then the move committed, and only then the old entries deleted, so a start cut
+   at any point (the PC lost power, the game killed) leaves every save in the place the next start uses (see SAVES_MOVING).
+   Anything that cannot be moved keeps the old place, and so does any entry of the same name the new place has already (a
+   launcher's saves there: the two are never mixed). --user still wins.
+   (linux) A symbolic link in it, to saves the player keeps elsewhere (a synced folder, another drive), is made again in the
+   new place, to the same folder, and never entered. It was moved as it stood, and one written from where it stood
+   ("../../saves") then named nothing; from another drive it was copied as the folder it names and delete_tree emptied
+   that folder, which is not YM's: the next start found the link still here, kept the old place, and showed no
+   saves. A user/ that is a link itself is the player's choice of place, and is used as it is. (Windows) A user\ that is a
+   link or a junction is used as it is too; one in it is not made again, so the old place keeps every entry. */
+static int is_dir(const char *p) {
+    const DWORD a = GetFileAttributesA(p);
+    return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_DIRECTORY);
+}
+static int is_link(const char *p) {
+#ifdef _WIN32
+    /* (a symbolic link or a junction: on Windows the move does not make one again, and an entry that has one stays, with the
+       rest: see saves_dir) */
+    const DWORD a = GetFileAttributesA(p);
+    return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_REPARSE_POINT);
+#else
+    struct stat st;
+    return lstat(p, &st) == 0 && S_ISLNK(st.st_mode);
+#endif
+}
+#ifdef _WIN32
+static int copy_link(const char *from, const char *to) { (void)from, (void)to; return 0; }   /* (never reached: has_link keeps it) */
+#else
+static const char *move_old, *move_from, *move_new;   /* (the user folder on the move, as realpath names it and as given, and the new place) */
+static int moved_to(char *target, const char *dir) {   /* (a target under dir: named where it will be) */
+    char there[HOS_PATH_CAP];
+    const size_t n = dir && dir[0] == SEP ? strlen(dir) : 0;
+    if (!n || strncmp(target, dir, n) || target[n] != SEP) return 0;
+    snprintf(there, sizeof there, "%s%s", move_new, target + n);
+    snprintf(target, HOS_PATH_CAP, "%s", there);
+    return 1;
+}
+static int copy_link(const char *from, const char *to) {   /* (to what it names, in full; one that names nothing: as written) */
+    char target[HOS_PATH_CAP];
+    if (!realpath(from, target)) {
+        const ssize_t n = readlink(from, target, sizeof target - 1);
+        if (n < 0) return 0;
+        target[n] = 0;
+    }
+    /* (to an entry that moves too: where it will be. One whose entry went first names nothing by now, so its text is
+       checked too: else it named the old place, and only when the folder listed it before the entry) */
+    if (!moved_to(target, move_old)) moved_to(target, move_from);
+    return symlink(target, to) == 0;
+}
+#endif
+#ifdef _WIN32   /* (an entry with a link in it: not moved on Windows, see saves_dir) */
+static int has_link(const char *p) {
+    if (is_link(p)) return 1;
+    if (!is_dir(p)) return 0;
+    char pattern[HOS_PATH_CAP];
+    snprintf(pattern, sizeof pattern, "%s" SEP_S "*", p);
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    int found = 0;
+    if (h != INVALID_HANDLE_VALUE) {
+        do {
+            if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..")) continue;
+            char a[HOS_PATH_CAP];
+            snprintf(a, sizeof a, "%s" SEP_S "%s", p, fd.cFileName);
+            found = has_link(a);
+        } while (!found && FindNextFileA(h, &fd));
+        FindClose(h);
+    }
+    return found;
+}
+#endif
+static int copy_tree(const char *from, const char *to) {
+    if (is_link(from)) return copy_link(from, to);
+    if (!is_dir(from)) {
+        return hos_atomic_copy_file(from, to);   /* (each file whole under its name, or not there) */
+    }
+    if (!CreateDirectoryA(to, NULL) && !is_dir(to)) return 0;
+    char pattern[HOS_PATH_CAP];
+    snprintf(pattern, sizeof pattern, "%s" SEP_S "*", from);
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    int ok = 1;
+    if (h != INVALID_HANDLE_VALUE) {
+        do {
+            if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..")) continue;
+            char a[HOS_PATH_CAP], b[HOS_PATH_CAP];
+            snprintf(a, sizeof a, "%s" SEP_S "%s", from, fd.cFileName);
+            snprintf(b, sizeof b, "%s" SEP_S "%s", to, fd.cFileName);
+            ok = copy_tree(a, b);
+        } while (ok && FindNextFileA(h, &fd));
+        FindClose(h);
+    }
+    return ok;
+}
+static void delete_tree(const char *p) {
+    if (!is_dir(p) || is_link(p)) {   /* (a link goes; what it names stays) */
+        DeleteFileA(p);
+        return;
+    }
+    char pattern[HOS_PATH_CAP];
+    snprintf(pattern, sizeof pattern, "%s" SEP_S "*", p);
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    if (h != INVALID_HANDLE_VALUE) {
+        do {
+            if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..")) continue;
+            char a[HOS_PATH_CAP];
+            snprintf(a, sizeof a, "%s" SEP_S "%s", p, fd.cFileName);
+            delete_tree(a);
+        } while (FindNextFileA(h, &fd));
+        FindClose(h);
+    }
+    RemoveDirectoryA(p);
+}
+static int save_work_pending(const char *beside) {
+    char pattern[HOS_PATH_CAP];
+    if (snprintf(pattern, sizeof pattern, "%s" SEP_S "save-work" SEP_S "*.journal", beside) >= (int)sizeof pattern) return 1;
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    if (h != INVALID_HANDLE_VALUE) { FindClose(h); return 1; }
+    const DWORD e = GetLastError();
+    return e != ERROR_FILE_NOT_FOUND && e != ERROR_PATH_NOT_FOUND;
+}
+/* (YM) The move's own names in the new place: an entry copied under ".moving-<name>" until it is whole, then renamed to
+   its name; the names of one move (".moving-names") while it renames them in, renamed ".moved-names" once all are in: the
+   move's commit, after which the old place's entries of those names are deleted. A start that finds ".moved-names" finishes
+   that deletion and uses the new place; one that finds ".moving-names" takes the copies it names out of the new place (the
+   old place still has every entry), and every ".moving-*" left by a cut copy goes. A cut start never leaves the saves in
+   neither place, nor in both with the old place used. */
+#define SAVES_MOVING ".moving-"
+#define SAVES_MOVING_LIST ".moving-names"
+#define SAVES_MOVED_LIST ".moved-names"
+static int saves_list_path(char *out, size_t cap, const char *dir, const char *name) {
+    return snprintf(out, cap, "%s" SEP_S "%s", dir, name) < (int)cap;
+}
+/* (the names of a list, each on its line: fn(arg, name) for each; 0 when it cannot be read) */
+static int saves_each_listed(const char *list, void (*fn)(void *, const char *), void *arg) {
+    FILE *f = fopen(list, "rb");
+    if (!f) return 0;
+    char line[HOS_PATH_CAP];
+    while (fgets(line, sizeof line, f)) {
+        line[strcspn(line, "\r\n")] = 0;
+        if (line[0] && strcmp(line, ".") && strcmp(line, "..") && !strchr(line, '/') && !strchr(line, '\\')) fn(arg, line);
+    }
+    fclose(f);
+    return 1;
+}
+struct saves_pair { const char *old_place, *new_place; int left; };
+static void saves_delete_old(void *arg, const char *name) {   /* (committed: the old place's entry goes) */
+    struct saves_pair *p = (struct saves_pair *)arg;
+    char a[HOS_PATH_CAP];
+    if (snprintf(a, sizeof a, "%s" SEP_S "%s", p->old_place, name) >= (int)sizeof a) return;
+    delete_tree(a);
+    HOS_AF_STEP("saves: an old entry deleted");
+    p->left += GetFileAttributesA(a) != INVALID_FILE_ATTRIBUTES || is_link(a);
+}
+static void saves_undo_copy(void *arg, const char *name) {   /* (not committed: the copy goes, where the old place still has it) */
+    struct saves_pair *p = (struct saves_pair *)arg;
+    char a[HOS_PATH_CAP], b[HOS_PATH_CAP];
+    if (snprintf(a, sizeof a, "%s" SEP_S "%s", p->old_place, name) >= (int)sizeof a ||
+        snprintf(b, sizeof b, "%s" SEP_S "%s", p->new_place, name) >= (int)sizeof b)
+        return;
+    if (GetFileAttributesA(a) != INVALID_FILE_ATTRIBUTES || is_link(a)) delete_tree(b);
+}
+static void saves_clear_moving(const char *dir) {   /* (every .moving-* a cut copy left) */
+    char pattern[HOS_PATH_CAP];
+    if (snprintf(pattern, sizeof pattern, "%s" SEP_S SAVES_MOVING "*", dir) >= (int)sizeof pattern) return;
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    if (h == INVALID_HANDLE_VALUE) return;
+    do {
+        char a[HOS_PATH_CAP];
+        if (strncmp(fd.cFileName, SAVES_MOVING, strlen(SAVES_MOVING))) continue;   /* (the posix layer's pattern is loose) */
+        if (snprintf(a, sizeof a, "%s" SEP_S "%s", dir, fd.cFileName) < (int)sizeof a) delete_tree(a);
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+}
+/* (an entry, a folder most often, renamed to its name in the new place, on the disk once done: hos_af_move's
+   MOVEFILE_REPLACE_EXISTING is a file's alone on Windows, and none is there to replace) */
+static int saves_rename(const char *from, const char *to) {
+    HOS_AF_STEP("saves: an entry renamed: before");
+    if (!MoveFileExA(from, to, MOVEFILE_WRITE_THROUGH)) return 0;
+#ifndef _WIN32
+    hos_af_sync_folder(to);
+#endif
+    HOS_AF_STEP("saves: an entry renamed: after");
+    return 1;
+}
+static const char *saves_dir(const char *beside) {
+    static char dir[HOS_PATH_CAP];
+    if (is_link(beside)) return beside;
+    /* (a pending journal belongs with C; let the next save mount finish recovery before moving C) */
+    if (save_work_pending(beside)) return beside;
+#ifdef _WIN32
+    /* (Windows: %APPDATA%\YM itself, as the launcher has it; an APPDATA that is no full path: the old place) */
+    const char *appdata = getenv("APPDATA");
+    if (!appdata || !appdata[0] || !(appdata[1] == ':' || (appdata[0] == '\\' && appdata[1] == '\\')) ||
+        snprintf(dir, sizeof dir, "%s\\YM", appdata) >= (int)sizeof dir)
+        return beside;
+    CreateDirectoryA(dir, NULL);
+#else
+    const char *xdg = getenv("XDG_DATA_HOME"), *home = getenv("HOME");
+    if (xdg && xdg[0] == '/') snprintf(dir, sizeof dir, "%s", xdg);
+    else if (home && home[0] == '/') {
+        snprintf(dir, sizeof dir, "%s/.local", home);
+        CreateDirectoryA(dir, NULL);
+        snprintf(dir, sizeof dir, "%s/.local/share", home);
+    } else return beside;
+    CreateDirectoryA(dir, NULL);
+    snprintf(dir + strlen(dir), sizeof dir - strlen(dir), "/YM");
+    CreateDirectoryA(dir, NULL);
+#endif
+    if (GetFileAttributesA(dir) == INVALID_FILE_ATTRIBUTES) return beside;
+    char moving[HOS_PATH_CAP], moved_list[HOS_PATH_CAP];
+    if (!saves_list_path(moving, sizeof moving, dir, SAVES_MOVING_LIST) || !saves_list_path(moved_list, sizeof moved_list, dir, SAVES_MOVED_LIST))
+        return beside;
+    struct saves_pair pair = {beside, dir, 0};
+    /* (a move that committed, cut before the old place's entries were all deleted: the new place is the saves' place) */
+    if (GetFileAttributesA(moved_list) != INVALID_FILE_ATTRIBUTES) {
+        saves_each_listed(moved_list, saves_delete_old, &pair);
+        if (!pair.left) DeleteFileA(moved_list), RemoveDirectoryA(beside);
+        else hos_log("saves: %d of %s's moved entries could not be deleted yet: tried again at the next start", pair.left, beside);
+        saves_clear_moving(dir);
+        return dir;
+    }
+    /* (a move cut before its commit: its copies out of the new place, the old place has every entry) */
+    if (saves_each_listed(moving, saves_undo_copy, &pair)) DeleteFileA(moving);
+    saves_clear_moving(dir);
+    char pattern[HOS_PATH_CAP];
+    snprintf(pattern, sizeof pattern, "%s" SEP_S "*", beside);
+#ifndef _WIN32   /* (copy_link's: Linux only) */
+    char real[HOS_PATH_CAP];
+    move_old = realpath(beside, real), move_from = beside, move_new = dir;
+#endif
+    /* (looked at first, then copied: with an entry the new place has already, the old place is kept, and it keeps them all.
+       Each entry is copied whole under ".moving-<name>"; none is renamed out of the old place, which keeps every entry until
+       the commit. One that cannot go (a copy that fails: a full disk) keeps the old place, and the copies go) */
+    char **names = NULL;
+    size_t n_names = 0, renamed = 0, text_len = 0;
+    int kept = 0;
+    for (int copy = 0; copy < 2 && !kept; copy++) {
+        WIN32_FIND_DATAA fd;
+        HANDLE h = FindFirstFileA(pattern, &fd);
+        if (h == INVALID_HANDLE_VALUE) return dir;
+        do {
+            if (!strcmp(fd.cFileName, ".") || !strcmp(fd.cFileName, "..") || !strcmp(fd.cFileName, "save-work") || kept) continue;
+            char from[HOS_PATH_CAP], to[HOS_PATH_CAP];
+            if (snprintf(from, sizeof from, "%s" SEP_S "%s", beside, fd.cFileName) >= (int)sizeof from ||
+                snprintf(to, sizeof to, "%s" SEP_S SAVES_MOVING "%s", dir, fd.cFileName) >= (int)sizeof to ||
+                strchr(fd.cFileName, '\n') || strchr(fd.cFileName, '\r')) {
+                kept++;
+                continue;
+            }
+            if (!copy) {
+                char there[HOS_PATH_CAP];
+                snprintf(there, sizeof there, "%s" SEP_S "%s", dir, fd.cFileName);
+                kept += GetFileAttributesA(there) != INVALID_FILE_ATTRIBUTES || is_link(there);
+                continue;
+            }
+            void *more = realloc(names, (n_names + 1) * sizeof *names);
+            char *name = more ? _strdup(fd.cFileName) : NULL;
+            if (more) names = (char **)more;
+            if (!name) kept++;
+#ifdef _WIN32
+            else if (has_link(from)) free(name), kept++;   /* (a link is not made again on Windows: the old place keeps all) */
+#endif
+            else if (copy_tree(from, to)) names[n_names++] = name, text_len += strlen(name) + 1;
+            else delete_tree(to), free(name), kept++;
+            HOS_AF_STEP("saves: an entry copied");
+        } while (FindNextFileA(h, &fd));
+        FindClose(h);
+    }
+    /* (the names of this move, then each copy renamed to its name, then the commit) */
+    if (!kept) {
+        char *text = (char *)malloc(text_len + 1);
+        size_t at = 0;
+        for (size_t i = 0; text && i < n_names; i++) at += (size_t)sprintf(text + at, "%s\n", names[i]);
+        if (!text || !hos_atomic_write(moving, text ? text : "", at)) kept++;
+        free(text);
+    }
+    for (size_t i = 0; i < n_names && !kept; i++) {
+        char from[HOS_PATH_CAP], to[HOS_PATH_CAP];
+        snprintf(from, sizeof from, "%s" SEP_S SAVES_MOVING "%s", dir, names[i]);
+        snprintf(to, sizeof to, "%s" SEP_S "%s", dir, names[i]);
+        if (saves_rename(from, to)) renamed++;
+        else kept++;
+    }
+    if (!kept && !hos_af_move(moving, moved_list)) kept++;
+    if (kept) {
+        for (size_t i = 0; i < n_names; i++) {
+            char a[HOS_PATH_CAP];
+            snprintf(a, sizeof a, "%s" SEP_S "%s%s", dir, i < renamed ? "" : SAVES_MOVING, names[i]);
+            delete_tree(a);
+        }
+        DeleteFileA(moving);
+    }
+    for (size_t i = 0; i < n_names; i++) free(names[i]);
+    free(names);
+    if (kept) {
+        hos_log("saves: %d of %s's entries could not go to %s: the saves stay in %s", kept, beside, dir, beside);
+        return beside;
+    }
+    /* (committed: the old place's entries go; one that cannot is deleted at the next start) */
+    saves_each_listed(moved_list, saves_delete_old, &pair);
+    if (!pair.left) DeleteFileA(moved_list);
+    RemoveDirectoryA(beside);
+    if (n_names) {
+        char note[HOS_PATH_CAP];
+        const char *sep = strrchr(beside, SEP);
+        snprintf(note, sizeof note, "%.*s" SEP_S "saves-moved.txt", sep ? (int)(sep - beside) : 0, beside);
+        char text[HOS_PATH_CAP + 160];
+        const int n = snprintf(text, sizeof text, "YM's saves are now in\n%s\n\nThey moved there from the user folder that was here.\n", dir);
+        if (n > 0 && (size_t)n < sizeof text) hos_atomic_write(note, text, (size_t)n);
+        hos_log("saves: moved from %s to %s", beside, dir);
+    }
+    return dir;
+}
+
+/* (YM) What a write of a setting that a kill cut left (host/hos_atomic_file.h), at the start, before the game reads any
+   setting: a "<name>.hosnew" beside the setting. language.txt is the game folder's; mouse_sens.txt is the user folder's; the
+   settings file is where options_path.c chose it (the profile's settings.ini, else the game folder's): the options'
+   one-time copy into the profile leaves its stand-in there. */
+static void recover_writes(void) {
+    char path[HOS_PATH_CAP];
+    const DWORD len = hos_game_path_a(path, HOS_PATH_CAP);
+    char *slash = len ? strrchr(path, SEP) : NULL;
+    if (slash) {
+        snprintf(slash + 1, (size_t)(path + HOS_PATH_CAP - slash - 1), "language.txt");
+        hos_atomic_remove_stale(path);
+    }
+    if (hos_options_file()[0]) hos_atomic_remove_stale(hos_options_file());
+    snprintf(path, sizeof path, "%s" SEP_S "mouse_sens.txt", hos_user_dir);
+    hos_atomic_remove_stale(path);
+}
+
+/* YM_env.txt beside the game: NAME=VALUE lines set as environment variables before anything reads them, for the
+   switches players are asked to test (RX_VK_NOOPT and the rest). Lines starting with # are notes. On Linux this runs
+   before the window, so HOS_HEADLESS and HOS_WINDOW_SIZE are already set when the window is made.
+   HOS_ENV_FILE=<path> reads that file instead: a scripted or A/B test run brings its own switches and leaves the
+   player's YM_env.txt as it is.
+   (YM) YM_env.txt is a file players pass around, so it sets only the game's own switches (RX_, HOS_,
+   YM_, EDEN_, NVN_ and SDL_ names), never HOS_ENV_FILE, HOS_CONTROL_PEER_SID or SDL's library override, and no
+   value that is a path but RX_VK_DLSS_DIR's: the system's variables (the Vulkan loader's layers, PATH and the like) can
+   load code, and the dump switches write files where they name. The file HOS_ENV_FILE names sets anything. */
+static int env_line_allowed(const char *name, const char *value) {
+    static const char *const prefixes[] = {"RX_", "HOS_", "YM_", "EDEN_", "NVN_", "SDL_"};
+    int ok = 0;
+    for (size_t i = 0; i < sizeof prefixes / sizeof *prefixes; i++) ok |= !strncmp(name, prefixes[i], strlen(prefixes[i]));
+    if (!ok || !strcmp(name, "HOS_ENV_FILE") || !strcmp(name, "SDL_DYNAMIC_API")) return 0;
+    /* (YM) nor HOS_CONTROL_PEER_SID: it lets one more account into the control bridge's pipe (host/control.c), so a
+       shared file would let another user of this PC steer the game and read its memory. The environment still sets it */
+    if (!strcmp(name, "HOS_CONTROL_PEER_SID")) return 0;
+    /* (YM) nor the libraries SDL loads by name (SDL_VULKAN_LIBRARY, SDL_OPENGL_LIBRARY, SDL_VIDEO_GL_DRIVER,
+       SDL_VIDEO_EGL_DRIVER...): a bare file name is looked for beside the game and in the current folder on Windows */
+    if (!strncmp(name, "SDL_", 4) && (strstr(name, "_LIB") || strstr(name, "GL_DRIVER"))) return 0;
+    for (const char *p = name; *p; p++)
+        if (!((*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')) return 0;
+    /* (YM) the switches that name a file to write or a folder take no value here, not even a bare name: one
+       resolves in the game's folder (HOS_SAMPLE_FILE=YM_vk.dll emptied the renderer) */
+    const size_t nl = strlen(name);
+    int names_file = (nl > 5 && (!strcmp(name + nl - 5, "_FILE") || !strcmp(name + nl - 4, "_DIR"))) ||
+                     !strcmp(name, "RX_VK_FRAME_LOG") || !strcmp(name, "HOS_PRESENT_TRACE");
+    /* (YM) and the test switches whose value is a file or folder under another name (HOS_AUDIO_DUMP=image.bin
+       overwrote the game's image), or that press buttons and menu keys on a timer (a shared file erased a save from
+       the file select) */
+    static const char *const by_name[] = {
+        "HOS_AUDIO_DUMP", "HOS_AUDIO_WB_DUMP", "HOS_SHADER_DUMP", "HOS_FS_OVERLAY", "HOS_MODS", "HOS_INPUT_LIVE",
+        "HOS_INPUT_SCRIPT", "HOS_SAMPLE_ALL", "HOS_SLOW_FRAMES", "HOS_CHAIN", "HOS_WATCH", "HOS_CRASH_TEST", "YM_BUILDER_HOME",
+        "YM_BUILDER_CHANNEL", "YM_DEV_MODS", "YM_PROFILE", "YM_SHADER_CACHE",
+        "RX_VK_SHOTS", "RX_VK_SHOT_GO",
+        "RX_VK_FRAMELOG", "RX_VK_HANG_DUMP", "RX_VK_DUMP", "RX_VK_DUMP_SPV", "RX_VK_DUMP_MESH_SPV", "RX_VK_DUMP_STAGES",
+        "RX_VK_DUMP_FAILED", "RX_VK_IR", "RX_VK_MENU_SCRIPT"};
+    for (size_t i = 0; i < sizeof by_name / sizeof *by_name; i++) names_file |= !strcmp(name, by_name[i]);
+    /* RX_VK_DLSS_DIR: a folder on this PC, not a share (\\server\x or //server/x) or a device path */
+    if (!strcmp(name, "RX_VK_DLSS_DIR"))
+        return !((value[0] == '\\' || value[0] == '/') && (value[1] == '\\' || value[1] == '/'));
+    if (names_file) return 0;
+    const int drive = ((value[0] | 0x20) >= 'a' && (value[0] | 0x20) <= 'z' && value[1] == ':');
+    return !strpbrk(value, "/\\") && !drive && value[0] != '~' && strcmp(value, ".") && strcmp(value, "..");
+}
+static void load_YM_env(void) {
+    char path[HOS_PATH_CAP + 32];
+    const char *other = getenv("HOS_ENV_FILE");
+    if (other && *other) {
+        snprintf(path, sizeof path, "%s", other);
+    } else {
+        DWORD n = hos_game_path_a(path, HOS_PATH_CAP);
+        while (n && path[n - 1] != 92 && path[n - 1] != 47) n--;
+        memcpy(path + n, "YM_env.txt", 11);
+    }
+    FILE *f = fopen(path, "r");
+    if (!f) return;
+    /* The environment the game was started with wins over the file: a switch set for one launch (HOS_FULLSCREEN=0 in a
+       shell, a script's RX_VK_PACE=1) beats the same name saved in the file. The file's own later lines still replace its
+       earlier ones: the names it set are kept here (for the whole run: a second read sets them again), so they are not taken
+       for the environment's */
+    static char from_file[256][128];   /* (names of up to 127 characters; a file with more names than this has its later
+                                          lines for the names past it taken as the environment's, logged as left out) */
+    static int from_file_n;
+    char line[512];
+    while (fgets(line, sizeof line, f)) {
+        char *s = line;
+        if ((unsigned char)s[0] == 0xEF && (unsigned char)s[1] == 0xBB && (unsigned char)s[2] == 0xBF) s += 3;   /* (Notepad's BOM) */
+        while (*s == ' ' || *s == 9) s++;
+        size_t len = strlen(s);
+        while (len && (s[len - 1] == 10 || s[len - 1] == 13 || s[len - 1] == ' ' || s[len - 1] == 9)) s[--len] = 0;
+        if (!len || *s == '#' || !strchr(s, '=')) continue;
+        char *eq = strchr(s, '=');
+        *eq = 0;
+        /* a note after the value ("HOS_AUDIO=0  # mute"): cut at a '#' that follows a space or a tab, and the spaces
+           before it, so the note is not read as part of the value (where 0 once read as off, "0  # mute" would read
+           as on) */
+        for (char *v = eq + 1; *v; v++)
+            if (*v == '#' && v > eq + 1 && (v[-1] == ' ' || v[-1] == 9)) {
+                *v = 0;
+                while (v > eq + 1 && (v[-1] == ' ' || v[-1] == 9)) *--v = 0;
+                break;
+            }
+        if (!(other && *other) && !env_line_allowed(s, eq + 1)) {
+            fprintf(stderr, "env: YM_env.txt: %s left out (only the game's switches, and no paths, are taken from it)\n", s);
+            continue;
+        }
+        int ours = 0;
+        for (int i = 0; i < from_file_n && !ours; i++) ours = !strcmp(from_file[i], s);
+        if (!ours && getenv(s)) {
+            fprintf(stderr, "env: %s: %s left out (set in the environment, which goes first)\n",
+                    other && *other ? "HOS_ENV_FILE" : "YM_env.txt", s);
+            continue;
+        }
+        if (!ours && from_file_n < (int)(sizeof from_file / sizeof *from_file) && strlen(s) < sizeof from_file[0])
+            strcpy(from_file[from_file_n++], s);
+#ifdef _WIN32
+        *eq = '=';
+        _putenv(s);
+#else
+        setenv(s, eq + 1, 1);
+#endif
+    }
+    fclose(f);
+}
+
+/* Switches this build no longer reads, still set (in the environment or YM_env.txt, as older issues told players):
+   one log line each, naming what took its place, so a bug report shows the switch did nothing. Only the names of
+   another family are left here: a removed RX_ or HOS_ switch is a GONE row of gpu/vk/switches.def, said by the
+   renderer's start (switches.h) */
+static void removed_switch_notes(void) {
+    static const char *const gone[][2] = {
+        {"TOTK_MINIMAL_LAYOUT", NULL},
+    };
+    for (size_t i = 0; i < sizeof gone / sizeof *gone; i++)
+        if (getenv(gone[i][0])) {
+            if (gone[i][1]) hos_log("env: %s is no longer read: use %s", gone[i][0], gone[i][1]);
+            else hos_log("env: %s is no longer read: it does nothing", gone[i][0]);
+        }
+}
+
+
+float hos_aspect_ratio = 0;   /* (the window's default shape: host/display.c) */
+/* (game/oot_wide_sites.c) read by the widescreen hook sites in the game's code; 0: the game's own 16:9 */
+volatile uint64_t hos_wide_out, hos_wide_scene;
+volatile float hos_wide_ratio, hos_wide_squeeze, hos_wide_margin;
+int hos_camera_trace_enabled(void) {
+    FILE *marker = fopen("camera-clearance.trace", "rb");
+    if (!marker) return 0;
+    fclose(marker);
+    return 1;
+}
+volatile uint32_t hos_wide_keep_mask = 0x1f;   /* (game/oot_wide_sites.c WIDE_KEEP_*: the screens that keep the whole picture, a bit each; MkwVkHost.wide_menus) */
+/* Swap can keep a small Linux PC from running out of backing storage without keeping it responsive.
+   Warn below the existing 10 GiB floor in physical RAM there too; this is not a promise that 10 GiB is enough.
+   The game starts anyway, and headless runs only log the warning. Windows keeps its commit-limit check. */
+#define HOS_MEMORY_NEEDED_MB 10240ull
+static int memory_notice_text(unsigned long long ram_mb, unsigned long long swap_mb, char *out, size_t cap) {
+#if defined(__linux__) && !defined(_WIN32)
+    if (ram_mb < HOS_MEMORY_NEEDED_MB) {
+        snprintf(out, cap,
+                 "This PC has %.1f GiB of RAM and %.1f GiB of swap. YM recommends 16 GB of RAM or more; "
+                 "the game alone can use more than 13 GiB.\n\n"
+                 "Swap can prevent an out-of-memory exit, but heavy swapping can make the game and desktop unresponsive. "
+                 "Close other programs before playing. More swap is not a replacement for RAM. The game starts anyway.",
+                 ram_mb / 1024.0, swap_mb / 1024.0);
+        return 1;
+    }
+#endif
+    if (ram_mb + swap_mb >= HOS_MEMORY_NEEDED_MB) return 0;
+    snprintf(out, cap,
+             "This PC has %.1f GB of memory and %.1f GB of swap (the page file on Windows). The game needs about %llu GB of the "
+             "two together; with less it can close by itself while it loads.\n\nClose other programs, or add swap (on Windows: "
+             "let it manage the page file's size), then start the game again. It starts now anyway.",
+             ram_mb / 1024.0, swap_mb / 1024.0, HOS_MEMORY_NEEDED_MB / 1024);
+    return 1;
+}
+#ifndef A64_MEM_ZERO
+static void memory_notice(void) {
+    unsigned long long ram = 0, swap = 0;   /* (MB) */
+#ifdef _WIN32
+    MEMORYSTATUSEX m = {sizeof m};
+    if (!GlobalMemoryStatusEx(&m)) return;
+    ram = m.ullTotalPhys >> 20;
+    swap = m.ullTotalPageFile > m.ullTotalPhys ? (m.ullTotalPageFile - m.ullTotalPhys) >> 20 : 0;   /* (the commit limit: RAM and page file) */
+#elif defined(__linux__)
+    struct sysinfo si;
+    if (sysinfo(&si)) return;
+    ram = ((unsigned long long)si.totalram * si.mem_unit) >> 20, swap = ((unsigned long long)si.totalswap * si.mem_unit) >> 20;
+#else
+    return;
+#endif
+    char text[512];
+    if (!memory_notice_text(ram, swap, text, sizeof text)) {
+        hos_log("boot: %llu MB of memory, %llu MB of swap", ram, swap);
+        return;
+    }
+#if defined(__linux__) && !defined(_WIN32)
+    hos_log("boot: LOW MEMORY: %llu MB of memory, %llu MB of swap; below %llu MB of physical RAM: heavy swapping can make "
+            "the game and desktop unresponsive (16 GB RAM or more recommended)", ram, swap, HOS_MEMORY_NEEDED_MB);
+#else
+    hos_log("boot: LOW MEMORY: %llu MB of memory, %llu MB of swap, below the ~%llu MB the game needs", ram, swap, HOS_MEMORY_NEEDED_MB);
+#endif
+    if (env_on("HOS_HEADLESS")) return;
+#ifndef _WIN32
+    int hos_sdl_load(void);
+    hos_sdl_load();   /* (host/posix MessageBoxA shows it through the SDL already loaded) */
+#endif
+    MessageBoxA(NULL, text, "YM", MB_OK | MB_ICONWARNING);
+}
+#endif
+/* (YM, linux) What driver_env_choose did with the driver's environment, said again in the game's own log once it is open
+   (it runs before, when stderr is still the launcher's) */
+static char driver_env_said[1024];
+static void driver_env_log(void) {
+    if (driver_env_said[0]) hos_log("%s", driver_env_said);
+}
+/* (YM) The profile's start slot (host/YM_profile.h): with YM_PROFILE, its profile.json's start_slot
+   handed on to the game's side as HOS_START_SLOT (0-99), the slot the run starts on. The profile is its one source: a
+   HOS_START_SLOT the environment or YM_env.txt brought is taken away first, so the run starts on the profile's slot
+   or on none. Set before anything reads it (after YM_env.txt); the log says what it did once it is open
+   (profile_note_log). The pressing is the Skip title mod's (the Mod API's) */
+static char profile_note[512];
+static void profile_start_slot(void) {
+    const char *profile = getenv(YM_PROFILE);
+    char path[HOS_PATH_CAP];
+#ifdef _WIN32
+    SetEnvironmentVariableA("HOS_START_SLOT", NULL);
+    _putenv("HOS_START_SLOT=");
+#else
+    unsetenv("HOS_START_SLOT");
+#endif
+    if (!YM_profile_file(profile, SEP, path, sizeof path)) return;
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        snprintf(profile_note, sizeof profile_note, "profile: %s (no %s: no start slot)", profile, YM_PROFILE_FILE);
+        return;
+    }
+    static char text[YM_PROFILE_FILE_MAX];
+    const size_t n = fread(text, 1, sizeof text, f);
+    fclose(f);
+    int slot = -1;
+    const char *why = NULL;
+    const int got = n < sizeof text ? YM_profile_start_slot(text, n, &slot, &why) : (why = "it is too large", -2);
+    if (got == 1) {
+        char set[32];
+        snprintf(set, sizeof set, "%d", slot);
+#ifdef _WIN32
+        SetEnvironmentVariableA("HOS_START_SLOT", set);
+        char put[64];
+        snprintf(put, sizeof put, "HOS_START_SLOT=%s", set);
+        _putenv(put);
+#else
+        setenv("HOS_START_SLOT", set, 1);
+#endif
+        snprintf(profile_note, sizeof profile_note, "profile: %s; its start slot slot_%02d (HOS_START_SLOT=%d)", profile,
+                 slot, slot);
+    } else if (got == 0)
+        snprintf(profile_note, sizeof profile_note, "profile: %s (no start slot)", profile);
+    else
+        snprintf(profile_note, sizeof profile_note, "profile: %s: %s %s: no start slot taken (the run starts as it would "
+                 "without)", profile, got == -1 ? "its start_slot:" : YM_PROFILE_FILE ":", why);
+}
+static void profile_note_log(void) {
+    if (profile_note[0]) hos_log("%s", profile_note);
+}
+#ifdef _WIN32
+/* (YM) On laptops with two GPUs, the drivers run a program on the dedicated one when it exports these (NVIDIA Optimus, AMD
+   PowerXpress): without them a laptop could put the game on its integrated GPU, 5 fps */
+__declspec(dllexport) unsigned long NvOptimusEnablement = 1;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+
+/* (YM) The game's paths are UTF-8 char strings through Windows' A functions and fopen: its manifest (builder/crates/build-compile/src/generated/res.rs)
+   makes the process's code page UTF-8, from Windows 10 1903 on. Before that, or with the manifest missing, those take the system's
+   ANSI code page, and a folder name it cannot spell (Japanese on a Western Windows, an emoji) comes back as "?": nothing opens and
+   the game closed with no window and no log. The exe's own path through GetModuleFileNameA must name the exe (a name past HOS_PATH_CAP
+   bytes fails the same way); when it does not, a message says why (none for the builder's --prepare-shaders run: its log has it). */
+static int narrow_paths_ok(int argc, char **argv) {
+    char a[HOS_PATH_CAP];
+    const DWORD n = GetModuleFileNameA(NULL, a, HOS_PATH_CAP);
+    wchar_t w[HOS_PATH_CAP] = L"";
+    GetModuleFileNameW(NULL, w, HOS_PATH_CAP);
+    /* (the code page not UTF-8 (the manifest's activeCodePage not applied: before Windows 10 1903, 1809 LTSC): the A
+       functions take the ANSI code page's bytes, which the game's UTF-8 paths (hos_game_path_a) are only for plain ASCII.
+       A path the ANSI code page spells (Zélda on a Western Windows) opened here but named nothing once made UTF-8) */
+    int plain = 1;
+    for (const wchar_t *c = w; *c; c++) plain &= *c < 0x80;
+    if (n && n < HOS_PATH_CAP && GetFileAttributesA(a) != INVALID_FILE_ATTRIBUTES && (plain || GetACP() == CP_UTF8)) return 1;
+    fprintf(stderr, "YM: this folder's path cannot be opened (code page %u, %s): move the game to a folder with a plain name\n",
+            GetACP(), n >= HOS_PATH_CAP ? "too long" : "has characters the code page lacks");
+    int quiet = env_on("HOS_HEADLESS");
+    for (int i = 1; i < argc; i++) quiet |= !strcmp(argv[i], "--prepare-shaders");
+    if (!quiet) {
+        wchar_t text[HOS_PATH_CAP + 640];
+        _snwprintf(text, sizeof text / sizeof text[0],
+                   L"YM can't open its files in this folder:\n\n%ls\n\n"
+                   L"%ls\n\nMove the game folder somewhere with a shorter name of plain letters and digits (for example C:\\Games\\YM), "
+                   L"or update Windows.",
+                   w, GetACP() == CP_UTF8 ? L"The path is too long."
+                                          : L"Its name has characters this Windows can only give the game from Windows 10 version 1903 on.");
+        text[sizeof text / sizeof text[0] - 1] = 0;
+        MessageBoxW(NULL, text, L"YM", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    }
+    return 0;
+}
+
+#endif
+
+/* (YM) The game started by itself in a version folder's game folder (<version>/builds/<build>/, the builder two
+   folders up) hands over to the builder, which checks the folder, updates it when it must and starts the game with the
+   default profile (host/YM_exit.h, docs/dev/reference/build.md "The game started by itself"): Linux, the
+   process becomes the builder; Windows, the builder is started and this process ends. Returns when there is nothing to
+   hand over to (a developer's folder, a game the builder started) or the builder could not be started */
+static int hand_over_is_file(const char *path) {
+#ifdef _WIN32
+    const DWORD a = GetFileAttributesA(path);
+    return a != INVALID_FILE_ATTRIBUTES && !(a & FILE_ATTRIBUTE_DIRECTORY);
+#else
+    struct stat st;
+    return !stat(path, &st) && S_ISREG(st.st_mode);
+#endif
+}
+static void hand_over(int argc, char **argv) {
+    static char game[HOS_PATH_CAP], builder[HOS_PATH_CAP];
+    const DWORD n = hos_game_path_a(game, HOS_PATH_CAP);
+    if (!n || n >= HOS_PATH_CAP ||
+        !YM_handover(game, getenv(YM_BUILDER_CHANNEL), argc, argv, hand_over_is_file, YM_BUILDER_NAME,
+                           builder, sizeof builder))
+        return;
+#ifdef _WIN32
+    static wchar_t wbuilder[HOS_PATH_CAP];
+    if (!MultiByteToWideChar(CP_UTF8, 0, builder, -1, wbuilder, HOS_PATH_CAP)) return;
+    const wchar_t *tail = YM_cmdline_tail(GetCommandLineW());
+    const size_t len = wcslen(wbuilder) + wcslen(tail) + 16;
+    wchar_t *cmd = (wchar_t *)malloc(len * sizeof *cmd);   /* (CreateProcessW may write into it) */
+    if (!cmd) return;
+    swprintf(cmd, len, L"\"%ls\" play -- %ls", wbuilder, tail);
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+    memset(&si, 0, sizeof si), si.cb = sizeof si;
+    if (CreateProcessW(wbuilder, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        CloseHandle(pi.hThread), CloseHandle(pi.hProcess);
+        void hos_crash_clean_end(void);
+        hos_crash_clean_end();   /* (a normal exit: the builder plays it. Before the record starts, so nothing to clear) */
+        ExitProcess(0);
+    }
+    free(cmd);
+#else
+    char **v = YM_handover_argv(builder, argc, argv);
+    if (v) execv(builder, v);
+    free(v);
+#endif
+    fprintf(stderr, "YM: %s could not be started: the game starts by itself\n", builder);
+}
+
+#ifdef _WIN32
+int main(int argc, char **argv) {
+#else
+static int game_main(int argc, char **argv) {
+#endif
+#ifdef _WIN32   /* (the Windows start; Linux's main below does its own) */
+#ifdef TRACY_ENABLE
+    hos_tracy_start();   /* (YM_TRACY: the profiler's client, in the game alone: host/hos_tracy.h) */
+#endif
+    if (!narrow_paths_ok(argc, argv)) return 1;
+    hand_over(argc, argv);   /* (started by itself in a version folder: the builder's to start, host/YM_exit.h) */
+    bc_claim();   /* (the builder's channel ends kept from what the game starts, after the hand-over read them) */
+    hos_game_layout();   /* (the game folder's cache/ and logs/, before anything writes there: game/game_layout.c) */
+    {
+        void hos_relaunch_keep_env(void);   /* (host/hos_relaunch.c: the environment before the file's lines, for a restart) */
+        hos_relaunch_keep_env();
+    }
+    load_YM_env();
+    profile_start_slot();   /* (the profile's start_slot as HOS_START_SLOT, after the file, which may set it) */
+    hos_profiling_env();   /* (HOS_PROFILE=1, host/profiling.c: after the file, which may set it) */
+#endif
+    /* (the settings file, the profile's: chosen before the Discord status and the renderer read it; Linux's main chose it already: host/options_path.c) */
+    hos_options_choose();
+    game_init();   /* (the game's own start: its switches, game/game.h) */
+#ifdef _WIN32
+    {   // (the whole process, not only the window's thread: the renderer asks the window's size from its own, and on a 4K screen at 150%
+        // Windows answered such a thread 2560 x 1440: the picture was that size, in the corner of the window. YM issues 15, 18, 20)
+        typedef BOOL(WINAPI * SetAware)(void *);
+        SetAware set = (SetAware)(void *)GetProcAddress(GetModuleHandleA("user32.dll"), "SetProcessDpiAwarenessContext");
+        if (set && !env_on("HOS_DPI_UNAWARE")) set((void *)(intptr_t)-4);
+    }
+#endif
+    void hos_crash_record_prepare(const char *log_path);
+    int hos_log_redact_file(const char *path, const char *run_id);   /* (host/log_redact.h) */
+    {   // (started from its icon the game has nowhere to log to: YM_log.txt in the game folder's logs/ (game/game_layout.c), for players to send in)
+#ifdef _WIN32
+        {   /* (started again by the Insert menu's Restart now (host/hos_relaunch.c): the run before still has its log open until
+               it exits, so wait for it (up to 10 s) before the log moves to .1, or the move fails and its log is overwritten) */
+            const char *of = getenv("HOS_RESTART_OF");
+            if (of && *of) {
+                HANDLE before = OpenProcess(SYNCHRONIZE, FALSE, (DWORD)strtoul(of, NULL, 10));
+                if (before) WaitForSingleObject(before, 10000), CloseHandle(before);
+                SetEnvironmentVariableA("HOS_RESTART_OF", NULL);   /* (not passed on: a later restart sets its own) */
+                _putenv("HOS_RESTART_OF=");
+            }
+        }
+#endif
+        HANDLE err = GetStdHandle(STD_ERROR_HANDLE);
+        const DWORD err_kind = (!err || err == INVALID_HANDLE_VALUE) ? FILE_TYPE_UNKNOWN : GetFileType(err);
+        /* Steam markers say the process came from Steam, not that its stderr is Steam's log pipe: the launcher's build
+           steps (YM-builder's run: stdout=PIPE, stderr merged into it, its lines read for @@progress and its
+           silence accounted) keep Steam's markers through game_env's filter, and their stderr is a pipe the builder
+           reads. A --prepare-shaders run is that builder subprocess, never a played game: its pipe stays the
+           builder's, the log gate does not fire for it. (An icon start under UNKNOWN still writes its log as always;
+           only the new PIPE arm steps aside for the build step.) */
+        int prepare_only = 0;
+        for (int i = 1; i < argc; i++)
+            if (!strcmp(argv[i], "--prepare-shaders")) prepare_only = 1;
+        /* (Steam's Gaming mode hands the game its own log pipe on stderr — measured on Deck hardware 2026-11-17: fd/2 is an
+           anonymous FIFO shared with Steam, drained into Steam's console-linux.txt. The player cannot see that sink, and a
+           Gaming-mode crash report came with no game log (#1259): the game saw "external stderr" and wrote no file, while
+           the report collector read the game folder's logs/ and found nothing. Steam's own pipe counts as
+           nowhere-to-log-to like /dev/null does: the game writes its own log, and the crash report's readlink of fd/2
+           then finds a regular file, exactly as in Desktop mode. Two things say this pipe is STEAM's rather than a
+           pipe the player chose or a developer's live stream: Steam's marker variables (SteamGameId/SteamAppId, set in
+           everything Steam starts, non-Steam games and the launcher's routed Play included), and stdin — Steam gives
+           the programs it starts /dev/null there (measured), while a developer's own terminal session has a tty and
+           keeps its live stream even with Steam's markers in the environment. A player's `game | tee` carries neither
+           marker; a terminal stderr streams; a redirect to a real file (DISK) is honored as it was) */
+        if (err_kind == FILE_TYPE_UNKNOWN
+#ifndef _WIN32
+            || (!prepare_only && err_kind == FILE_TYPE_PIPE &&
+                (getenv("SteamGameId") || getenv("SteamAppId")) && !isatty(STDIN_FILENO))
+#endif
+            ) {
+            char path[HOS_PATH_CAP + 32];
+            DWORD n = hos_game_path_a(path, HOS_PATH_CAP);
+            while (n && path[n - 1] != 92 && path[n - 1] != 47) n--;
+            if (n && n + 5 < HOS_PATH_CAP) {   /* (its logs/, which hos_game_layout made; else beside the game, as before) */
+                memcpy(path + n, "logs", 5);
+                if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) path[n + 4] = path[n - 1], n += 5;
+            }
+            memcpy(path + n, "YM_log.txt", 11);
+            hos_crash_record_prepare(path);   /* recovery before rotation; keep this run's actual destination */
+            /* (the four runs before stay as YM_log.1.txt (the last) to .4.txt: a player who started the game again after a
+               crash sent in the new run's log, and the crash was gone) */
+            char from[HOS_PATH_CAP + 32], to[HOS_PATH_CAP + 32];
+            for (int k = 4; k >= 1; k--) {
+                if (k == 1) memcpy(from + n, "YM_log.txt", 11), memcpy(from, path, n);
+                else memcpy(from, path, n), snprintf(from + n, 32, "YM_log.%d.txt", k - 1);
+                memcpy(to, path, n), snprintf(to + n, 32, "YM_log.%d.txt", k);
+                MoveFileExA(from, to, MOVEFILE_REPLACE_EXISTING);
+            }
+            /* (YM) the run before's log without the player's user name: its own lines were written so, and what wrote to
+               stderr itself (the Vulkan loader, SDL) is redacted here (host/log_redact.h) */
+            hos_log_redact_file(to, NULL);
+#if !defined(_WIN32) && !defined(A64_MEM_ZERO)
+            startup_stderr = fcntl(STDERR_FILENO, F_DUPFD_CLOEXEC, 0);
+#endif
+            /* (opened first: freopen closes stderr when it cannot open the file, and the next file opened would take its
+               descriptor. A log that cannot be written leaves the stderr the game was started with) */
+            FILE *log = fopen(path, "w");
+            if (log) {
+                fclose(log);
+                if (freopen(path, "w", stderr)) setvbuf(stderr, NULL, _IONBF, 0);
+            }
+        } else hos_crash_record_prepare(NULL);   /* an externally supplied stderr, not the game's log */
+    }
+    hos_log("YM %s", YM_VERSION);   /* (the log's first line: which build a report comes from) */
+    const char *hos_report_run_id(void);
+    hos_log("run_id: %s", hos_report_run_id());
+    hos_log_flush();   /* (the run's own boundary, on disk before anything written straight to stderr: on Windows
+                          hos_log batches up to 250 ms, and a fast start that fails right after (no image, a guest
+                          window that can't be reserved, an image that can't be opened) writes its line direct —
+                          physically before the queued banner, so the crash dialog's reader gated at the run's
+                          run_id would never see the failure it is there to explain. The flush costs one write at
+                          start, and the report keeps both the version and the startup-failure line (issue #1374,
+                          review round three)) */
+    hos_game_layout_log();
+    driver_env_log();
+    void hos_crash_record_log_notes(void);
+    hos_crash_record_log_notes();
+    removed_switch_notes();
+    void hos_control_start(const char *version);
+    hos_control_start(YM_VERSION);   /* (HOS_CONTROL=<socket>: the control bridge, host/control.c) */
+    const char *image = NULL;
+    /* (YM) --compile-shaders all or most: what a preparation of this run builds (gpu/vk/vk_draw.cpp compile_all), over
+       compile_shaders= in YM_options.ini; as RX_VK_COMPILE_SHADERS, set before --prepare-shaders runs, wherever it stands */
+    for (int i = 1; i + 1 < argc; i++)
+        if (!strcmp(argv[i], "--compile-shaders")) {
+#ifdef _WIN32
+            char set[64];
+            snprintf(set, sizeof set, "RX_VK_COMPILE_SHADERS=%s", argv[i + 1]);
+            _putenv(set);
+#else
+            setenv("RX_VK_COMPILE_SHADERS", argv[i + 1], 1);
+#endif
+        }
+    hos_prepare_args_env(argc, argv);   /* (YM) a supervised preparation's journal, skips and limit: prepare_args.h */
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--romfs") && i + 1 < argc) hos_romfs_dir = argv[++i];
+        else if (!strcmp(argv[i], "--compile-shaders") && i + 1 < argc) i++;   /* (taken above) */
+        else if (hos_prepare_arg_switch(argv[i]) && i + 1 < argc) i++;         /* (taken above) */
+        else if (!strcmp(argv[i], "--user") && i + 1 < argc) hos_user_dir = argv[++i];
+        else if (!strcmp(argv[i], "--trace")) hos_trace = 1;
+        else if (!strcmp(argv[i], "--prepare-shaders")) {   /* (YM) a build's last step: no game */
+#ifdef _WIN32
+            _putenv("YM_PREPARE_ONLY=1");
+#else
+            setenv("YM_PREPARE_ONLY", "1", 1);
+#endif
+            int rx_prepare_shaders(void);
+            if (rx_prepare_shaders()) {
+                printf("@@done shaders\n");
+                return 0;
+            }
+            printf("@@error no usable Vulkan here: the game prepares its shaders at its first start\n");
+            return 3;
+        }
+        else if (!image) image = argv[i];
+    }
+#ifdef _WIN32
+    {   /* (YM) the Discord status (discord_rpc.c), a game run only (a --prepare-shaders run returned above). Linux starts
+           it in its own main, below; on Windows it was never started: no status and no "discord:" line in any log */
+        hos_discord_start();
+    }
+#endif
+    static char beside_image[HOS_PATH_CAP], beside_romfs[HOS_PATH_CAP], beside_user[HOS_PATH_CAP];
+    if (!image) {   /* (YM) started with nothing, as a game is: everything beside the executable (the builder's folder) */
+        char dir[HOS_PATH_CAP];
+        const DWORD len = hos_game_path_a(dir, HOS_PATH_CAP);
+        char *slash = len ? strrchr(dir, SEP) : NULL;
+        if (slash) {
+            *slash = 0;
+            SetCurrentDirectoryA(dir);
+            snprintf(beside_image, HOS_PATH_CAP, "%s" SEP_S "image.bin", dir);
+            snprintf(beside_romfs, HOS_PATH_CAP, "%s" SEP_S "romfs", dir);
+            snprintf(beside_user, HOS_PATH_CAP, "%s" SEP_S "user", dir);
+            if (GetFileAttributesA(beside_image) != INVALID_FILE_ATTRIBUTES) {
+                image = beside_image;
+                if (!hos_romfs_dir) hos_romfs_dir = beside_romfs;
+                if (!hos_user_dir) hos_user_dir = saves_dir(beside_user);
+            }
+        }
+    }
+    if (!image) {
+        fprintf(stderr, "usage: %s [image.bin] [--romfs <dir>] [--user <dir>] [--trace] [--prepare-shaders] [--compile-shaders all|most]\n",
+                argv[0]);
+        return 2;
+    }
+    {   /* (YM) The RomFS read in place from the player's .nup (romfs_index.h): the game folder has the index the
+           builder wrote beside image.bin, and no romfs folder. A .nup moved or replaced is said here, before the game starts */
+        static char index_path[2048], romfs_beside[2048];
+        if (!hos_romfs_index_beside(image, index_path, sizeof index_path))
+            hos_fatal(NULL, "romfs_index_bad: the game folder's path is too long (%s)", image);
+        /* (started as `game image.bin` with no --romfs: the romfs folder beside the image, as a start with nothing has it
+           beside the executable, so the index beside the image is opened when that folder is not there) */
+        if (!hos_romfs_dir && hos_romfs_dir_beside(image, romfs_beside, sizeof romfs_beside)) hos_romfs_dir = romfs_beside;
+        if (hos_romfs_dir && GetFileAttributesA(hos_romfs_dir) == INVALID_FILE_ATTRIBUTES &&
+            GetFileAttributesA(index_path) != INVALID_FILE_ATTRIBUTES) {
+            extern HosRomfsIndex *hos_romfs_index;   /* nn_fs.c */
+            char why[1536];
+            hos_romfs_index = hos_romfs_index_open(index_path, why, sizeof why);
+            if (!hos_romfs_index) hos_fatal(NULL, "%s", why);
+            hos_log("romfs: %u files read in place from %s", hos_romfs_index_count(hos_romfs_index), hos_romfs_index_nup(hos_romfs_index));
+        }
+    }
+    if (env_on("HOS_TRACE")) hos_trace = 1;
+    if (env_on("HOS_HLE_STATS")) {
+        void hos_hle_stats_start(void);
+        hos_hle_stats_start();
+    }
+    if (!hos_user_dir) hos_user_dir = "user";
+    /* (YM) The run's save folder (host/save_dir.h): the profile's saves/ (YM_PROFILE). An unusable folder is a
+       plain fatal error (the builder makes and tries the profile's folders before it starts the game, and says so itself),
+       and never falls back to the user folder's saves, which may be another profile's */
+    if (!hos_save_dir_choose()) {
+        hos_log("fatal: the save folder can't be used: %s", hos_save_dir_refused());
+        fprintf(stderr, "YM: the save folder can't be used: %s\n", hos_save_dir_refused());
+        hos_log_flush();
+        return 1;
+    }
+    if (hos_save_dir_chosen()) hos_log("fs: the saves are kept in %s (%s)", hos_save_dir_chosen(), hos_save_dir_source());
+    profile_note_log();
+    recover_writes();   /* (what a write of a setting that a kill cut left: before anything reads the settings) */
+    CreateDirectoryA(hos_user_dir, NULL);
+    hos_options_carry();   /* (a game folder's settings from before into the profile, once: host/options_path.c) */
+    if (!reserve_guest()) {
+        fprintf(stderr, "cannot reserve the guest window\n");
+        return 1;
+    }
+    void hos_crash_test_arm(void);
+    hos_crash_test_arm();   /* (HOS_CRASH_TEST: a crash on purpose, once the crash handlers are set up: host/hos_crash_test.c) */
+#ifdef A64_MEM_ZERO
+    web_fs_init(NULL, hos_romfs_dir);
+    /* (the whole file, no range: the server sends it brotli-compressed, 85 -> 26 MB) */
+    const int got = web_fetch_all(image, A64_MEM + IMAGE_BASE, GUEST_SPACE - IMAGE_BASE);
+    if (got < 0) {
+        fprintf(stderr, "cannot fetch %s\n", image);
+        return 1;
+    }
+    size_t n = (size_t)got;
+#else
+    FILE *f = fopen(image, "rb");
+    if (!f) {
+        fprintf(stderr, "cannot open %s\n", image);
+        return 1;
+    }
+    /* exactly the file's size: a read into "the rest of the guest window" (~4 GB) made Windows commit physical memory
+       for ~2 GB of it before the game ran (the whole heap was resident from the start, ~1.3 GB of it never used) */
+    fseek(f, 0, SEEK_END);
+    const long long file_size = _ftelli64(f);
+    fseek(f, 0, SEEK_SET);
+    if (file_size > 0) hos_commit(IMAGE_BASE, (uint64_t)file_size);
+    size_t n = file_size > 0 && (uint64_t)file_size <= GUEST_SPACE - IMAGE_BASE
+                   ? fread(A64_MEM + IMAGE_BASE, 1, (size_t)file_size, f) : 0;
+    fclose(f);
+#endif
+    if (IMAGE_BASE + n != hos_image_end) {
+        fprintf(stderr, "%s: %zu bytes, the lifted code expects %#llx: lift and image do not match\n", image, n,
+                (unsigned long long)(hos_image_end - IMAGE_BASE));
+        return 1;
+    }
+    hos_mem_init(hos_image_end);
+    {   /* (YM) Widescreen and ultrawide (game/oot_wide_sites.c): HOS_ASPECT=<ratio> (2.3889 for 3440x1440), else the Insert menu's
+           Aspect ratio (on unless it says 0) takes the main monitor's shape. The game's picture takes that shape at its own height (the
+           world wider at the sides on an ultrawide screen, narrower on a 16:10 or 4:3 one), its 16:9 cameras the picture's ratio.
+           An output that is not 16:9 takes precedence over both HOS_ASPECT and the Aspect ratio, matching the menu's picture. Wider
+           than 16:9 the HUD, menus and movies keep the middle 16:9; narrower they fill the picture's width. Until now the one 16:9
+           constant in the game's data was changed and the 16:9 picture stretched to the window. */
+        const char *e = getenv("HOS_ASPECT");
+        float want = e ? (float)atof(e) : 0.0f;
+        if (!e) {
+            int saved = -1, version = 0;   /* (the Aspect ratio's ultrawide= and options_version=, -1 / 0 without them) */
+            FILE *o = fopen(hos_options_file(), "r");
+            if (o) {
+                char line[80];
+                while (fgets(line, sizeof line, o)) {
+                    if (!strncmp(line, "ultrawide=", 10)) saved = atoi(line + 10) != 0;
+                    if (!strncmp(line, "options_version=", 16)) version = atoi(line + 16);
+                }
+                fclose(o);
+            }
+            void hos_monitor_prepare(void);
+            int hos_monitor_screen_size(int *,int *);
+            hos_monitor_prepare();
+            int sw=0,sh=0;
+            if (!hos_monitor_screen_size(&sw,&sh)) {
+                sw=GetSystemMetrics(SM_CXSCREEN); sh=GetSystemMetrics(SM_CYSCREEN);
+            }
+            /* (no line: the monitor's shape; an older file's 16:9 on a screen narrower than 16:9 too: hos_aspect_on) */
+            const int on = hos_aspect_on(saved, version, sw, sh);
+            if (on && sh > 0) want = (float)sw / (float)sh;
+        }
+        extern volatile uint64_t hos_wide_out, hos_wide_scene;
+        extern volatile float hos_wide_ratio, hos_wide_squeeze, hos_wide_margin;
+        uint32_t hos_output_size(int height);
+        const uint32_t output_w = hos_output_size(0), output_h = hos_output_size(1);
+        /* An output of a shape of its own (the Insert menu's Aspect ratio: 21:9, 16:10, 4:3, a 32:9 surround...) asks for that
+           shape, over HOS_ASPECT and Ultrawide, even if the OS reports one monitor (host/hos_wide_size.h) */
+        if (hos_output_own_shape(output_w, output_h)) want = (float)output_w / (float)output_h;
+        const double game = 16.0 / 9.0;
+        /* (a screen narrower than 16:9 too, 16:10 to 5:4: the picture keeps the game's height and is narrower, the
+           cameras take its ratio, and the HUD fills its width instead of a middle 16:9 wider than the screen. A 4:3 CRT
+           at the 1440 output: picture 1920 x 1440, scene 1440 x 1080, HUD 100%) */
+        if (want > game * 1.01 || (want > 1.0f && want < game * 0.99)) {
+            const double r = hos_wide_clamp(want);
+            /* (the height kept, the width at the screen's ratio, at most hos_wide_max_px() pixels (5120 x 2160's, a 21:9 screen's
+               native at the 4K output) with the shape kept: host/hos_wide_size.h, which the Insert menu's Output and Render
+               resolution rows share) */
+            unsigned ow, oh;
+            hos_wide_size(output_h, r, hos_wide_max_px(), &ow, &oh);
+            const unsigned sh = oh * 3 / 4, sw = (unsigned)(ow * 0.75 / 8 + 0.5) * 8;   /* (the scene, 3/4 of the picture as shipped) */
+            hos_wide_out = (uint64_t)oh << 32 | ow;
+            hos_wide_scene = (uint64_t)sh << 32 | sw;
+            hos_wide_ratio = (float)ow / (float)oh;
+            hos_wide_squeeze = (float)fmin(1.0, game / ((double)ow / oh));   /* (a narrower screen: the whole width) */
+            hos_wide_margin = (1.0f - hos_wide_squeeze) / 2.0f;
+            hos_aspect_ratio = hos_wide_ratio;
+            hos_log("boot: widescreen: picture %ux%u, scene %ux%u, camera ratio %.4f, HUD and movies in the middle %.1f%%", ow, oh, sw, sh,
+                    (double)hos_wide_ratio, hos_wide_squeeze * 100.0);
+        } else if (want > 1.0f) {
+            hos_log("boot: widescreen: a %.4f screen is 16:9: the game's own picture", (double)want);
+        }
+    }
+    hos_log("boot: image %zu MB at %#llx, %llu MB of memory for the game", n >> 20, IMAGE_BASE,
+            (unsigned long long)(hos_total_memory >> 20));
+#ifndef A64_MEM_ZERO
+    memory_notice();
+#endif
+    hos_mods_init(image);   /* mods.c: <exe folder>\mods (RomFS files) */
+    hos_cheats_init();   /* (hookshot) cheats.c: the cheats of the mods that are on */
+
+    Ctx *c = hos_boot_main_thread(hos_main_stack_size);
+    uint64_t sp = c->x[31];
+    void hos_prof_start(void);
+    hos_prof_start();   /* HOS_PROFILE_EVERY=<seconds>, the samplers, HOS_PROFILE=1 */
+    void hos_chain_start(void);
+    hos_chain_start();  /* HOS_CHAIN=<path> */
+    hos_ab_start();     /* (YM) HOS_AB=<switch>=<value>: an A/B within the run (host/hos_ab.c), before the game's threads */
+#ifdef _WIN32
+    timeBeginPeriod(1);   /* 1 ms timer resolution: the 60 Hz vsync and the game's frame pacing sleep in short steps */
+    no_power_throttling();
+    ws_floor();   /* (the game's memory kept in RAM under memory pressure: host/ws_floor.h) */
+#endif
+    void hos_display_start(void);
+    hos_display_start();  /* the game's window; HOS_HEADLESS=1 for none */
+    /* nn::init::Start's order (sdk+0xfa060), with rtld's three callbacks done here: f1 only marks rtld initialized,
+       f2 is every module's DT_INIT, f3 the DT_FINIs (not needed: we never return from nnMain to unload). */
+    call_guest(c, hos_entry_init_libc0, sp, "_init_libc0");
+    c->x[0] = hos_thread_handle(hos_self());   /* the main thread's handle */
+    c->x[1] = 0;                               /* program arguments: none (an unmapped address) */
+    call_guest_args(c, hos_entry_nnosInitialize, sp, "nnosInitialize");
+    void hos_thread_adopt_guest(HosThread *t);
+    hos_thread_adopt_guest(hos_self());
+    call_guest(c, hos_entry_init_libc1, sp, "_init_libc1");
+    /* nninitInitializeSdkModule (sdk+0xfa000) only opens the SDK's service clients (sm:, diag, oe, aoc, err, fs,
+       pctl) over IPC; the HLE stands in for every one of them, so it is not run. */
+    call_guest(c, hos_entry_nninitStartup, sp, "nninitStartup");
+    call_guest(c, hos_entry_init_libc2, sp, "_init_libc2");
+    for (int i = 0; i < hos_module_count; i++) {
+        char what[64];
+        snprintf(what, sizeof what, "%s DT_INIT", hos_module_name[i]);
+        call_guest(c, hos_module_init[i], sp, what);
+    }
+    call_guest(c, hos_entry_nnMain, sp, "nnMain");
+    /* (YM) the game is over: RenHDrum's backends stop and let go of the pads (host/rumble_renhdrum.c) */
+    void hos_sdl_vibration_shutdown(void);
+    hos_sdl_vibration_shutdown();
+    hos_log("nnMain returned");
+    void hos_pad_speaker_shutdown(void);   /* (YM) host/pad_speaker.c */
+    hos_pad_speaker_shutdown();
+    void hos_crash_clean_end(void);
+    hos_crash_clean_end();
+    return 0;
+}
+
+#ifndef _WIN32
+/* (linux) The window belongs on the process's main thread (SDL), so the game runs on a thread of its own, with the
+   stack the guest main thread's lifted code needs (the main thread has the system's 8 MB): host/posix/display_sdl.c */
+static int game_argc;
+static char **game_argv;
+static DWORD WINAPI game_thread(void *p) {
+    (void)p;
+    const UINT result = (UINT)game_main(game_argc, game_argv);
+    void hos_crash_clean_end(void);
+    hos_crash_clean_end();
+    ExitProcess(result);
+}
+/* (YM, linux) Room in the drivers' own shader caches for what the preparation builds. The pipelines the notes predict (~43,000
+   in OoT, vk_draw.cpp predict_run) are built into the driver's disk cache alone, not into YM_vk_pipelines.bin, which is read in whole
+   at every start. NVIDIA's cache holds 1 GiB by default and cleans itself down to that as it is written: a full preparation filled
+   it to the limit (1026 MB) and the pipelines it dropped were compiled again in play. Mesa's (RADV, ANV) has the same 1 GiB default.
+   Raised for this process only, before anything loads Vulkan; a value the player set (or YM_env.txt) is kept. Windows: the
+   NVIDIA driver takes its size from the control panel's Shader Cache Size alone (no environment variable), for every program;
+   the launcher raises it through NVIDIA's driver settings (YMLauncher's DriverSettings.RaiseShaderCache), and the game
+   reads it for the log and the pipeline cache file's rule (gpu/vk/nvidia_cache_limit.h) */
+static void driver_cache_room(void) {
+    setenv("__GL_SHADER_DISK_CACHE_SIZE", "10737418240", 0);   /* (10 GiB, bytes) */
+    setenv("MESA_SHADER_CACHE_MAX_SIZE", "10G", 0);
+}
+#include <errno.h>
+#include <sys/stat.h>
+/* (YM, linux) NVIDIA's driver keeps no shader cache at all when __GL_SHADER_DISK_CACHE_PATH names a folder that does not exist:
+   it neither creates it nor falls back to ~/.cache/nvidia, and every start compiles every pipeline again (a test of 300 pipelines:
+   7.9 ms each at the first start and at the second, against 0.06 ms from the cache; driver 620.70). The folder a player or a
+   launcher named is made here, before anything loads Vulkan. Mesa makes its own (MESA_SHADER_CACHE_DIR, parents too). Not needed:
+   NVIDIA files the cache by the program's file name alone (bin/YM), not its folder, bytes or date, nor VkApplicationInfo, so
+   an update in place, a folder moved or copied and every YM folder on the PC share one cache (a cache of another driver or
+   GPU is the driver's to drop) */
+static void driver_cache_folder(void) {
+    const char *dir = getenv("__GL_SHADER_DISK_CACHE_PATH");
+    if (!dir || !*dir || strlen(dir) >= 4096) return;
+    char path[4096];
+    strcpy(path, dir);
+    for (char *p = path + 1;; p++) {   /* (each parent, then the folder itself: mkdir -p) */
+        const char c = *p;
+        if (c != '/' && c) continue;
+        *p = 0;
+        if (mkdir(path, 0700) != 0 && errno != EEXIST) {
+            fprintf(stderr, "vk: __GL_SHADER_DISK_CACHE_PATH %s: cannot make %s (%s): NVIDIA's driver keeps no shader cache\n", dir,
+                    path, strerror(errno));
+            return;
+        }
+        if (!c) {   /* (a file already at that name counts as made for mkdir, but the driver can't use it) */
+            struct stat st;
+            if (stat(path, &st) != 0 || !S_ISDIR(st.st_mode))
+                fprintf(stderr, "vk: __GL_SHADER_DISK_CACHE_PATH %s: cannot make it, a file has that name: NVIDIA's driver keeps no shader cache\n", dir);
+            return;
+        }
+        *p = '/';
+    }
+}
+/* (YM, linux) RADV_FORCE_VRS_CONFIG_FILE dropped before anything loads Vulkan. The Steam Deck's Game Mode sets it for
+   Steam and everything it starts, naming a file it writes the Half Rate Shading rate to (/tmp/radv_vrs.<random>, "1x1" when
+   off). When that file exists, RADV forces VRS for the device and puts that into every graphics pipeline's key, so nothing
+   built without it is found, in the driver's cache or in ours: measured on a Steam Deck OLED (RADV, Mesa 26.2.0-devel), the
+   same install compiled its 32,438 noted pipelines at about 20 a second (25-30 minutes) with the variable naming a file, empty
+   or "1x1", and loaded them in 22 s without it or with it naming no file. The preparation (the Builder, a first start from the
+   desktop) runs without it, so every start from Game Mode compiled again what it built. Dropped only when it names a file that
+   exists, which is when RADV reads it; no other driver reads it. RX_VK_HALF_RATE_SHADING=1 keeps it: Steam's Half Rate Shading
+   works for YM then (little: RADV leaves a fragment program that reads its position at full rate, and nearly all of
+   ours do), and the starts in Game Mode compile their own pipelines. RADV_FORCE_VRS, a rate someone set by hand, is kept.
+   The variable is named in YM_DRIVER_ENV_SET for the renderer's driver cache line. A restart (hos_relaunch.c) starts
+   again from the first environment and drops it again */
+static void driver_env_choose(void) {
+    const char *file = getenv("RADV_FORCE_VRS_CONFIG_FILE");
+    struct stat st;
+    if (!file || !*file || stat(file, &st) != 0) return;
+    const char *keep = getenv("RX_VK_HALF_RATE_SHADING");
+    if (keep && !strcmp(keep, "1")) {
+        snprintf(driver_env_said, sizeof driver_env_said,
+                 "vk: RADV_FORCE_VRS_CONFIG_FILE kept (RX_VK_HALF_RATE_SHADING=1): Steam's Half Rate Shading reaches the game, "
+                 "and RADV gives every graphics pipeline another key than the preparation's, so they are compiled again");
+    } else {
+        snprintf(driver_env_said, sizeof driver_env_said,
+                 "vk: RADV_FORCE_VRS_CONFIG_FILE=%.300s dropped: with it RADV gives every graphics pipeline another key than the "
+                 "preparation's and compiles them all again; Steam's Half Rate Shading has no effect on YM "
+                 "(RX_VK_HALF_RATE_SHADING=1 keeps it)", file);
+        unsetenv("RADV_FORCE_VRS_CONFIG_FILE");
+        setenv("YM_DRIVER_ENV_SET", "RADV_FORCE_VRS_CONFIG_FILE", 1);
+    }
+    fprintf(stderr, "%s\n", driver_env_said);
+}
+int main(int argc, char **argv) {
+    hand_over(argc, argv);   /* (started by itself in a version folder: the builder's to start, host/YM_exit.h) */
+    bc_claim();   /* (the builder's channel ends kept from what the game starts, after the hand-over read them) */
+#ifdef TRACY_ENABLE
+    hos_tracy_start();   /* (YM_TRACY: the profiler's client, in the game alone: host/hos_tracy.h) */
+#endif
+    int hos_display_init(void);
+    void hos_display_loop(void);
+    hos_game_layout();   /* (the game folder's cache/ and logs/, before anything writes there, --prepare-shaders too: game/game_layout.c) */
+    {
+        void hos_relaunch_keep_env(void);   /* (host/hos_relaunch.c: whether the game was given a stderr, for a restart) */
+        hos_relaunch_keep_env();
+    }
+    load_YM_env();
+    profile_start_slot();   /* (the profile's start_slot as HOS_START_SLOT, after the file, which may set it) */
+    hos_profiling_env();   /* (HOS_PROFILE=1, host/profiling.c: after the file, which may set it) */
+    hos_options_choose();   /* (before the Discord status reads it, below: host/options_path.c) */
+    driver_cache_room();
+    driver_cache_folder();
+    driver_env_choose();
+    game_argc = argc, game_argv = argv;
+    int prepare_shaders = 0;
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--prepare-shaders")) prepare_shaders = 1;
+        else if (!strcmp(argv[i], "--romfs") || !strcmp(argv[i], "--user") || !strcmp(argv[i], "--compile-shaders")) i++;
+    }
+    /* The builder's preparation worker needs Vulkan, but no SDL display. */
+    const int window = prepare_shaders ? 0 : hos_display_init();
+    if (window < 0) {
+        hos_log_flush();
+        return 1;
+    }
+    if (!prepare_shaders) {   /* (YM) the Discord status (discord_rpc.c): only a game run */
+        hos_discord_start();
+    }
+    HANDLE t = CreateThread(NULL, 64u << 20, game_thread, NULL, 0, NULL);
+    if (!t) {
+        fprintf(stderr, "cannot start the game's thread\n");
+        return 1;
+    }
+    SetThreadDescription(t, L"Game");
+    if (window) hos_display_loop();   /* (does not return: the window's events until the process ends) */
+    WaitForSingleObject(t, INFINITE);
+    return 0;
+}
+#endif

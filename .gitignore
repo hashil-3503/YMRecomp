@@ -1,0 +1,82 @@
+# ---- never commit the game or anything made from it ----
+# (decompressed modules, the loaded image, lifted C, test builds, romfs/exefs copies, dumps, keys)
+work/
+gen/
+image/
+# (the lifter's crate that reads an image is source, not an image)
+!/builder/crates/image/
+exefs/
+romfs/
+*.bin
+*.keys
+*.nso
+*.nca
+*.nsp
+*.xci
+gamefile/
+*.nup
+*.nsz
+*.xcz
+# (saves: only the scrubbed ones in assets/saves, CONTRIBUTING.md)
+*.sav
+!/assets/saves/**/*.sav
+
+# ---- build output and caches ----
+build/
+/third_party_objects/
+__pycache__/
+*.pyc
+*.o
+*.obj
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.sha1
+*.log
+
+# ---- Linux builds ----
+build-linux/
+
+# ---- tools.lock's build tools in a checkout (mise run tools: YM-builder --root . takes them) ----
+/tools/
+/.tools/
+/build-tools-cache/
+*.so
+
+# ---- the lifter's cargo builds (docs/dev/reference/builder.md) ----
+/target/
+# (the builder's crates' own target folder from before the root workspace: a stale one, or a test that still writes there)
+/builder/target/
+# (the release's prebuilt libYM_rs.a and its key: made by CI, carried by YM-builder, never committed)
+/YM-rs/prebuilt/
+
+# ---- a checkout's own development builds on Windows (scripts/dev.py) ----
+build-windows/
+
+# ---- NVIDIA's DLSS SDK (scripts/fetch.py dlss): NVIDIA's files, never committed ----
+ngx-sdk/
+test-results/
+_deps/
+
+# ---- a link to <build>/compile_commands.json (build-compile's link.rs), for clangd and clang-tidy ----
+/compile_commands.json
+
+# ---- Visual Studio IDE files ----
+.vs/
+.vscode/
+CppProperties.json
+
+# .NET build output
+**/obj/
+
+# ---- this fork's local files: the built game, its outputs, and work notes ----
+/HANDOFF.md
+/YoshiGame/
+*.idx
+.YM_romfs.json
+YM_build.json
+YM_options.ini
+/bug-reports/

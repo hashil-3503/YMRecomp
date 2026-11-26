@@ -1,0 +1,8 @@
+# YM build / tools Python deps. From the clone:
+#   python -m pip install -r requirements.txt
+#
+# The developer scripts' and the tests' Python packages (mise.toml's test-deps and CI install the same pins).
+numpy==2.5.4
+pillow==13.0.0
+unicorn==2.1.4
+zstandard==0.25.0
